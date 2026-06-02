@@ -7,6 +7,7 @@ import { requestLogger } from './middleware/requestLogger.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { notFound } from './middleware/notFound.js'
 import { healthRouter } from './routes/health.js'
+import { aiRouter } from './routes/ai.js'
 
 /**
  * Express app factory. Separated from index.ts so tests can import
@@ -35,8 +36,8 @@ export function createApp(): Express {
   app.use('/health', healthRouter)
 
   // TODO: API routes will be added in later tasks
+  app.use('/api/ai', aiRouter)             // Task B4
   // app.use('/api/auth', authRouter)         // Task B3
-  // app.use('/api/ai', aiRouter)             // Task B4
   // app.use('/api/records', recordsRouter)   // Task B5
 
   // 404 + error handlers (must be last)

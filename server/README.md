@@ -54,9 +54,92 @@ npm run db:studio     # Open Drizzle Studio at https://local.drizzle.studio
 - `ai_usage` — daily AI call counter for rate limiting
 - `sessions` — refresh tokens (optional)
 
-## Endpoints (current)
+## Endpoints
 
-- `GET /health` — health check
+### `GET /health`
+
+Health check. Returns 200 if all dependencies are up, 503 if the database is down.
+
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-06-02T08:30:00.000Z",
+  "uptime": 12.4,
+  "env": "development",
+  "checks": { "database": "up" }
+}
+```
+
+### `POST /api/ai/interpret`
+
+Server-proxied Claude AI interpretation. **Server-Sent Events (SSE) stream.**
+
+Rate limited: **5 calls per IP per day (UTC)**. Override with `AI_DAILY_LIMIT` env var.
+
+**Request body**
+
+```json
+{
+  "mainHexagramId": 1,
+  "changedHexagramId": 2,
+  "movingLine": 4,
+  "question": "近期是否适合换工作？"
+}
+```
+
+| Field | Type | Range | Required |
+|---|---|---|---|
+| `mainHexagramId` | int | 1-64 | yes |
+| `changedHexagramId` | int | 1-64 | yes |
+| `movingLine` | int | 1-6 | yes |
+| `question` | string | ≤500 chars | no |
+
+**Response headers**
+
+- `Content-Type: text/event-stream`
+- `X-RateLimit-Limit: 5`
+- `X-RateLimit-Remaining: 3` (count after this call)
+- `X-RateLimit-Reset: 1717353600` (UTC epoch seconds)
+
+**SSE events**
+
+```text
+data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"乾卦"}}\n\n
+data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"提示..."}}\n\n
+...
+data: {"type":"done","usage":{"inputTokens":150,"outputTokens":350}}\n\n
+```
+
+If the upstream Claude call fails, an `error` event is sent before the stream closes.
+
+**Rate limit exceeded (HTTP 429)**
+
+```json
+{
+  "error": "RateLimitExceeded",
+  "message": "今日 AI 解读次数已用完，请明日再试。",
+  "limit": 5,
+  "resetAt": "2026-06-03T00:00:00.000Z"
+}
+```
+
+**Service not configured (HTTP 503)**
+
+Returned when `ANTHROPIC_API_KEY` is missing.
+
+### `GET /api/ai/usage`
+
+Check the current IP's rate limit status. Useful for the frontend to display
+remaining quota without consuming one.
+
+```json
+{
+  "limit": 5,
+  "remaining": 3,
+  "resetAt": "2026-06-03T00:00:00.000Z",
+  "current": 1
+}
+```
 
 ## Endpoints (planned)
 
@@ -64,7 +147,6 @@ npm run db:studio     # Open Drizzle Studio at https://local.drizzle.studio
 - `POST /api/auth/login` — Task B3
 - `POST /api/auth/logout` — Task B3
 - `GET  /api/auth/me` — Task B3
-- `POST /api/ai/interpret` — Task B4 (server-proxied Claude call)
 - `GET  /api/records` — Task B5
 - `POST /api/records` — Task B5
 - `DELETE /api/records/:id` — Task B5
@@ -77,6 +159,8 @@ npm run db:studio     # Open Drizzle Studio at https://local.drizzle.studio
 | NODE_ENV | no | development | runtime mode |
 | PORT | no | 3001 | server port |
 | FRONTEND_ORIGIN | no | http://localhost:5173 | CORS allowed origin |
-| DATABASE_URL | no (B2) | — | PostgreSQL connection string |
+| DATABASE_URL | yes (B2) | — | PostgreSQL connection string |
 | JWT_SECRET | no (B3) | dev value | signing secret for JWTs |
-| ANTHROPIC_API_KEY | no (B4) | — | Claude API key (server-side) |
+| **ANTHROPIC_API_KEY** | **yes (B4)** | — | Claude API key (server-side) |
+| AI_DAILY_LIMIT | no | 5 | Per-IP daily AI interpretation cap |
+| HEXAGRAMS_JSON_PATH | no | auto-detect | Override path to `hexagrams.json` |
