@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { BreathEffect } from '@/components/motion/BreathEffect'
 import { getHexagramById } from '@/lib/divination'
 import { getOpposite, getInverse, getNuclear } from '@/lib/relations'
+import { SEO } from '@/lib/seo'
 import { cn } from '@/utils/cn'
 import type { HexagramId } from '@/types'
 
@@ -44,6 +45,10 @@ export default function HexagramDetail() {
 
   return (
     <PageLayout>
+      <SEO
+        title={`第 ${hexagram.number} 卦 · ${hexagram.name}`}
+        description={hexagram.judgement}
+      />
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}

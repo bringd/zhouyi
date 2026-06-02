@@ -1,8 +1,10 @@
 import { PageLayout } from '@/components/layout/PageLayout'
+import { SEO } from '@/lib/seo'
 
 export default function Records() {
   return (
     <PageLayout>
+      <SEO title="我的卦册" description="查看你的历史起卦记录。" />
       <h1 className="text-display-md font-display text-center text-ink tracking-widest mb-2">我的卦册</h1>
       <p className="text-center text-ink-light font-body mb-8">保存你的每一次起卦</p>
       <div className="text-center py-12 p-6 bg-rice border-2 border-june-bronze/30 rounded-md">
