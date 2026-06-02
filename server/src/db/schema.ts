@@ -1,0 +1,98 @@
+import { pgTable, uuid, text, timestamp, integer, jsonb, varchar, index, uniqueIndex } from 'drizzle-orm/pg-core'
+
+/**
+ * Users table.
+ */
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  passwordHash: text('password_hash').notNull(),
+  nickname: varchar('nickname', { length: 50 }),
+  region: varchar('region', { length: 100 }),
+  timezone: varchar('timezone', { length: 100 }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  emailIdx: uniqueIndex('users_email_idx').on(table.email),
+}))
+
+/**
+ * User records (divination history).
+ * Stores the JSON-serialized record from frontend.
+ */
+export const records = pgTable('records', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: varchar('type', { length: 20 }).notNull(),  // 'three-number' | 'daily'
+  question: text('question'),
+  numbers: jsonb('numbers').$type<[number, number, number] | null>(),
+  region: varchar('region', { length: 100 }),
+  timezone: varchar('timezone', { length: 100 }),
+  mainHexagramId: integer('main_hexagram_id').notNull(),
+  movingLine: integer('moving_line').notNull(),
+  changedHexagramId: integer('changed_hexagram_id').notNull(),
+  aiInterpretation: text('ai_interpretation'),
+  userNote: text('user_note'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  userCreatedIdx: index('records_user_created_idx').on(table.userId, table.createdAt),
+  userTypeIdx: index('records_user_type_idx').on(table.userId, table.type),
+}))
+
+/**
+ * Favorite hexagrams (a user can "star" hexagrams they like).
+ */
+export const favoriteHexagrams = pgTable('favorite_hexagrams', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  hexagramId: integer('hexagram_id').notNull(),
+  note: text('note'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  userHexIdx: uniqueIndex('fav_user_hex_idx').on(table.userId, table.hexagramId),
+}))
+
+/**
+ * AI usage tracking for rate limiting.
+ * One row per AI call. Used by the B4 limiter.
+ */
+export const aiUsage = pgTable('ai_usage', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
+  ipAddress: varchar('ip_address', { length: 45 }).notNull(),  // IPv6 max length
+  date: varchar('date', { length: 10 }).notNull(),  // 'YYYY-MM-DD' for daily bucketing
+  hexagramId: integer('hexagram_id'),
+  tokensUsed: integer('tokens_used'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  ipDateIdx: index('ai_usage_ip_date_idx').on(table.ipAddress, table.date),
+  userDateIdx: index('ai_usage_user_date_idx').on(table.userId, table.date),
+}))
+
+/**
+ * Sessions (for JWT refresh / revocation).
+ * Optional for MVP — only needed if we add refresh tokens in B3.
+ */
+export const sessions = pgTable('sessions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  refreshTokenHash: text('refresh_token_hash').notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  userIdx: index('sessions_user_idx').on(table.userId),
+  refreshIdx: uniqueIndex('sessions_refresh_idx').on(table.refreshTokenHash),
+}))
+
+// Type exports for use in routes
+export type User = typeof users.$inferSelect
+export type NewUser = typeof users.$inferInsert
+export type Record = typeof records.$inferSelect
+export type NewRecord = typeof records.$inferInsert
+export type FavoriteHexagram = typeof favoriteHexagrams.$inferSelect
+export type NewFavoriteHexagram = typeof favoriteHexagrams.$inferInsert
+export type AiUsage = typeof aiUsage.$inferSelect
+export type NewAiUsage = typeof aiUsage.$inferInsert
+export type Session = typeof sessions.$inferSelect
+export type NewSession = typeof sessions.$inferInsert
