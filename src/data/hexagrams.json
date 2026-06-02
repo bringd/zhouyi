@@ -1,0 +1,5427 @@
+[
+  {
+    "id": 1,
+    "number": 1,
+    "name": "乾为天",
+    "shortName": "乾",
+    "upperTrigramId": 1,
+    "lowerTrigramId": 1,
+    "binaryCode": "111111",
+    "palace": 1,
+    "palaceRole": "本宫卦",
+    "theme": [
+      "人生总论"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "创造",
+      "刚健",
+      "主动",
+      "自强",
+      "领导"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 2,
+    "number": 2,
+    "name": "坤为地",
+    "shortName": "坤",
+    "upperTrigramId": 8,
+    "lowerTrigramId": 8,
+    "binaryCode": "000000",
+    "palace": 8,
+    "palaceRole": "本宫卦",
+    "theme": [
+      "人生总论"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "包容",
+      "柔顺",
+      "承载",
+      "厚德",
+      "孕育"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 3,
+    "number": 3,
+    "name": "水雷屯",
+    "shortName": "屯",
+    "upperTrigramId": 6,
+    "lowerTrigramId": 4,
+    "binaryCode": "100010",
+    "palace": 6,
+    "palaceRole": "二世",
+    "theme": [
+      "困境抉择"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "初创",
+      "艰难",
+      "萌动",
+      "积蓄",
+      "待时"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 4,
+    "number": 4,
+    "name": "山水蒙",
+    "shortName": "蒙",
+    "upperTrigramId": 7,
+    "lowerTrigramId": 6,
+    "binaryCode": "010001",
+    "palace": 3,
+    "palaceRole": "四世",
+    "theme": [
+      "成长修养",
+      "困境抉择"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "启蒙",
+      "蒙昧",
+      "求教",
+      "启发",
+      "修学"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 5,
+    "number": 5,
+    "name": "水天需",
+    "shortName": "需",
+    "upperTrigramId": 6,
+    "lowerTrigramId": 1,
+    "binaryCode": "111010",
+    "palace": 8,
+    "palaceRole": "游魂",
+    "theme": [
+      "事业行动",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "等待",
+      "蓄养",
+      "需求",
+      "从容",
+      "静候"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 6,
+    "number": 6,
+    "name": "天水讼",
+    "shortName": "讼",
+    "upperTrigramId": 1,
+    "lowerTrigramId": 6,
+    "binaryCode": "010111",
+    "palace": 3,
+    "palaceRole": "游魂",
+    "theme": [
+      "事业行动",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "争讼",
+      "冲突",
+      "止争",
+      "诉求",
+      "退让"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 7,
+    "number": 7,
+    "name": "地水师",
+    "shortName": "师",
+    "upperTrigramId": 8,
+    "lowerTrigramId": 6,
+    "binaryCode": "010000",
+    "palace": 6,
+    "palaceRole": "归魂",
+    "theme": [
+      "事业行动",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "统帅",
+      "军旅",
+      "纪律",
+      "正义",
+      "号令"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 8,
+    "number": 8,
+    "name": "水地比",
+    "shortName": "比",
+    "upperTrigramId": 6,
+    "lowerTrigramId": 8,
+    "binaryCode": "000010",
+    "palace": 8,
+    "palaceRole": "归魂",
+    "theme": [
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "亲比",
+      "团结",
+      "辅佐",
+      "相亲",
+      "依附"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 9,
+    "number": 9,
+    "name": "风天小畜",
+    "shortName": "小畜",
+    "upperTrigramId": 5,
+    "lowerTrigramId": 1,
+    "binaryCode": "111011",
+    "palace": 5,
+    "palaceRole": "一世",
+    "theme": [
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "小积",
+      "蓄养",
+      "柔止",
+      "酝酿",
+      "渐进"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 10,
+    "number": 10,
+    "name": "天泽履",
+    "shortName": "履",
+    "upperTrigramId": 1,
+    "lowerTrigramId": 2,
+    "binaryCode": "110111",
+    "palace": 7,
+    "palaceRole": "五世",
+    "theme": [
+      "事业行动",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "履行",
+      "礼节",
+      "谨慎",
+      "前行",
+      "虎尾"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 11,
+    "number": 11,
+    "name": "地天泰",
+    "shortName": "泰",
+    "upperTrigramId": 8,
+    "lowerTrigramId": 1,
+    "binaryCode": "111000",
+    "palace": 8,
+    "palaceRole": "三世",
+    "theme": [
+      "人生总论",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "通泰",
+      "亨通",
+      "交感",
+      "和谐",
+      "兴旺"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 12,
+    "number": 12,
+    "name": "天地否",
+    "shortName": "否",
+    "upperTrigramId": 1,
+    "lowerTrigramId": 8,
+    "binaryCode": "000111",
+    "palace": 1,
+    "palaceRole": "三世",
+    "theme": [
+      "人生总论",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "闭塞",
+      "否运",
+      "不通",
+      "退守",
+      "隐忍"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 13,
+    "number": 13,
+    "name": "天火同人",
+    "shortName": "同人",
+    "upperTrigramId": 1,
+    "lowerTrigramId": 3,
+    "binaryCode": "101111",
+    "palace": 3,
+    "palaceRole": "归魂",
+    "theme": [
+      "事业行动",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "同道",
+      "合作",
+      "光明",
+      "亲和",
+      "大同"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 14,
+    "number": 14,
+    "name": "火天大有",
+    "shortName": "大有",
+    "upperTrigramId": 3,
+    "lowerTrigramId": 1,
+    "binaryCode": "111101",
+    "palace": 1,
+    "palaceRole": "归魂",
+    "theme": [
+      "事业行动",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "大有",
+      "丰盛",
+      "柔得",
+      "光明",
+      "富裕"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 15,
+    "number": 15,
+    "name": "地山谦",
+    "shortName": "谦",
+    "upperTrigramId": 8,
+    "lowerTrigramId": 7,
+    "binaryCode": "001000",
+    "palace": 2,
+    "palaceRole": "五世",
+    "theme": [
+      "人生总论",
+      "事业行动",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "谦逊",
+      "低调",
+      "内敛",
+      "让贤",
+      "尊德"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 16,
+    "number": 16,
+    "name": "雷地豫",
+    "shortName": "豫",
+    "upperTrigramId": 4,
+    "lowerTrigramId": 8,
+    "binaryCode": "000100",
+    "palace": 4,
+    "palaceRole": "一世",
+    "theme": [
+      "人生总论",
+      "事业行动",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "和乐",
+      "逸豫",
+      "顺动",
+      "欢愉",
+      "备豫"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 17,
+    "number": 17,
+    "name": "泽雷随",
+    "shortName": "随",
+    "upperTrigramId": 2,
+    "lowerTrigramId": 4,
+    "binaryCode": "100110",
+    "palace": 4,
+    "palaceRole": "归魂",
+    "theme": [
+      "人生总论",
+      "事业行动",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "随顺",
+      "跟随",
+      "应时",
+      "从容",
+      "相随"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 18,
+    "number": 18,
+    "name": "山风蛊",
+    "shortName": "蛊",
+    "upperTrigramId": 7,
+    "lowerTrigramId": 5,
+    "binaryCode": "011001",
+    "palace": 5,
+    "palaceRole": "归魂",
+    "theme": [
+      "人生总论",
+      "成长修养",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "整治",
+      "革弊",
+      "匡正",
+      "继志",
+      "事业"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 19,
+    "number": 19,
+    "name": "地泽临",
+    "shortName": "临",
+    "upperTrigramId": 8,
+    "lowerTrigramId": 2,
+    "binaryCode": "110000",
+    "palace": 8,
+    "palaceRole": "二世",
+    "theme": [
+      "事业行动",
+      "成长修养"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "临近",
+      "督导",
+      "亲临",
+      "关怀",
+      "光大"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 20,
+    "number": 20,
+    "name": "风地观",
+    "shortName": "观",
+    "upperTrigramId": 5,
+    "lowerTrigramId": 8,
+    "binaryCode": "000011",
+    "palace": 1,
+    "palaceRole": "四世",
+    "theme": [
+      "事业行动",
+      "成长修养"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "观察",
+      "示范",
+      "观仰",
+      "审思",
+      "风行"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 21,
+    "number": 21,
+    "name": "火雷噬嗑",
+    "shortName": "噬嗑",
+    "upperTrigramId": 3,
+    "lowerTrigramId": 4,
+    "binaryCode": "100101",
+    "palace": 5,
+    "palaceRole": "五世",
+    "theme": [
+      "成长修养",
+      "困境抉择"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "咬合",
+      "断决",
+      "刑罚",
+      "排除",
+      "亨通"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 22,
+    "number": 22,
+    "name": "山火贲",
+    "shortName": "贲",
+    "upperTrigramId": 7,
+    "lowerTrigramId": 3,
+    "binaryCode": "101001",
+    "palace": 7,
+    "palaceRole": "一世",
+    "theme": [
+      "成长修养"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "文饰",
+      "美化",
+      "彬彬",
+      "装点",
+      "修文"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 23,
+    "number": 23,
+    "name": "山地剥",
+    "shortName": "剥",
+    "upperTrigramId": 7,
+    "lowerTrigramId": 8,
+    "binaryCode": "000001",
+    "palace": 1,
+    "palaceRole": "五世",
+    "theme": [
+      "成长修养",
+      "困境抉择"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "剥落",
+      "消减",
+      "阴长",
+      "守正",
+      "休止"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 24,
+    "number": 24,
+    "name": "地雷复",
+    "shortName": "复",
+    "upperTrigramId": 8,
+    "lowerTrigramId": 4,
+    "binaryCode": "100000",
+    "palace": 8,
+    "palaceRole": "一世",
+    "theme": [
+      "成长修养",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "回归",
+      "复始",
+      "一阳",
+      "反复",
+      "新生"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 25,
+    "number": 25,
+    "name": "天雷无妄",
+    "shortName": "无妄",
+    "upperTrigramId": 1,
+    "lowerTrigramId": 4,
+    "binaryCode": "100111",
+    "palace": 5,
+    "palaceRole": "四世",
+    "theme": [
+      "成长修养"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "无妄",
+      "真诚",
+      "不虚",
+      "自然",
+      "随顺"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 26,
+    "number": 26,
+    "name": "山天大畜",
+    "shortName": "大畜",
+    "upperTrigramId": 7,
+    "lowerTrigramId": 1,
+    "binaryCode": "111001",
+    "palace": 7,
+    "palaceRole": "二世",
+    "theme": [
+      "事业行动",
+      "成长修养"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "大蓄",
+      "畜养",
+      "止健",
+      "积德",
+      "弘业"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 27,
+    "number": 27,
+    "name": "山雷颐",
+    "shortName": "颐",
+    "upperTrigramId": 7,
+    "lowerTrigramId": 4,
+    "binaryCode": "100001",
+    "palace": 5,
+    "palaceRole": "游魂",
+    "theme": [
+      "成长修养"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "颐养",
+      "饮食",
+      "言语",
+      "滋养",
+      "慎言"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 28,
+    "number": 28,
+    "name": "泽风大过",
+    "shortName": "大过",
+    "upperTrigramId": 2,
+    "lowerTrigramId": 5,
+    "binaryCode": "011110",
+    "palace": 4,
+    "palaceRole": "游魂",
+    "theme": [
+      "困境抉择",
+      "成长修养"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "大过",
+      "非常",
+      "栋桡",
+      "独立",
+      "担当"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 29,
+    "number": 29,
+    "name": "坎为水",
+    "shortName": "坎",
+    "upperTrigramId": 6,
+    "lowerTrigramId": 6,
+    "binaryCode": "010010",
+    "palace": 6,
+    "palaceRole": "本宫卦",
+    "theme": [
+      "困境抉择"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "重险",
+      "陷阱",
+      "诚信",
+      "历险",
+      "心亨"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 30,
+    "number": 30,
+    "name": "离为火",
+    "shortName": "离",
+    "upperTrigramId": 3,
+    "lowerTrigramId": 3,
+    "binaryCode": "101101",
+    "palace": 3,
+    "palaceRole": "本宫卦",
+    "theme": [
+      "人生总论",
+      "关系情感"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "附丽",
+      "光明",
+      "文明",
+      "依存",
+      "相照"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 31,
+    "number": 31,
+    "name": "泽山咸",
+    "shortName": "咸",
+    "upperTrigramId": 2,
+    "lowerTrigramId": 7,
+    "binaryCode": "001110",
+    "palace": 2,
+    "palaceRole": "三世",
+    "theme": [
+      "关系情感"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "感应",
+      "相感",
+      "婚配",
+      "虚心",
+      "交感"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 32,
+    "number": 32,
+    "name": "雷风恒",
+    "shortName": "恒",
+    "upperTrigramId": 4,
+    "lowerTrigramId": 5,
+    "binaryCode": "011100",
+    "palace": 4,
+    "palaceRole": "三世",
+    "theme": [
+      "关系情感"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "恒久",
+      "持守",
+      "不变",
+      "夫妇",
+      "常道"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 33,
+    "number": 33,
+    "name": "天山遁",
+    "shortName": "遁",
+    "upperTrigramId": 1,
+    "lowerTrigramId": 7,
+    "binaryCode": "001111",
+    "palace": 1,
+    "palaceRole": "二世",
+    "theme": [
+      "关系情感",
+      "人生总论"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "退避",
+      "遁世",
+      "远小",
+      "保身",
+      "止息"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 34,
+    "number": 34,
+    "name": "雷天大壮",
+    "shortName": "大壮",
+    "upperTrigramId": 4,
+    "lowerTrigramId": 1,
+    "binaryCode": "111100",
+    "palace": 8,
+    "palaceRole": "四世",
+    "theme": [
+      "关系情感",
+      "事业行动"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "大壮",
+      "强盛",
+      "刚动",
+      "守正",
+      "勿亢"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 35,
+    "number": 35,
+    "name": "火地晋",
+    "shortName": "晋",
+    "upperTrigramId": 3,
+    "lowerTrigramId": 8,
+    "binaryCode": "000101",
+    "palace": 1,
+    "palaceRole": "游魂",
+    "theme": [
+      "关系情感",
+      "事业行动"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "晋升",
+      "进取",
+      "光明",
+      "受赐",
+      "荣显"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 36,
+    "number": 36,
+    "name": "地火明夷",
+    "shortName": "明夷",
+    "upperTrigramId": 8,
+    "lowerTrigramId": 3,
+    "binaryCode": "101000",
+    "palace": 6,
+    "palaceRole": "游魂",
+    "theme": [
+      "关系情感",
+      "困境抉择"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "晦藏",
+      "伤明",
+      "内文",
+      "韬晦",
+      "坚贞"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 37,
+    "number": 37,
+    "name": "风火家人",
+    "shortName": "家人",
+    "upperTrigramId": 5,
+    "lowerTrigramId": 3,
+    "binaryCode": "101011",
+    "palace": 5,
+    "palaceRole": "二世",
+    "theme": [
+      "关系情感"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "家庭",
+      "齐家",
+      "内外",
+      "亲和",
+      "伦理"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 38,
+    "number": 38,
+    "name": "火泽睽",
+    "shortName": "睽",
+    "upperTrigramId": 3,
+    "lowerTrigramId": 2,
+    "binaryCode": "110101",
+    "palace": 7,
+    "palaceRole": "四世",
+    "theme": [
+      "关系情感",
+      "困境抉择"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "乖违",
+      "差异",
+      "求同",
+      "小事",
+      "异中"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 39,
+    "number": 39,
+    "name": "水山蹇",
+    "shortName": "蹇",
+    "upperTrigramId": 6,
+    "lowerTrigramId": 7,
+    "binaryCode": "001010",
+    "palace": 2,
+    "palaceRole": "四世",
+    "theme": [
+      "困境抉择"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "艰难",
+      "险阻",
+      "止行",
+      "反身",
+      "济困"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 40,
+    "number": 40,
+    "name": "雷水解",
+    "shortName": "解",
+    "upperTrigramId": 4,
+    "lowerTrigramId": 6,
+    "binaryCode": "010100",
+    "palace": 4,
+    "palaceRole": "二世",
+    "theme": [
+      "困境抉择",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "解散",
+      "舒解",
+      "除难",
+      "宽宥",
+      "雷雨"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 41,
+    "number": 41,
+    "name": "山泽损",
+    "shortName": "损",
+    "upperTrigramId": 7,
+    "lowerTrigramId": 2,
+    "binaryCode": "110001",
+    "palace": 7,
+    "palaceRole": "三世",
+    "theme": [
+      "成长修养"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "损益",
+      "减损",
+      "惩忿",
+      "修身",
+      "简约"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 42,
+    "number": 42,
+    "name": "风雷益",
+    "shortName": "益",
+    "upperTrigramId": 5,
+    "lowerTrigramId": 4,
+    "binaryCode": "100011",
+    "palace": 5,
+    "palaceRole": "三世",
+    "theme": [
+      "事业行动",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "增益",
+      "助益",
+      "迁善",
+      "改过",
+      "利往"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 43,
+    "number": 43,
+    "name": "泽天夬",
+    "shortName": "夬",
+    "upperTrigramId": 2,
+    "lowerTrigramId": 1,
+    "binaryCode": "111110",
+    "palace": 8,
+    "palaceRole": "五世",
+    "theme": [
+      "事业行动",
+      "困境抉择"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "决断",
+      "果决",
+      "夬决",
+      "刚决",
+      "号令"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 44,
+    "number": 44,
+    "name": "天风姤",
+    "shortName": "姤",
+    "upperTrigramId": 1,
+    "lowerTrigramId": 5,
+    "binaryCode": "011111",
+    "palace": 1,
+    "palaceRole": "一世",
+    "theme": [
+      "关系情感",
+      "困境抉择"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "相遇",
+      "邂逅",
+      "柔遇",
+      "勿娶",
+      "不期"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 45,
+    "number": 45,
+    "name": "泽地萃",
+    "shortName": "萃",
+    "upperTrigramId": 2,
+    "lowerTrigramId": 8,
+    "binaryCode": "000110",
+    "palace": 2,
+    "palaceRole": "二世",
+    "theme": [
+      "事业行动",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "聚集",
+      "荟萃",
+      "亨聚",
+      "献享",
+      "王格"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 46,
+    "number": 46,
+    "name": "地风升",
+    "shortName": "升",
+    "upperTrigramId": 8,
+    "lowerTrigramId": 5,
+    "binaryCode": "011000",
+    "palace": 4,
+    "palaceRole": "四世",
+    "theme": [
+      "事业行动",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "上升",
+      "升进",
+      "柔升",
+      "南征",
+      "渐进"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 47,
+    "number": 47,
+    "name": "泽水困",
+    "shortName": "困",
+    "upperTrigramId": 2,
+    "lowerTrigramId": 6,
+    "binaryCode": "010110",
+    "palace": 2,
+    "palaceRole": "一世",
+    "theme": [
+      "困境抉择"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "困穷",
+      "受困",
+      "坚守",
+      "尚口",
+      "砺志"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 48,
+    "number": 48,
+    "name": "水风井",
+    "shortName": "井",
+    "upperTrigramId": 6,
+    "lowerTrigramId": 5,
+    "binaryCode": "011010",
+    "palace": 4,
+    "palaceRole": "五世",
+    "theme": [
+      "困境抉择",
+      "成长修养"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "井养",
+      "汲水",
+      "泽人",
+      "改邑",
+      "修井"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 49,
+    "number": 49,
+    "name": "泽火革",
+    "shortName": "革",
+    "upperTrigramId": 2,
+    "lowerTrigramId": 3,
+    "binaryCode": "101110",
+    "palace": 6,
+    "palaceRole": "四世",
+    "theme": [
+      "困境抉择",
+      "事业行动"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "变革",
+      "革故",
+      "改命",
+      "时义",
+      "虎变"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 50,
+    "number": 50,
+    "name": "火风鼎",
+    "shortName": "鼎",
+    "upperTrigramId": 3,
+    "lowerTrigramId": 5,
+    "binaryCode": "011101",
+    "palace": 3,
+    "palaceRole": "二世",
+    "theme": [
+      "困境抉择",
+      "事业行动"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "鼎新",
+      "烹饪",
+      "正位",
+      "凝命",
+      "崇贤"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 51,
+    "number": 51,
+    "name": "震为雷",
+    "shortName": "震",
+    "upperTrigramId": 4,
+    "lowerTrigramId": 4,
+    "binaryCode": "100100",
+    "palace": 4,
+    "palaceRole": "本宫卦",
+    "theme": [
+      "困境抉择"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "震动",
+      "惊雷",
+      "警惕",
+      "修省",
+      "不丧"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 52,
+    "number": 52,
+    "name": "艮为山",
+    "shortName": "艮",
+    "upperTrigramId": 7,
+    "lowerTrigramId": 7,
+    "binaryCode": "001001",
+    "palace": 7,
+    "palaceRole": "本宫卦",
+    "theme": [
+      "困境抉择",
+      "成长修养"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "止静",
+      "艮止",
+      "思安",
+      "不获",
+      "修身"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 53,
+    "number": 53,
+    "name": "风山渐",
+    "shortName": "渐",
+    "upperTrigramId": 5,
+    "lowerTrigramId": 7,
+    "binaryCode": "001011",
+    "palace": 7,
+    "palaceRole": "归魂",
+    "theme": [
+      "关系情感",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "渐进",
+      "婚嫁",
+      "循序",
+      "居贤",
+      "善俗"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 54,
+    "number": 54,
+    "name": "雷泽归妹",
+    "shortName": "归妹",
+    "upperTrigramId": 4,
+    "lowerTrigramId": 2,
+    "binaryCode": "110100",
+    "palace": 2,
+    "palaceRole": "归魂",
+    "theme": [
+      "关系情感"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "归妹",
+      "婚嫁",
+      "少女",
+      "永终",
+      "知敝"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 55,
+    "number": 55,
+    "name": "雷火丰",
+    "shortName": "丰",
+    "upperTrigramId": 4,
+    "lowerTrigramId": 3,
+    "binaryCode": "101100",
+    "palace": 6,
+    "palaceRole": "五世",
+    "theme": [
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "丰大",
+      "盛明",
+      "日中",
+      "亨通",
+      "勿忧"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 56,
+    "number": 56,
+    "name": "火山旅",
+    "shortName": "旅",
+    "upperTrigramId": 3,
+    "lowerTrigramId": 7,
+    "binaryCode": "001101",
+    "palace": 3,
+    "palaceRole": "一世",
+    "theme": [
+      "困境抉择",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "旅行",
+      "羁旅",
+      "小亨",
+      "慎刑",
+      "寄居"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 57,
+    "number": 57,
+    "name": "巽为风",
+    "shortName": "巽",
+    "upperTrigramId": 5,
+    "lowerTrigramId": 5,
+    "binaryCode": "011011",
+    "palace": 5,
+    "palaceRole": "本宫卦",
+    "theme": [
+      "事业行动",
+      "关系情感"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "随顺",
+      "入伏",
+      "申命",
+      "行事",
+      "柔顺"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 58,
+    "number": 58,
+    "name": "兑为泽",
+    "shortName": "兑",
+    "upperTrigramId": 2,
+    "lowerTrigramId": 2,
+    "binaryCode": "110110",
+    "palace": 2,
+    "palaceRole": "本宫卦",
+    "theme": [
+      "关系情感",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "和悦",
+      "愉悦",
+      "朋讲",
+      "说人",
+      "利贞"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 59,
+    "number": 59,
+    "name": "风水涣",
+    "shortName": "涣",
+    "upperTrigramId": 5,
+    "lowerTrigramId": 6,
+    "binaryCode": "010011",
+    "palace": 3,
+    "palaceRole": "五世",
+    "theme": [
+      "困境抉择",
+      "成长修养"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "涣散",
+      "离散",
+      "涣群",
+      "济涣",
+      "王居"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 60,
+    "number": 60,
+    "name": "水泽节",
+    "shortName": "节",
+    "upperTrigramId": 6,
+    "lowerTrigramId": 2,
+    "binaryCode": "110010",
+    "palace": 6,
+    "palaceRole": "一世",
+    "theme": [
+      "困境抉择",
+      "成长修养"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "节制",
+      "节度",
+      "苦节",
+      "安节",
+      "甘节"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 61,
+    "number": 61,
+    "name": "风泽中孚",
+    "shortName": "中孚",
+    "upperTrigramId": 5,
+    "lowerTrigramId": 2,
+    "binaryCode": "110011",
+    "palace": 7,
+    "palaceRole": "游魂",
+    "theme": [
+      "困境抉择",
+      "成长修养"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "中孚",
+      "诚信",
+      "化邦",
+      "议狱",
+      "虚中"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 62,
+    "number": 62,
+    "name": "雷山小过",
+    "shortName": "小过",
+    "upperTrigramId": 4,
+    "lowerTrigramId": 7,
+    "binaryCode": "001100",
+    "palace": 2,
+    "palaceRole": "游魂",
+    "theme": [
+      "困境抉择"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "小过",
+      "稍越",
+      "宜下",
+      "小事",
+      "飞鸟"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 63,
+    "number": 63,
+    "name": "水火既济",
+    "shortName": "既济",
+    "upperTrigramId": 6,
+    "lowerTrigramId": 3,
+    "binaryCode": "101010",
+    "palace": 6,
+    "palaceRole": "三世",
+    "theme": [
+      "困境抉择",
+      "顺遂归藏"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "既济",
+      "已成",
+      "初吉",
+      "终乱",
+      "思患"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  },
+  {
+    "id": 64,
+    "number": 64,
+    "name": "火水未济",
+    "shortName": "未济",
+    "upperTrigramId": 3,
+    "lowerTrigramId": 6,
+    "binaryCode": "010101",
+    "palace": 3,
+    "palaceRole": "三世",
+    "theme": [
+      "困境抉择",
+      "成长修养"
+    ],
+    "judgement": "",
+    "tuanzhuan": "",
+    "xiangzhuan": {
+      "daXiang": "",
+      "xiaoXiang": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "yaoLines": [
+      {
+        "position": 1,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 2,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 3,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 4,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 5,
+        "type": "yin",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      },
+      {
+        "position": 6,
+        "type": "yang",
+        "originalText": "",
+        "explanation": "",
+        "modernMeaning": ""
+      }
+    ],
+    "keywords": [
+      "未济",
+      "未成",
+      "小狐",
+      "濡尾",
+      "慎进"
+    ],
+    "modernInterpretation": "",
+    "relations": {
+      "opposite": 0,
+      "inverse": 0,
+      "nuclear": 0
+    }
+  }
+]
