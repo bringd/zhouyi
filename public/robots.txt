@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /result/
+Disallow: /records/
+Disallow: /settings/
+
+Sitemap: https://zhouyi.app/sitemap.xml
