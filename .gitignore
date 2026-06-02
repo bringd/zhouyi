@@ -38,6 +38,10 @@ coverage/
 .vite/
 .cache/
 
+# TypeScript composite project output
+node_modules/.tmp/
+*.tsbuildinfo
+
 # Claude / Claude Code
 .claude/
 .superpowers/brainstorm/*/content/
