@@ -54,6 +54,25 @@ npm run db:studio     # Open Drizzle Studio at https://local.drizzle.studio
 - `ai_usage` — daily AI call counter for rate limiting
 - `sessions` — refresh tokens (optional)
 
+## Authentication
+
+This MVP identifies users via a server-set **session cookie** (`zhouyi_session`,
+`HttpOnly`, `SameSite=Lax`, 1-year max-age). No email/password is required.
+
+- On the first request to any `/api/*` route (except `/api/ai/*`), the
+  server generates a UUID session id, creates a *guest user* in the
+  `users` table, and writes the cookie back to the client.
+- Subsequent requests carry the cookie and resolve to the same user.
+- The cookie is `HttpOnly`, so JavaScript on the frontend cannot read
+  it directly. The browser sends it automatically when the frontend
+  uses `fetch(..., { credentials: 'include' })`.
+- When Task B3 (JWT email/password auth) lands, guest accounts can be
+  promoted to real accounts and this cookie scheme will coexist with
+  JWT issuance.
+
+`/api/ai/*` is rate-limited per **IP** (not per user) and does **not**
+require the session cookie.
+
 ## Endpoints
 
 ### `GET /health`
@@ -141,16 +160,84 @@ remaining quota without consuming one.
 }
 ```
 
+### `POST /api/records`
+
+Create a new divination record for the current user (guest or real).
+Requires the session cookie — set automatically on first request.
+
+**Request body**
+
+```json
+{
+  "type": "three-number",
+  "question": "近期是否适合换工作？",
+  "numbers": [3, 7, 5],
+  "region": "Asia/Shanghai",
+  "timezone": "Asia/Shanghai",
+  "mainHexagramId": 1,
+  "movingLine": 4,
+  "changedHexagramId": 9,
+  "aiInterpretation": "...",
+  "userNote": "..."
+}
+```
+
+| Field | Type | Required |
+|---|---|---|
+| `type` | `'three-number' \| 'daily'` | yes |
+| `mainHexagramId` | int 1-64 | yes |
+| `movingLine` | int 1-6 | yes |
+| `changedHexagramId` | int 1-64 | yes |
+| `question` | string ≤500 | no |
+| `numbers` | `[int, int, int]` | no |
+| `region`, `timezone` | string ≤100 | no |
+| `aiInterpretation` | string ≤10_000 | no |
+| `userNote` | string ≤2_000 | no |
+
+Returns `201` with the created record (including `id`, `createdAt`).
+
+### `GET /api/records?limit=50&offset=0`
+
+List the current user's records, newest first.
+`limit` is clamped to `[1, 100]` (default 50); `offset` defaults to 0.
+
+```json
+{ "records": [...], "limit": 50, "offset": 0 }
+```
+
+### `GET /api/records/:id`
+
+Fetch a single record. Returns `404` if it does not exist *or* if it
+belongs to another user.
+
+### `PATCH /api/records/:id`
+
+Update the user's personal note on a record. Body: `{ "userNote": "..." }`.
+
+### `DELETE /api/records/:id`
+
+Delete a record. Returns `204` on success, `404` if not found.
+
+### `POST /api/favorites`
+
+Star a hexagram for the current user. Body:
+`{ "hexagramId": 1, "note"?: "..." }`.
+Returns `409 AlreadyFavorited` if the user has already starred that hexagram.
+
+### `GET /api/favorites`
+
+List the current user's favorites, newest first.
+
+### `DELETE /api/favorites/:hexagramId`
+
+Unstar a hexagram. `:hexagramId` must be an integer 1-64.
+
 ## Endpoints (planned)
 
 - `POST /api/auth/register` — Task B3
 - `POST /api/auth/login` — Task B3
 - `POST /api/auth/logout` — Task B3
 - `GET  /api/auth/me` — Task B3
-- `GET  /api/records` — Task B5
-- `POST /api/records` — Task B5
-- `DELETE /api/records/:id` — Task B5
-- `PATCH /api/records/:id` — Task B5 (notes)
 
 ## Environment variables
 

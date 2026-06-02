@@ -1,13 +1,17 @@
-import express, { type Express } from 'express'
+import express, { type Express, type NextFunction, type Request, type Response } from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
+import cookieParser from 'cookie-parser'
 import { config } from './config.js'
 import { requestLogger } from './middleware/requestLogger.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { notFound } from './middleware/notFound.js'
+import { sessionMiddleware } from './middleware/session.js'
 import { healthRouter } from './routes/health.js'
 import { aiRouter } from './routes/ai.js'
+import { recordsRouter } from './routes/records.js'
+import { favoritesRouter } from './routes/favorites.js'
 
 /**
  * Express app factory. Separated from index.ts so tests can import
@@ -25,6 +29,7 @@ export function createApp(): Express {
     })
   )
   app.use(express.json({ limit: '1mb' }))
+  app.use(cookieParser())
 
   // Logging
   if (config.NODE_ENV !== 'test') {
@@ -32,13 +37,25 @@ export function createApp(): Express {
   }
   app.use(requestLogger)
 
-  // Health check (no auth)
+  // Health check (no session — kept reachable even when DB is down)
   app.use('/health', healthRouter)
 
-  // TODO: API routes will be added in later tasks
-  app.use('/api/ai', aiRouter)             // Task B4
-  // app.use('/api/auth', authRouter)         // Task B3
-  // app.use('/api/records', recordsRouter)   // Task B5
+  // Session middleware — runs before any /api/* route that needs req.userId.
+  // We skip /health (above) and /api/ai/* (it is IP-based, not user-based,
+  // and we don't want to force a DB write on every AI request).
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.path.startsWith('/health') || req.path.startsWith('/api/ai')) {
+      next()
+      return
+    }
+    void sessionMiddleware(req, res, next)
+  })
+
+  // API routes
+  app.use('/api/ai', aiRouter)                  // Task B4 — IP-based rate limit
+  app.use('/api/records', recordsRouter)         // Task B5
+  app.use('/api/favorites', favoritesRouter)     // Task B5
+  // app.use('/api/auth', authRouter)            // Task B3
 
   // 404 + error handlers (must be last)
   app.use(notFound)
