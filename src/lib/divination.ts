@@ -17,37 +17,6 @@
 import hexagramsData from '@/data/hexagrams.json'
 import type { Hexagram, HexagramId, TrigramId } from '@/types'
 
-/**
- * The shape of a single row in hexagrams.json. We only narrow the fields we
- * read; the full Hexagram type has many more fields.
- */
-interface HexagramRow {
-  id: number
-  name: string
-  shortName: string
-  number: number
-  upperTrigramId: number
-  lowerTrigramId: number
-  binaryCode: string
-  palace: number
-  palaceRole: string
-  theme: string[]
-  judgement: string
-  tuanzhuan: string
-  xiangzhuan: { daXiang: string; xiaoXiang: [string, string, string, string, string, string] }
-  yaoLines: [
-    { position: number; type: 'yin' | 'yang'; originalText: string; explanation: string; modernMeaning: string },
-    { position: number; type: 'yin' | 'yang'; originalText: string; explanation: string; modernMeaning: string },
-    { position: number; type: 'yin' | 'yang'; originalText: string; explanation: string; modernMeaning: string },
-    { position: number; type: 'yin' | 'yang'; originalText: string; explanation: string; modernMeaning: string },
-    { position: number; type: 'yin' | 'yang'; originalText: string; explanation: string; modernMeaning: string },
-    { position: number; type: 'yin' | 'yang'; originalText: string; explanation: string; modernMeaning: string },
-  ]
-  keywords: string[]
-  modernInterpretation: string
-  relations: { opposite: number; inverse: number; nuclear: number }
-}
-
 const HEXAGRAMS: readonly Hexagram[] = hexagramsData as unknown as Hexagram[]
 
 /** Lookup (upper, lower) -> hexagram id */
