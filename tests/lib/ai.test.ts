@@ -3,8 +3,7 @@ import { generateInterpretation, AIError } from '@/lib/ai'
 import type { AIInterpretationInput } from '@/lib/ai'
 import type { Hexagram, HexagramId } from '@/types'
 
-// Helper: build a minimal valid hexagram fixture (all 64 fields typed).
-// `id` lets us reuse the factory for both main and changed.
+// Helper: build a minimal valid hexagram fixture (all fields typed).
 function makeHexagram(id: HexagramId, name: string, judgement: string): Hexagram {
   const yaoLines: Hexagram['yaoLines'] = [
     { position: 1, type: 'yang', originalText: '初九：潜龙勿用。', explanation: '龙潜勿用。', modernMeaning: '起步阶段。' },
@@ -48,133 +47,127 @@ const sampleInput: AIInterpretationInput = {
   question: '近期是否适合换工作？',
 }
 
-describe('ai: generateInterpretation', () => {
+describe('ai: generateInterpretation (via backend)', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
   })
 
-  it('throws AIError with missing-api-key when apiKey is empty', async () => {
-    await expect(generateInterpretation(sampleInput, '')).rejects.toThrow(AIError)
+  it('throws AIError with server-error on 503 (back-compat: apiKey arg ignored)', async () => {
+    // The new behavior: the apiKey arg is ignored. The backend may return
+    // 503 if Claude is not configured. The call is attempted regardless
+    // of apiKey value.
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 503,
+      statusText: 'Service Unavailable',
+    }) as unknown as typeof fetch
+
     try {
       await generateInterpretation(sampleInput, '')
       expect.fail('should have thrown')
     } catch (e) {
       expect(e).toBeInstanceOf(AIError)
-      expect((e as AIError).code).toBe('missing-api-key')
+      expect((e as AIError).code).toBe('server-error')
     }
   })
 
-  it('throws AIError with missing-api-key when apiKey is whitespace', async () => {
-    try {
-      await generateInterpretation(sampleInput, '   ')
-      expect.fail('should have thrown')
-    } catch (e) {
-      expect(e).toBeInstanceOf(AIError)
-      expect((e as AIError).code).toBe('missing-api-key')
-    }
-  })
-
-  it('calls Claude API with correct URL and headers', async () => {
+  it('calls backend with correct URL and JSON body', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       body: makeSSEStream([
-        'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"乾卦提示..."}}\n',
-        'data: [DONE]\n',
+        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"乾卦"}}\n\n',
+        'data: {"type":"done","usage":{"inputTokens":150,"outputTokens":350}}\n\n',
       ]),
     })
     globalThis.fetch = mockFetch as unknown as typeof fetch
 
-    await generateInterpretation(sampleInput, 'sk-test-key')
+    await generateInterpretation(sampleInput, null, () => {})
 
-    expect(mockFetch).toHaveBeenCalledTimes(1)
-    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe('https://api.anthropic.com/v1/messages')
-    expect(init.method).toBe('POST')
-    expect((init.headers as Record<string, string>)['x-api-key']).toBe('sk-test-key')
-    expect((init.headers as Record<string, string>)['anthropic-version']).toBe('2023-06-01')
-    expect((init.headers as Record<string, string>)['Content-Type']).toBe('application/json')
-    const body = JSON.parse(init.body as string)
-    expect(body.model).toBe('claude-haiku-4-5')
-    expect(body.stream).toBe(true)
-    expect(body.system).toContain('乾为天')
-    expect(body.system).toContain('近期是否适合换工作？')
-  })
-
-  it('does not include the API key in error messages', async () => {
-    globalThis.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch')) as unknown as typeof fetch
-    try {
-      await generateInterpretation(sampleInput, 'sk-supersecret')
-      expect.fail('should have thrown')
-    } catch (e) {
-      const msg = (e as Error).message
-      expect(msg).not.toContain('sk-supersecret')
-    }
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://localhost:3001/api/ai/interpret',
+      expect.objectContaining({
+        method: 'POST',
+        credentials: 'include',
+        headers: expect.objectContaining({
+          'Content-Type': 'application/json',
+        }),
+        body: JSON.stringify({
+          mainHexagramId: 1,
+          changedHexagramId: 2,
+          movingLine: 4,
+          question: '近期是否适合换工作？',
+        }),
+      }),
+    )
   })
 
   it('parses streaming SSE response and concatenates text', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       body: makeSSEStream([
-        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"乾卦"}}\n',
-        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"提示"}}\n',
-        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"刚健"}}\n',
-        'data: [DONE]\n',
+        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"乾卦"}}\n\n',
+        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"提示"}}\n\n',
+        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"刚健"}}\n\n',
+        'data: {"type":"done","usage":{"inputTokens":150,"outputTokens":350}}\n\n',
       ]),
     }) as unknown as typeof fetch
 
-    const result = await generateInterpretation(sampleInput, 'sk-test')
+    const result = await generateInterpretation(sampleInput, null)
     expect(result.text).toBe('乾卦提示刚健')
     expect(result.chunks).toEqual(['乾卦', '提示', '刚健'])
+    expect(result.usage).toEqual({ inputTokens: 150, outputTokens: 350 })
   })
 
   it('calls onChunk for each streamed text delta', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       body: makeSSEStream([
-        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"乾"}}\n',
-        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"卦"}}\n',
-        'data: [DONE]\n',
+        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"乾"}}\n\n',
+        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"卦"}}\n\n',
+        'data: {"type":"done"}\n\n',
       ]),
     }) as unknown as typeof fetch
 
     const chunks: string[] = []
-    await generateInterpretation(sampleInput, 'sk-test', (c) => chunks.push(c))
+    await generateInterpretation(sampleInput, null, (c) => chunks.push(c))
     expect(chunks).toEqual(['乾', '卦'])
   })
 
-  it('parses split SSE events (chunk boundary mid-line)', async () => {
-    // Build a stream where the SSE event line is split across two chunks.
+  it('parses split SSE events (chunk boundary mid-event)', async () => {
     const encoder = new TextEncoder()
     const stream = new ReadableStream<Uint8Array>({
       start(controller) {
-        controller.enqueue(encoder.encode('data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"分片"}}\n'))
-        controller.enqueue(encoder.encode('data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"测试"}}\n'))
-        controller.enqueue(encoder.encode('data: [DONE]\n'))
+        // Split the first event across multiple TCP chunks.
+        controller.enqueue(encoder.encode('data: {"type":"content_block_delta","delta":'))
+        controller.enqueue(encoder.encode('{"type":"text_delta","text":"分片"}}\n\n'))
+        controller.enqueue(encoder.encode('data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"测试"}}\n\n'))
+        controller.enqueue(encoder.encode('data: {"type":"done"}\n\n'))
         controller.close()
       },
     })
     globalThis.fetch = vi.fn().mockResolvedValue({ ok: true, body: stream }) as unknown as typeof fetch
 
-    const result = await generateInterpretation(sampleInput, 'sk-test')
+    const result = await generateInterpretation(sampleInput, null)
     expect(result.text).toBe('分片测试')
   })
 
   it('skips malformed SSE events gracefully', async () => {
+    // Suppress the console.warn that the parser emits for malformed events.
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       body: makeSSEStream([
-        'data: not-json-at-all\n',
-        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"好的"}}\n',
-        'data: {"type":"message_stop"}\n',
-        'data: [DONE]\n',
+        'data: not-json-at-all\n\n',
+        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"好的"}}\n\n',
+        'data: {"type":"done"}\n\n',
       ]),
     }) as unknown as typeof fetch
 
-    const result = await generateInterpretation(sampleInput, 'sk-test')
+    const result = await generateInterpretation(sampleInput, null)
     expect(result.text).toBe('好的')
   })
 
-  it('throws AIError with invalid-api-key on 401', async () => {
+  it('throws AIError with unauthorized on 401', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 401,
@@ -182,27 +175,29 @@ describe('ai: generateInterpretation', () => {
     }) as unknown as typeof fetch
 
     try {
-      await generateInterpretation(sampleInput, 'sk-bad')
+      await generateInterpretation(sampleInput, null)
       expect.fail('should have thrown')
     } catch (e) {
       expect(e).toBeInstanceOf(AIError)
-      expect((e as AIError).code).toBe('invalid-api-key')
+      expect((e as AIError).code).toBe('unauthorized')
     }
   })
 
-  it('throws AIError with rate-limit on 429', async () => {
+  it('throws AIError with rate-limit on 429 (and surfaces backend message)', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 429,
       statusText: 'Too Many Requests',
+      json: async () => ({ error: 'RateLimitExceeded', message: '今日 AI 解读次数已用完' }),
     }) as unknown as typeof fetch
 
     try {
-      await generateInterpretation(sampleInput, 'sk-test')
+      await generateInterpretation(sampleInput, null)
       expect.fail('should have thrown')
     } catch (e) {
       expect(e).toBeInstanceOf(AIError)
       expect((e as AIError).code).toBe('rate-limit')
+      expect((e as AIError).message).toBe('今日 AI 解读次数已用完')
     }
   })
 
@@ -214,7 +209,7 @@ describe('ai: generateInterpretation', () => {
     }) as unknown as typeof fetch
 
     try {
-      await generateInterpretation(sampleInput, 'sk-test')
+      await generateInterpretation(sampleInput, null)
       expect.fail('should have thrown')
     } catch (e) {
       expect(e).toBeInstanceOf(AIError)
@@ -226,17 +221,61 @@ describe('ai: generateInterpretation', () => {
     globalThis.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch')) as unknown as typeof fetch
 
     try {
-      await generateInterpretation(sampleInput, 'sk-test')
+      await generateInterpretation(sampleInput, null)
       expect.fail('should have thrown')
     } catch (e) {
       expect(e).toBeInstanceOf(AIError)
       expect((e as AIError).code).toBe('network-error')
     }
   })
+
+  it('ignores the apiKey arg (back-compat with old signature)', async () => {
+    const makeMockResp = () => ({
+      ok: true,
+      body: makeSSEStream(['data: {"type":"done"}\n\n']),
+    })
+    globalThis.fetch = vi.fn().mockImplementation(async () => makeMockResp()) as unknown as typeof fetch
+
+    // All three of these should work the same way — apiKey is ignored.
+    await expect(generateInterpretation(sampleInput, null)).resolves.toBeDefined()
+    await expect(generateInterpretation(sampleInput, '')).resolves.toBeDefined()
+    await expect(generateInterpretation(sampleInput, 'sk-some-key')).resolves.toBeDefined()
+  })
+
+  it('sends credentials: include (session cookie)', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      body: makeSSEStream(['data: {"type":"done"}\n\n']),
+    })
+    globalThis.fetch = mockFetch as unknown as typeof fetch
+
+    await generateInterpretation(sampleInput, null)
+
+    const init = mockFetch.mock.calls[0]?.[1] as RequestInit
+    expect(init.credentials).toBe('include')
+  })
+
+  it('throws AIError on backend error event in stream', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      body: makeSSEStream([
+        'data: {"type":"error","error":"Claude upstream failed"}\n\n',
+      ]),
+    }) as unknown as typeof fetch
+
+    try {
+      await generateInterpretation(sampleInput, null)
+      expect.fail('should have thrown')
+    } catch (e) {
+      expect(e).toBeInstanceOf(AIError)
+      expect((e as AIError).code).toBe('server-error')
+      expect((e as AIError).message).toBe('Claude upstream failed')
+    }
+  })
 })
 
 /**
- * Helper: create a ReadableStream that yields SSE-formatted lines.
+ * Helper: create a ReadableStream that yields SSE-formatted byte chunks.
  */
 function makeSSEStream(lines: string[]): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder()

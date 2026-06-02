@@ -9,7 +9,7 @@ import { FlipEntry } from '@/components/motion/FlipEntry'
 import { BreathEffect } from '@/components/motion/BreathEffect'
 import { PageTransition } from '@/components/motion'
 import { getHexagramById } from '@/lib/divination'
-import { getRecord, saveRecord, getSettings } from '@/lib/storage'
+import { getRecord, saveRecord } from '@/lib/storage'
 import { generateInterpretation, AIError } from '@/lib/ai'
 import { cn } from '@/utils/cn'
 import type { UserRecord, HexagramId } from '@/types'
@@ -50,17 +50,12 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
 
   const handleAIInterpretation = async () => {
     setAiError(null)
-    const settings = getSettings()
-    if (!settings.apiKey) {
-      setAiError('请先在设置中配置 Claude API Key')
-      return
-    }
     setAiLoading(true)
     try {
       let accumulated = ''
       const result = await generateInterpretation(
         { mainHexagram: main, changedHexagram: changed, movingLine: record.movingLine, question: record.question },
-        settings.apiKey,
+        null,
         (chunk) => {
           accumulated += chunk
           setAiText(accumulated)
@@ -74,9 +69,11 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
     } catch (err) {
       let msg: string
       if (err instanceof AIError) {
-        if (err.code === 'invalid-api-key') msg = 'API Key 无效'
-        else if (err.code === 'rate-limit') msg = '请求过于频繁，请稍后再试'
+        if (err.code === 'unauthorized') msg = '会话已过期，请刷新页面'
+        else if (err.code === 'rate-limit') msg = err.message || '请求过于频繁，请稍后再试'
         else if (err.code === 'timeout') msg = '请求超时'
+        else if (err.code === 'server-error') msg = '服务暂时不可用，请稍后再试'
+        else if (err.code === 'network-error') msg = '网络错误，请检查网络后重试'
         else msg = err.message
       } else {
         msg = err instanceof Error ? err.message : 'AI 解读失败'

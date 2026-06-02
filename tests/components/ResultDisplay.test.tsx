@@ -69,15 +69,21 @@ describe('ResultDisplay', () => {
     expect(screen.getByRole('button', { name: '开始 AI 解读' })).toBeInTheDocument()
   })
 
-  it('shows error when API key is missing', async () => {
+  it('calls generateInterpretation (backend) when AI button clicked — no apiKey needed', async () => {
     saveRecord(baseRecord)
+    mockedGenerate.mockResolvedValue({ text: '解读完成', chunks: ['解读完成'] })
     render(
       <MemoryRouter>
         <ResultDisplay recordId="test-record-1" />
       </MemoryRouter>
     )
     fireEvent.click(screen.getByRole('button', { name: '开始 AI 解读' }))
-    expect(await screen.findByText('请先在设置中配置 Claude API Key')).toBeInTheDocument()
+    // The backend is mocked to resolve; the displayed text comes from result.text
+    expect(await screen.findByText('解读完成')).toBeInTheDocument()
+    // Verify generateInterpretation was called (with null apiKey now)
+    expect(mockedGenerate).toHaveBeenCalledTimes(1)
+    const args = mockedGenerate.mock.calls[0] as unknown[]
+    expect(args[1]).toBeNull()
   })
 
   it('renders twin spread with 本卦/变卦 labels', () => {

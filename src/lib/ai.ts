@@ -1,28 +1,26 @@
 /**
- * AI 解读调用 (Claude API Integration)
+ * AI 解读调用 (Backend AI Proxy Integration)
  *
- * Calls the Anthropic Messages API directly from the browser using the user's
- * own API key (no backend). Streams a 6-paragraph interpretation of a
- * divination result via Server-Sent Events.
+ * Calls the backend `/api/ai/interpret` endpoint. The backend holds the
+ * Claude API key and applies per-user rate limiting; the browser no longer
+ * talks to the Anthropic API directly.
  *
- * Error handling:
- *   - Missing API key → 'missing-api-key'
- *   - HTTP 401         → 'invalid-api-key'
- *   - HTTP 429         → 'rate-limit'
- *   - HTTP 5xx         → 'server-error'
- *   - Network failure  → 'network-error'
- *   - AbortController timeout → 'timeout'
+ * Streams Server-Sent Events with the same event shape as Claude:
+ *   - `content_block_delta` with `delta.text` for each text fragment
+ *   - `done` event (with optional `usage`) when the stream finishes
+ *   - `error` event on backend failure
  *
- * Security: the API key is never logged, never included in error messages,
- * and never sent anywhere except the Anthropic API endpoint.
+ * Error handling (HTTP status → AIError.code):
+ *   - 401  → 'unauthorized'  (session expired / not logged in)
+ *   - 429  → 'rate-limit'    (per-user daily quota hit)
+ *   - 503  → 'server-error'  (Claude unreachable / not configured)
+ *   - 5xx  → 'server-error'
+ *   - other 4xx → 'network-error'
+ *   - fetch failure → 'network-error'
+ *   - AbortController timeout (30s) → 'timeout'
  */
 
 import type { Hexagram } from '@/types'
-
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
-const ANTHROPIC_VERSION = '2023-06-01'
-const MODEL = 'claude-haiku-4-5'
-const REQUEST_TIMEOUT_MS = 30_000
 
 export interface AIInterpretationInput {
   mainHexagram: Hexagram
@@ -32,11 +30,11 @@ export interface AIInterpretationInput {
 }
 
 export interface AIInterpretationResult {
-  /** 6-paragraph interpretation, concatenated as a single string */
+  /** Concatenated streamed text */
   text: string
-  /** Raw streaming chunks collected (for debugging) */
+  /** Raw streaming chunks (for debugging) */
   chunks: string[]
-  /** Token usage (if available) */
+  /** Token usage (if reported by backend) */
   usage?: {
     inputTokens: number
     outputTokens: number
@@ -51,12 +49,13 @@ export class AIError extends Error {
   constructor(
     message: string,
     public code:
-      | 'missing-api-key'
-      | 'invalid-api-key'
-      | 'network-error'
-      | 'timeout'
-      | 'rate-limit'
-      | 'server-error',
+      | 'missing-api-key' // kept for back-compat (no longer thrown in practice)
+      | 'invalid-api-key' // kept for back-compat
+      | 'network-error' // fetch failure / non-401/429/5xx HTTP error
+      | 'timeout' // 30s AbortController timeout
+      | 'rate-limit' // 429 from backend
+      | 'server-error' // 5xx from backend
+      | 'unauthorized', // 401 from backend (session expired)
     public cause?: unknown,
   ) {
     super(message)
@@ -64,222 +63,152 @@ export class AIError extends Error {
   }
 }
 
-/**
- * Build the system prompt that instructs Claude to produce a 6-paragraph
- * academic interpretation of the divination result.
- */
-function buildSystemPrompt(input: AIInterpretationInput): string {
-  const { mainHexagram, changedHexagram, movingLine, question } = input
-  const movingLineText = mainHexagram.yaoLines[movingLine - 1]?.originalText ?? ''
-  const userQuestion = question?.trim() ? question.trim() : '（用户未提具体问题）'
-
-  return `你是周易文化研究助手，正在为一位普通用户解读一次起卦结果。
-
-【卦象数据】
-本卦：${mainHexagram.name}（卦辞：${mainHexagram.judgement}）
-动爻：第 ${movingLine} 爻（${movingLineText}）
-变卦：${changedHexagram.name}（卦辞：${changedHexagram.judgement}）
-用户问题：${userQuestion}
-
-【输出要求】
-请以现代人易理解的语言，分 6 段输出（每段 80-120 字）：
-1. 卦象概要
-2. 当前状态
-3. 变化原因
-4. 后续趋势
-5. 行动建议
-6. 风险提醒
-
-【语气约束】
-- 不使用"一定会"、"注定"等绝对化预测
-- 不承诺具体结果
-- 不替代现实决策
-- 用"周易文化研究中一种可能的解读是..."、"这个卦象提示..."等学术化语气
-- 鼓励用户结合自己的实际情况判断`
-}
-
-/** Map an HTTP status code to an AIError code. */
-function codeFromStatus(status: number): AIError['code'] {
-  if (status === 401) return 'invalid-api-key'
-  if (status === 429) return 'rate-limit'
-  if (status >= 500 && status < 600) return 'server-error'
-  // Other 4xx are treated as server errors too (caller can refine later).
-  return 'server-error'
-}
+/** Backend base URL. Configurable via VITE_API_BASE_URL for production. */
+const API_BASE_URL =
+  (import.meta.env?.VITE_API_BASE_URL as string | undefined) ??
+  'http://localhost:3001'
+const API_TIMEOUT_MS = 30_000
 
 /**
- * Parse SSE lines out of a raw chunk buffer. Each line is either:
- *   - empty (event boundary)
- *   - starts with "data: " (the payload)
- *   - starts with ":" (comment, ignored)
- *   - other (ignored)
- * Returns the extracted text deltas and the leftover buffer.
- */
-function parseSSEChunk(
-  buffer: string,
-): { deltas: string[]; usage: { input: number; output: number } | null; rest: string } {
-  const deltas: string[] = []
-  let usage: { input: number; output: number } | null = null
-  // Split on newlines, keep the last partial line in `rest`.
-  const lines = buffer.split('\n')
-  const rest = lines.pop() ?? ''
-
-  for (const rawLine of lines) {
-    const line = rawLine.trimEnd()
-    if (!line || !line.startsWith('data:')) continue
-    const payload = line.slice(5).trim()
-    if (!payload || payload === '[DONE]') continue
-    let parsed: unknown
-    try {
-      parsed = JSON.parse(payload)
-    } catch {
-      // Skip malformed events silently — Anthropic may include heartbeats.
-      continue
-    }
-    if (!parsed || typeof parsed !== 'object') continue
-    const event = parsed as Record<string, unknown>
-    if (event.type === 'content_block_delta') {
-      const delta = event.delta as Record<string, unknown> | undefined
-      if (delta && delta.type === 'text_delta' && typeof delta.text === 'string') {
-        deltas.push(delta.text)
-      }
-    } else if (event.type === 'message_delta') {
-      const u = event.usage as Record<string, unknown> | undefined
-      if (u && typeof u.output_tokens === 'number') {
-        const prevInput: number = usage ? usage.input : 0
-        usage = { input: prevInput, output: u.output_tokens }
-      }
-    } else if (event.type === 'message_start') {
-      const msg = event.message as Record<string, unknown> | undefined
-      const u = msg?.usage as Record<string, unknown> | undefined
-      if (u && typeof u.input_tokens === 'number') {
-        const prevOutput: number = usage ? usage.output : 0
-        usage = { input: u.input_tokens, output: prevOutput }
-      }
-    }
-  }
-
-  return { deltas, usage, rest }
-}
-
-/**
- * Iterate a streaming response body, parsing SSE chunks and collecting
- * text deltas. Updates the caller's `buffer` with any incomplete tail.
- */
-async function consumeStream(
-  body: ReadableStream<Uint8Array>,
-  onChunk: ((chunk: string) => void) | undefined,
-): Promise<{ chunks: string[]; usage: { input: number; output: number } | null }> {
-  const reader = body.getReader()
-  const decoder = new TextDecoder('utf-8')
-  let buffer = ''
-  const chunks: string[] = []
-  let usage: { input: number; output: number } | null = null
-
-  while (true) {
-    const { value, done } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-    // Process complete lines (everything up to the last newline).
-    const lastNewline = buffer.lastIndexOf('\n')
-    if (lastNewline === -1) continue
-    const processable = buffer.slice(0, lastNewline)
-    buffer = buffer.slice(lastNewline + 1)
-    const { deltas, usage: u, rest } = parseSSEChunk(processable + '\n')
-    if (u) usage = u
-    // Anything after the last newline in `processable` re-becomes buffer;
-    // we just re-append the trailing partial line (already in `buffer`).
-    void rest
-    for (const d of deltas) {
-      chunks.push(d)
-      onChunk?.(d)
-    }
-  }
-  // Flush any trailing data.
-  if (buffer.length > 0) {
-    const { deltas, usage: u } = parseSSEChunk(buffer + '\n')
-    if (u) usage = u
-    for (const d of deltas) {
-      chunks.push(d)
-      onChunk?.(d)
-    }
-  }
-
-  return { chunks, usage }
-}
-
-/**
- * Call Claude API to generate a 6-paragraph interpretation.
+ * Call the backend AI interpretation endpoint.
+ * The backend holds the Claude API key and applies rate limiting.
  *
- * The user must provide their own API key (stored in localStorage by the
- * settings module). The API key is sent only to the Anthropic API endpoint
- * and is never logged or echoed in error messages.
+ * The second parameter `_apiKey` is kept for backwards compatibility with
+ * the previous BYOK signature; it is silently ignored. Callers may pass
+ * `null`, `''`, or any string without affecting behavior.
  *
- * @param input The divination context
- * @param apiKey User's Claude API key
- * @param onChunk Optional streaming callback
- * @returns The interpretation result
- * @throws AIError on API failure (with a stable `code`)
+ * @param input    The divination context
+ * @param _apiKey  Ignored (kept for back-compat signature)
+ * @param onChunk  Optional streaming callback fired per text delta
+ * @returns        The interpretation result
+ * @throws         {AIError} on backend failure (with a stable `code`)
  */
 export async function generateInterpretation(
   input: AIInterpretationInput,
-  apiKey: string,
+  _apiKey: string | null,
   onChunk?: (chunk: string) => void,
 ): Promise<AIInterpretationResult> {
-  if (!apiKey || !apiKey.trim()) {
-    throw new AIError('API key is required', 'missing-api-key')
-  }
-
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS)
 
   let response: Response
   try {
-    response = await fetch(ANTHROPIC_API_URL, {
+    response = await fetch(`${API_BASE_URL}/api/ai/interpret`, {
       method: 'POST',
+      credentials: 'include', // Send session cookie so backend can identify the user
       headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': ANTHROPIC_VERSION,
         'Content-Type': 'application/json',
-        Accept: 'text/event-stream',
       },
       body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 1024,
-        stream: true,
-        system: buildSystemPrompt(input),
-        messages: [{ role: 'user', content: '请按照以上要求输出解读。' }],
+        mainHexagramId: input.mainHexagram.id,
+        changedHexagramId: input.changedHexagram.id,
+        movingLine: input.movingLine,
+        question: input.question,
       }),
       signal: controller.signal,
     })
   } catch (err) {
     clearTimeout(timeoutId)
-    if (err instanceof DOMException && err.name === 'AbortError') {
-      throw new AIError('Request timed out', 'timeout', err)
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new AIError('请求超时', 'timeout', err)
     }
-    // TypeError covers fetch network failures in the browser.
-    throw new AIError('Network error', 'network-error', err)
-  }
-  clearTimeout(timeoutId)
-
-  if (!response.ok) {
-    // Never include the API key or the response body in the error message.
-    const code = codeFromStatus(response.status)
     throw new AIError(
-      `Anthropic API request failed (status ${response.status})`,
-      code,
+      err instanceof Error ? err.message : '网络错误',
+      'network-error',
+      err,
     )
   }
 
-  if (!response.body) {
-    throw new AIError('Response body missing', 'server-error')
+  clearTimeout(timeoutId)
+
+  // Map HTTP status to AIError
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new AIError('会话已过期，请刷新页面', 'unauthorized')
+    }
+    if (response.status === 429) {
+      let message = '请求过于频繁，请稍后再试'
+      try {
+        const body = (await response.json()) as { message?: string } | null
+        if (body?.message) message = body.message
+      } catch {
+        // ignore JSON parse failure
+      }
+      throw new AIError(message, 'rate-limit')
+    }
+    if (response.status === 503) {
+      throw new AIError('服务暂时不可用', 'server-error')
+    }
+    if (response.status >= 500) {
+      throw new AIError('服务器错误', 'server-error')
+    }
+    throw new AIError(`请求失败 (${response.status})`, 'network-error')
   }
 
-  const { chunks, usage } = await consumeStream(response.body, onChunk)
-  const text = chunks.join('')
-  return {
-    text,
-    chunks,
-    ...(usage ? { usage: { inputTokens: usage.input, outputTokens: usage.output } } : {}),
+  if (!response.body) {
+    throw new AIError('响应体为空', 'network-error')
   }
+
+  // Parse SSE stream — events are separated by \n\n
+  const chunks: string[] = []
+  let fullText = ''
+  let usage: { inputTokens: number; outputTokens: number } | undefined
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+
+      // Split on \n\n (SSE event separator); keep any incomplete tail in buffer
+      const events = buffer.split('\n\n')
+      buffer = events.pop() ?? ''
+
+      for (const event of events) {
+        const lines = event.split('\n')
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue
+          const data = line.slice(6).trim()
+          if (!data) continue
+
+          try {
+            const parsed = JSON.parse(data) as {
+              type?: string
+              delta?: { type?: string; text?: string }
+              usage?: { inputTokens: number; outputTokens: number }
+              error?: string
+            }
+
+            if (
+              parsed.type === 'content_block_delta' &&
+              parsed.delta?.type === 'text_delta' &&
+              typeof parsed.delta.text === 'string'
+            ) {
+              const chunk = parsed.delta.text
+              chunks.push(chunk)
+              fullText += chunk
+              onChunk?.(chunk)
+            } else if (parsed.type === 'done' && parsed.usage) {
+              usage = parsed.usage
+            } else if (parsed.type === 'error') {
+              throw new AIError(parsed.error ?? 'AI 解读失败', 'server-error')
+            }
+          } catch (err) {
+            if (err instanceof AIError) throw err
+            console.warn('[ai] failed to parse SSE event:', data, err)
+          }
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock()
+  }
+
+  return usage
+    ? { text: fullText, chunks, usage }
+    : { text: fullText, chunks }
 }
