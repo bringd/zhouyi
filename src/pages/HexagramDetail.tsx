@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { HexagramCard } from '@/components/hexagram/HexagramCard'
+import { YaoLineScroll } from '@/components/hexagram/YaoLineScroll'
 import { Stamp } from '@/components/ui/Stamp'
 import { Button } from '@/components/ui/Button'
 import { BreathEffect } from '@/components/motion/BreathEffect'
@@ -101,23 +102,11 @@ export default function HexagramDetail() {
           )}
         </div>
 
-        {/* Six yao lines */}
-        {hexagram.yaoLines.some((y) => y.originalText) && (
-          <div className="mb-10 p-5 bg-rice border-2 border-june-bronze/30 rounded-md">
-            <h2 className="text-lg font-display text-ink mb-4 tracking-widest">六 爻 爻 辞</h2>
-            <div className="space-y-3">
-              {hexagram.yaoLines.map((y) => (
-                <div key={y.position} className="border-b border-june-bronze/20 pb-3 last:border-b-0">
-                  <div className="font-body text-ink font-bold">{y.originalText}</div>
-                  {y.explanation && (
-                    <div className="text-sm text-ink-light font-body mt-1">【释】{y.explanation}</div>
-                  )}
-                  {y.modernMeaning && (
-                    <div className="text-sm text-june-bronze font-body mt-1">【今】{y.modernMeaning}</div>
-                  )}
-                </div>
-              ))}
-            </div>
+        {/* Six yao lines — 卷轴式卡片 */}
+        {hexagram.yaoLines.some((y) => y.originalText || y.explanation || y.modernMeaning) && (
+          <div className="mb-10">
+            <h2 className="text-lg font-display text-ink mb-4 tracking-widest text-center">六 爻 爻 辞</h2>
+            <YaoLineScroll yaoLines={hexagram.yaoLines} />
           </div>
         )}
 

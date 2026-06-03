@@ -42,6 +42,9 @@ export interface YaoLine {
 
   /** 现代意义, 80-120字 */
   modernMeaning: string
+
+  /** Optional: 深层意蕴, 40-80字 (scholarly, beyond the surface reading) */
+  deepMeaning?: string
 }
 
 /** 京房八宫角色 (Eight Palaces role in the Jing Fang system) */
