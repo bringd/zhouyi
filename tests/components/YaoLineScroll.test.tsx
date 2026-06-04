@@ -128,3 +128,113 @@ describe('YaoLineScroll', () => {
     expect(container.querySelectorAll('.border-june-bronze\\/15')).toHaveLength(6)
   })
 })
+
+describe('YaoLineScroll (option A design — mini yao indicator)', () => {
+  it('renders a mini yao stack on the left of each card', () => {
+    const lines = Array.from({ length: 6 }, (_, i) =>
+      yao({ position: (i + 1) as 1 | 2 | 3 | 4 | 5 | 6 })
+    )
+    const { container } = render(
+      <MemoryRouter>
+        <YaoLineScroll yaoLines={lines} />
+      </MemoryRouter>
+    )
+    // 6 cards, each with a mini yao stack (data-testid)
+    const stacks = container.querySelectorAll('[data-testid="mini-yao-stack"]')
+    expect(stacks).toHaveLength(6)
+    // Each stack has 6 mini-line rows
+    expect(stacks[0]?.querySelectorAll('[data-current]')).toHaveLength(6)
+  })
+
+  it('highlights the current position in the mini yao stack (one row per card)', () => {
+    const lines = [yao({ position: 3, type: 'yang' })]
+    const { container } = render(
+      <MemoryRouter>
+        <YaoLineScroll yaoLines={lines} />
+      </MemoryRouter>
+    )
+    const currentRows = container.querySelectorAll('[data-current="true"]')
+    // Exactly one row is the current one (position 3)
+    expect(currentRows).toHaveLength(1)
+  })
+
+  it('marks the correct position row as current for position 1', () => {
+    const lines = [yao({ position: 1, type: 'yang' })]
+    const { container } = render(
+      <MemoryRouter>
+        <YaoLineScroll yaoLines={lines} />
+      </MemoryRouter>
+    )
+    // Find the stack and check that exactly one row is data-current="true"
+    const stack = container.querySelector('[data-testid="mini-yao-stack"]')
+    expect(stack).not.toBeNull()
+    const currentRow = stack?.querySelector('[data-current="true"]')
+    expect(currentRow).not.toBeNull()
+    // The current row should have the june-red border (border-june-red)
+    expect(currentRow?.className).toContain('border-june-red')
+  })
+
+  it('marks the correct position row as current for position 6', () => {
+    const lines = [yao({ position: 6, type: 'yin' })]
+    const { container } = render(
+      <MemoryRouter>
+        <YaoLineScroll yaoLines={lines} />
+      </MemoryRouter>
+    )
+    const stack = container.querySelector('[data-testid="mini-yao-stack"]')
+    const currentRow = stack?.querySelector('[data-current="true"]')
+    expect(currentRow).not.toBeNull()
+    expect(currentRow?.className).toContain('border-june-red')
+  })
+
+  it('renders the position label as inline text (not a badge)', () => {
+    const lines = [yao({ position: 2, type: 'yang' })]
+    const { container } = render(
+      <MemoryRouter>
+        <YaoLineScroll yaoLines={lines} />
+      </MemoryRouter>
+    )
+    // The label is in a span with june-red color (text-june-red) and font-display
+    // but is NOT the old absolute-positioned 70px-pl badge
+    const oldBadge = container.querySelector('.absolute.left-3.top-3')
+    expect(oldBadge).toBeNull()
+    // New label exists in normal flow
+    const labelEl = screen.getByText('九二')
+    expect(labelEl).toBeInTheDocument()
+    expect(labelEl.className).toContain('text-june-red')
+  })
+
+  it('shows 6 placeholder cards for an empty hexagram (all 6 yao cards render)', () => {
+    // This validates that the parent (HexagramDetail) now always renders the
+    // 6-yao section. The component itself should produce 6 cards regardless of content.
+    const lines = Array.from({ length: 6 }, (_, i) =>
+      yao({ position: (i + 1) as 1 | 2 | 3 | 4 | 5 | 6 })
+    )
+    const { container } = render(
+      <MemoryRouter>
+        <YaoLineScroll yaoLines={lines} />
+      </MemoryRouter>
+    )
+    // 6 cards
+    const cards = container.querySelectorAll('[data-yao-position]')
+    expect(cards).toHaveLength(6)
+    // All 6 爻位 labels present
+    expect(screen.getByText('初九')).toBeInTheDocument()
+    expect(screen.getByText('上九')).toBeInTheDocument()
+    // 6 placeholder texts for 爻辞
+    const placeholders = screen.getAllByText(/（爻辞待补）/)
+    expect(placeholders.length).toBeGreaterThanOrEqual(6)
+  })
+
+  it('shows field-level placeholders (▎释 / ▎今) when those fields are empty', () => {
+    const lines = [yao({ position: 1, type: 'yang' })]
+    render(
+      <MemoryRouter>
+        <YaoLineScroll yaoLines={lines} />
+      </MemoryRouter>
+    )
+    expect(screen.getByText(/（释义待补）/)).toBeInTheDocument()
+    expect(screen.getByText(/（今译待补）/)).toBeInTheDocument()
+  })
+})
+

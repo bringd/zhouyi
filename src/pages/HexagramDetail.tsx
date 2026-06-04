@@ -102,13 +102,11 @@ export default function HexagramDetail() {
           )}
         </div>
 
-        {/* Six yao lines — 卷轴式卡片 */}
-        {hexagram.yaoLines.some((y) => y.originalText || y.explanation || y.modernMeaning) && (
-          <div className="mb-10">
-            <h2 className="text-lg font-display text-ink mb-4 tracking-widest text-center">六 爻 爻 辞</h2>
-            <YaoLineScroll yaoLines={hexagram.yaoLines} />
-          </div>
-        )}
+        {/* Six yao lines — 卷轴式卡片（始终渲染，空卦显示 6 张占位卡） */}
+        <div className="mb-10">
+          <h2 className="text-lg font-display text-ink mb-4 tracking-widest text-center">六 爻 爻 辞</h2>
+          <YaoLineScroll yaoLines={hexagram.yaoLines} />
+        </div>
 
         {/* Modern interpretation */}
         {hexagram.modernInterpretation && (
