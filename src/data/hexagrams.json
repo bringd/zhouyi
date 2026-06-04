@@ -2664,44 +2664,50 @@
       {
         "position": 1,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "初九：履错然，敬之无咎。",
+        "explanation": "起步错落，敬慎之则无咎。",
+        "modernMeaning": "在起步时若不慎走错了路——只要保持敬畏谨慎就能避免大错。",
+        "deepMeaning": "履错然之错字最重——错也。敬之无咎之敬字最妙：敬也。此爻教人：错之时、敬可免咎。"
       },
       {
         "position": 2,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "六二：黄离，元吉。",
+        "explanation": "黄离之德，大吉。",
+        "modernMeaning": "当你的光明能保持中正（黄）时——这是最大的吉。",
+        "deepMeaning": "黄离之黄字最重——中也。元吉二字最明：大吉也。此爻教人：离之时、中正为大。"
       },
       {
         "position": 3,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九三：日昃之离，不鼓缶而歌，则大耋之嗟，凶。",
+        "explanation": "日昃之离，不鼓缶而歌，则大耋之嗟，凶。",
+        "modernMeaning": "当光明到了日暮时——若不及时行乐、就会沦入老年之悲。",
+        "deepMeaning": "日昃之离之昃字最重——日西斜也。不鼓缶而歌之鼓字最警：不击也。大耋之嗟之耋字最妙：老也。凶字最明：离极则哀。此爻教人：离之时、当及时行。"
       },
       {
         "position": 4,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九四：突如其来如，焚如，死如，弃如。",
+        "explanation": "突如其来，焚烧，死亡，弃绝。",
+        "modernMeaning": "当光明突然过度时会带来毁灭性的后果——像火焰一样可以烧尽一切。",
+        "deepMeaning": "突如其来如之突字最重——突也。焚如死如弃如之三如字最警：焚也、死也、弃也。此爻教人：离之过、能焚能灭。"
       },
       {
         "position": 5,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "六五：出涕沱若，戚嗟若，吉。",
+        "explanation": "涕泪滂沱，忧戚嗟叹，吉。",
+        "modernMeaning": "当光明到了极盛时——若能心怀忧患（涕泪忧戚）反而是吉的。",
+        "deepMeaning": "出涕沱若之涕字最重——泪也。戚嗟若之嗟字最妙：叹也。吉字最明：忧则吉。此爻教人：离之极、忧可转吉。"
       },
       {
         "position": 6,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "上九：王用出征，有嘉折首，获匪其丑，无咎。",
+        "explanation": "王用此道出征，嘉其折首之功，获其魁首，不及其党类，无咎。",
+        "modernMeaning": "当光明极盛时——王者可用此力量出征、惩治元凶但不及其党羽——是最高明的领导。",
+        "deepMeaning": "有嘉折首之嘉字最重——嘉也、美也。获匪其丑之丑字最妙：类也。无咎二字最明：能辨主从而赦党。此爻教人：离之时、能明主从。"
       }
     ],
     "keywords": [
@@ -2748,44 +2754,50 @@
       {
         "position": 1,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "初六：咸其拇。",
+        "explanation": "感应于足大趾。",
+        "modernMeaning": "在人际感应中最先反应的是脚趾（最末端）——感情的初动是细微的。",
+        "deepMeaning": "咸其拇之拇字最重——足大趾也。此爻教人：咸之初、感于微。"
       },
       {
         "position": 2,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "六二：咸其腓，凶，居吉。",
+        "explanation": "感应于小腿，凶，安于静则吉。",
+        "modernMeaning": "当感应蔓延到小腿时——若不自主行动会有凶、但若能稳住则是吉。",
+        "deepMeaning": "咸其腓之腓字最重——小腿肚也。凶居吉之辨最明：动则凶、静则吉。此爻教人：咸之时、可止则止。"
       },
       {
         "position": 3,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九三：咸其股，执其随，往吝。",
+        "explanation": "感应于股，执意随人，前往则吝。",
+        "modernMeaning": "当感应到股时——若没有自己的主张而盲从他人、会有吝。",
+        "deepMeaning": "咸其股之股字最重——大腿也。执其随之执字最警：固执也。往吝之吝字最明：难也。此爻教人：咸之时、当有主。"
       },
       {
         "position": 4,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九四：贞吉悔亡，憧憧往来，朋从尔思。",
+        "explanation": "守正则吉而悔亡，憧憧往来，朋友从尔所思。",
+        "modernMeaning": "在思想不断流动时——若能保持正念、朋友们自然与你思想相通。",
+        "deepMeaning": "憧憧往来之憧字最重——心动也。朋从尔思之思字最妙：念也。此爻教人：咸之时、以正感正。"
       },
       {
         "position": 5,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九五：咸其脢，无悔。",
+        "explanation": "感应于背脊，无悔。",
+        "modernMeaning": "当感应能深入到背脊（身体中心）时——不会后悔。这是感应的至高境界。",
+        "deepMeaning": "咸其脢之脢字最重——背脊也。无悔二字最明：感之深则无悔。此爻教人：咸之时、能感于中。"
       },
       {
         "position": 6,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "上六：咸其辅，颊舌。",
+        "explanation": "感应于辅颊舌。",
+        "modernMeaning": "当感应最终体现在言语（舌）和表情（颊）上时——是感应的自然流露。",
+        "deepMeaning": "咸其辅颊舌之辅字最重——面颊也。颊舌二字最妙：言语也。此爻教人：咸之时、能以言表。"
       }
     ],
     "keywords": [
@@ -2832,44 +2844,50 @@
       {
         "position": 1,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "初六：浚恒，贞凶，无攸利。",
+        "explanation": "深求恒久，守正则凶，无所利。",
+        "modernMeaning": "若过分追求恒久不变（深入挖掘）——会守正也凶。",
+        "deepMeaning": "浚恒之浚字最重——深也。贞凶之贞字最警：执也。此爻教人：恒之初、不可深求。"
       },
       {
         "position": 2,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九二：悔亡。",
+        "explanation": "悔亡。",
+        "modernMeaning": "当意识到问题并能自我反省时——悔恨会消失。",
+        "deepMeaning": "悔亡之悔字最重——悔也。亡字最妙：消也。此爻教人：恒之时、能省则吉。"
       },
       {
         "position": 3,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九三：不恒其德，或承之羞，贞吝。",
+        "explanation": "不能恒守其德，或将承受羞辱，守正则吝。",
+        "modernMeaning": "当一个人不能坚守德行时——终会蒙羞。",
+        "deepMeaning": "不恒其德之不字最重——不也。或承之羞之羞字最警：辱也。贞吝之吝字最明：难也。此爻教人：恒之时、必守德。"
       },
       {
         "position": 4,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九四：田无禽。",
+        "explanation": "田猎无禽。",
+        "modernMeaning": "当一个人长期坚持同一件事却毫无收获时——需要调整方向。",
+        "deepMeaning": "田无禽之田字最重——猎场也。无禽之无字最妙：无所得也。此爻教人：恒之时、当有所得。"
       },
       {
         "position": 5,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "六五：恒其德，贞，妇人吉，夫子凶。",
+        "explanation": "恒守其德，守正，妇人吉，夫子凶。",
+        "modernMeaning": "坚守德行——对妇人（顺从者）是吉的、但对男子（应当有为者）反为凶。",
+        "deepMeaning": "恒其德之恒字最重——常也。妇人吉夫子凶之辨最明：恒须因人而异。此爻教人：恒之时、当权其人。"
       },
       {
         "position": 6,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "上六：振恒，凶。",
+        "explanation": "振动恒久，凶。",
+        "modernMeaning": "当坚持到极端变成僵化时——会有凶。",
+        "deepMeaning": "振恒之振字最重——振也、动也。凶字最明：振则变、变则凶。此爻教人：恒之极、不可振。"
       }
     ],
     "keywords": [
@@ -2917,44 +2935,50 @@
       {
         "position": 1,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "初六：遁尾，厉。勿用有攸往。",
+        "explanation": "遁退在后尾，危厉。勿有所往。",
+        "modernMeaning": "在退避中若落在最后（尾巴）——是危险的。不宜再有行动。",
+        "deepMeaning": "遁尾之尾字最重——尾也。厉字最警：危也。勿用有攸往之勿字最妙：不也。此爻教人：遁之时、不可落后。"
       },
       {
         "position": 2,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "六二：执之用黄牛之革，莫之胜说。",
+        "explanation": "以黄牛之革捆缚，无人能解。",
+        "modernMeaning": "在退避中用黄牛皮（最坚固）捆住自己——决心不动摇。",
+        "deepMeaning": "执之用黄牛之革之革字最重——皮也、束也。莫之胜说之胜字最妙：能也。此爻教人：遁之时、志须坚。"
       },
       {
         "position": 3,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九三：系遁，有疾厉。畜臣妾，吉。",
+        "explanation": "系恋而不遁，有疾危。畜养臣妾，吉。",
+        "modernMeaning": "在退避中若被牵系——会有疾苦；但能养好身边的人就是吉的。",
+        "deepMeaning": "系遁之系字最重——系也。有疾厉之疾字最警：病也。畜臣妾吉之畜字最妙：养也。此爻教人：遁之时、不可系恋。"
       },
       {
         "position": 4,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九四：好遁，君子吉，小人否。",
+        "explanation": "好于遁退，君子吉，小人则否。",
+        "modernMeaning": "在退避中能主动欢喜地退——是君子的智慧、小人则不能。",
+        "deepMeaning": "好遁之好字最重——喜也。君子吉小人否之辨最明：能乐退者君子也。此爻教人：遁之时、能乐则大。"
       },
       {
         "position": 5,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九五：嘉遁，贞吉。",
+        "explanation": "嘉美之遁，守正则吉。",
+        "modernMeaning": "在退避中能以嘉美之心退出——这是至高的吉。",
+        "deepMeaning": "嘉遁之嘉字最重——美也、善也。贞吉二字最明：嘉遁则吉。此爻教人：遁之美、能全身而进。"
       },
       {
         "position": 6,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "上九：肥遁，无不利。",
+        "explanation": "宽裕之遁，无不利。",
+        "modernMeaning": "在退避中能保持丰裕的心态——没有任何不利。",
+        "deepMeaning": "肥遁之肥字最重——宽也、裕也。无不利三字最明：肥则无不利。此爻教人：遁之时、能肥则大。"
       }
     ],
     "keywords": [
@@ -3002,44 +3026,50 @@
       {
         "position": 1,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "初九：壮于趾，征凶，有孚。",
+        "explanation": "壮于足趾，征则凶，有诚信。",
+        "modernMeaning": "当力量只到脚趾时——若强行前进会有凶。",
+        "deepMeaning": "壮于趾之趾字最重——足也。征凶之征字最警：行也。有孚之孚字最明：信也。此爻教人：壮之初、不可妄动。"
       },
       {
         "position": 2,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九二：贞吉。",
+        "explanation": "守正则吉。",
+        "modernMeaning": "在大壮之时——能守正就是吉。",
+        "deepMeaning": "贞吉二字最明：守正则吉。此爻教人：壮之时、守贞为要。"
       },
       {
         "position": 3,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九三：小人用壮，君子用罔，贞厉。羝羊触藩，羸其角。",
+        "explanation": "小人用壮，君子用罔，守正亦危。羝羊触藩篱，羸困其角。",
+        "modernMeaning": "当力量旺盛时——小人用蛮、君子用网（智慧）。但即使是守正也有危险（如公羊触藩篱而角被卡住）。",
+        "deepMeaning": "小人用壮之壮字最重——强也。羝羊触藩之羝字最警：壮羊也。羸其角之羸字最妙：困也。此爻教人：壮之时、不可恃力。"
       },
       {
         "position": 4,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九四：贞吉悔亡，藩决不羸，壮于大舆之輹。",
+        "explanation": "守正则吉而悔亡，藩篱决开不羸困，壮于大车之辐。",
+        "modernMeaning": "当能突破藩篱（不被卡住）——力量能继续增长。",
+        "deepMeaning": "藩决不羸之决字最重——决也、断也。壮于大舆之輹之壮字最明：力也。此爻教人：壮之时、能决则进。"
       },
       {
         "position": 5,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "六五：丧羊于易，无悔。",
+        "explanation": "丧羊于易（边境），无悔。",
+        "modernMeaning": "在大壮中若能在易地（边远）失去羊（自损）——不悔。",
+        "deepMeaning": "丧羊于易之丧字最重——失也。无悔二字最明：能失则无悔。此爻教人：壮之时、能损则吉。"
       },
       {
         "position": 6,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "上六：羝羊触藩，不能退，不能遂。",
+        "explanation": "羝羊触藩篱，不能退，不能遂（进）。",
+        "modernMeaning": "在大壮之极——若不知进退则会陷入进退两难的困境。",
+        "deepMeaning": "不能退不能遂之两不字最重——困也。此爻教人：壮之极、不可不知止。"
       }
     ],
     "keywords": [
@@ -3087,44 +3117,50 @@
       {
         "position": 1,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "初六：晋如，摧如，贞吉。罔孚，裕无咎。",
+        "explanation": "进之时被摧，守正则吉。罔信，宽裕则无咎。",
+        "modernMeaning": "在晋升中若遇到阻碍——能保持诚信和宽裕就能免祸。",
+        "deepMeaning": "晋如摧如之摧字最重——折也。罔孚之罔字最妙：无也。裕无咎之裕字最明：宽也。此爻教人：晋之初、宽则无咎。"
       },
       {
         "position": 2,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "六二：晋如，愁如，贞吉。受兹介福，于其王母。",
+        "explanation": "进之时，愁之，守正则吉。受此大福，于其王母。",
+        "modernMeaning": "在晋升中若感到愁虑——但终能从王母（高位女性、象征荫庇）处获得大福。",
+        "deepMeaning": "受兹介福之介字最重——大也。于其王母之王母字最妙：母也、庇也。此爻教人：晋之时、得荫则吉。"
       },
       {
         "position": 3,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "六三：众允，悔亡。",
+        "explanation": "众人信允，悔亡。",
+        "modernMeaning": "在晋升中能得到众人的信任——悔恨会消失。",
+        "deepMeaning": "众允之众字最重——众也。悔亡之亡字最妙：消也。此爻教人：晋之时、得众则吉。"
       },
       {
         "position": 4,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九四：晋如鼫鼠，贞厉。",
+        "explanation": "进之时如鼫鼠（五技而穷），守正则危。",
+        "modernMeaning": "在晋升中若像鼫鼠（五技而穷）——即使守正也有危。",
+        "deepMeaning": "晋如鼫鼠之鼫字最重——鼠也。贞厉之厉字最警：危也。此爻教人：晋之时、不可小才。"
       },
       {
         "position": 5,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "六五：悔亡，失得勿恤，往吉，无不利。",
+        "explanation": "悔亡，失得勿忧，往吉，无不利。",
+        "modernMeaning": "在晋升中能不为得失忧虑——所有方向都吉。",
+        "deepMeaning": "失得勿恤之恤字最重——忧也。往吉无不利四字最明：能忘得失则吉。此爻教人：晋之时、忘得失。"
       },
       {
         "position": 6,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "上九：晋其角，维用伐邑。厉吉无咎，贞吝。",
+        "explanation": "进其角（高至顶点），维用伐邑（征伐领地）。危厉而吉无咎，守正则吝。",
+        "modernMeaning": "在晋升之极时——角（角端）虽锐但需要谨慎使用。征伐虽吉但守正则吝。",
+        "deepMeaning": "晋其角之角字最重——角也。维用伐邑之维字最妙：唯也。此爻教人：晋之极、当用其锋。"
       }
     ],
     "keywords": [
@@ -3172,44 +3208,50 @@
       {
         "position": 1,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "初九：明夷于飞，垂其翼。君子于行，三日不食。",
+        "explanation": "光明受伤于飞，垂其翼。君子于行，三日不食。",
+        "modernMeaning": "当光明受损时——君子虽困于奔波、饥饿、却仍坚持正道。",
+        "deepMeaning": "明夷于飞之夷字最重——伤也。三日不食之数字最警：久也。此爻教人：明夷之时、志不坠。"
       },
       {
         "position": 2,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "六二：明夷，夷于左股，用拯马壮，吉。",
+        "explanation": "明夷之时，伤于左股，用壮马来拯救，吉。",
+        "modernMeaning": "在光明受损时——及时得到外援（壮马）能转危为安。",
+        "deepMeaning": "夷于左股之左字最重——左也。用拯马壮之拯字最妙：救也。此爻教人：明夷之时、得助则吉。"
       },
       {
         "position": 3,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九三：明夷于南狩，得其大首，不可疾，贞。",
+        "explanation": "明夷于南方狩猎，得其大首领，不可急，守正。",
+        "modernMeaning": "在明夷时若能向南（光明方向）狩猎——能获得大的胜利、但需守正不急。",
+        "deepMeaning": "明夷于南狩之南字最重——南也、向阳也。得其大首之首字最妙：首也。此爻教人：明夷之时、向明则吉。"
       },
       {
         "position": 4,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "六四：入于左腹，获明夷之心，于出门庭。",
+        "explanation": "入于左腹，获明夷之心，于出门庭。",
+        "modernMeaning": "在明夷中若能深入到左腹（内心深处）——能理解明夷之人的苦衷。",
+        "deepMeaning": "入于左腹之左字最重——内也。获明夷之心之心字最妙：心也。此爻教人：明夷之时、能知其心。"
       },
       {
         "position": 5,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "六五：箕子之明夷，利贞。",
+        "explanation": "箕子之明夷（纣王昏暗时箕子装疯避难），利守正。",
+        "modernMeaning": "箕子在纣王昏暗时——通过装疯自保、最终守住正道。",
+        "deepMeaning": "箕子之明夷之箕字最重——箕子也（古代仁人）。利贞二字最明：能晦能明。此爻教人：明夷之时、晦以待明。"
       },
       {
         "position": 6,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "上六：不明，晦。初登于天，后入于地。",
+        "explanation": "不明而晦。初登于天，后入于地。",
+        "modernMeaning": "在明夷之极——不明（黑暗）到了极致。最初登天（光明）终入地（黑暗）。",
+        "deepMeaning": "不明晦之晦字最重——暗也。初登于天后入于地之登入二字最明：升降也。此爻教人：明夷之极、可复明。"
       }
     ],
     "keywords": [
@@ -3256,44 +3298,50 @@
       {
         "position": 1,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "初九：闲有家，悔亡。",
+        "explanation": "治家于未乱之时，悔亡。",
+        "modernMeaning": "在家庭中若能在没事时就防范——能避免问题。",
+        "deepMeaning": "闲有家之闲字最重——防也。悔亡之亡字最妙：消也。此爻教人：家之初、防于未乱。"
       },
       {
         "position": 2,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "六二：无攸遂，在中馈，贞吉。",
+        "explanation": "无所专主，在中馈（家中饮食），守正则吉。",
+        "modernMeaning": "在家庭中不擅自做主、专注于家中饮食起居——是守内的智慧。",
+        "deepMeaning": "无攸遂之无字最重——无也。在中馈之馈字最妙：食也。此爻教人：家之内、各司其职。"
       },
       {
         "position": 3,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九三：家人嗃嗃，悔厉吉。妇子嘻嘻，终吝。",
+        "explanation": "家人严嗃嗃，虽悔厉而吉。妇子嘻嘻，终吝。",
+        "modernMeaning": "在家庭中若能严肃治理（虽看似无情）——终吉；若放任嬉笑——终有吝。",
+        "deepMeaning": "家人嗃嗃之嗃字最重——严也。妇子嘻嘻之嘻字最妙：乐也。终吝之吝字最明：难也。此爻教人：家之时、严则吉。"
       },
       {
         "position": 4,
         "type": "yin",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "六四：富家，大吉。",
+        "explanation": "富家，大吉。",
+        "modernMeaning": "当家庭富裕时——这是大吉之象。",
+        "deepMeaning": "富家之富字最重——裕也。大吉二字最明：富则大吉。此爻教人：家之时、富则大吉。"
       },
       {
         "position": 5,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "九五：王假有家，勿恤，吉。",
+        "explanation": "王以正至于家，勿忧，吉。",
+        "modernMeaning": "当王者能将正道推广到家庭时——勿忧，吉。",
+        "deepMeaning": "王假有家之假字最重——至也、正也。勿恤之恤字最妙：忧也。此爻教人：家之时、能正则吉。"
       },
       {
         "position": 6,
         "type": "yang",
-        "originalText": "",
-        "explanation": "",
-        "modernMeaning": ""
+        "originalText": "上九：有孚威如，终吉。",
+        "explanation": "有诚信威严，终吉。",
+        "modernMeaning": "在家庭中既有诚信又有威严——终吉。",
+        "deepMeaning": "有孚威如之孚字最重——信也。终吉二字最明：信威并用则吉。此爻教人：家之极、信威并立。"
       }
     ],
     "keywords": [
