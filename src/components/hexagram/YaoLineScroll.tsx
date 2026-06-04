@@ -71,9 +71,13 @@ function MiniHexagramStack({ yaoLines, currentLine }: MiniHexagramStackProps) {
  * 字段为空时显示「（待补）」占位符，确保空卦仍能优雅渲染。
  */
 export function YaoLineScroll({ yaoLines, className }: YaoLineScrollProps) {
+  // V3: 卦象传统视觉一致 — 卡片按 6→1 渲染（上九在顶、初九在底），
+  // 与左侧 mini 卦象堆栈方向一致（6 上 1 下）。mini 堆栈内部仍按 yaoLines[pos-1] 查爻形。
+  const displayOrder = [...yaoLines].reverse()
+
   return (
     <div className={cn('flex flex-col gap-3', className)}>
-      {yaoLines.map((yao, idx) => {
+      {displayOrder.map((yao, idx) => {
         const labels = yao.type === 'yang' ? POSITION_LABELS_YANG : POSITION_LABELS_YIN
         const label = labels[yao.position - 1]
         const hasContent = yao.originalText || yao.explanation || yao.modernMeaning
