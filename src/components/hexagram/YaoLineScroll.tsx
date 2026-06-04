@@ -11,10 +11,64 @@ export interface YaoLineScrollProps {
 const POSITION_LABELS_YANG = ['初九', '九二', '九三', '九四', '九五', '上九'] as const
 const POSITION_LABELS_YIN = ['初六', '六二', '六三', '六四', '六五', '上六'] as const
 
+// 真实 mini 爻 — 阳实 / 阴断
+function MiniYao({ type, isCurrent }: { type: 'yin' | 'yang'; isCurrent: boolean }) {
+  const color = isCurrent ? '#9b2c2c' : 'rgba(26,26,26,0.18)'
+  const w = 32
+  if (type === 'yang') {
+    return <div style={{ width: w, height: 6, background: color, borderRadius: 1 }} />
+  }
+  return (
+    <div style={{ display: 'flex', gap: 4, width: w }}>
+      <div style={{ width: (w - 4) / 2, height: 6, background: color, borderRadius: 1 }} />
+      <div style={{ width: (w - 4) / 2, height: 6, background: color, borderRadius: 1 }} />
+    </div>
+  )
+}
+
+interface MiniHexagramStackProps {
+  yaoLines: YaoLine[]
+  currentLine: number
+}
+
+function MiniHexagramStack({ yaoLines, currentLine }: MiniHexagramStackProps) {
+  return (
+    <div
+      className="flex flex-col bg-rice/60 border border-june-bronze/30 rounded-md p-2"
+      style={{ gap: 7 }}
+      aria-label={`位置指示器，当前在第 ${currentLine} 爻`}
+      data-testid="mini-yao-stack"
+    >
+      {[6, 5, 4, 3, 2, 1].map((pos) => {
+        const isCurrent = pos === currentLine
+        const yao = yaoLines[pos - 1]
+        const type: 'yin' | 'yang' = yao?.type ?? 'yang'
+        return (
+          <div
+            key={pos}
+            data-current={isCurrent ? 'true' : 'false'}
+            data-position={pos}
+            className={cn(
+              'flex items-center justify-center rounded-sm transition-all',
+              isCurrent
+                ? 'bg-june-red/20 ring-2 ring-june-red shadow-sm'
+                : 'opacity-60',
+            )}
+            style={{ padding: '2px 4px' }}
+          >
+            <MiniYao type={type} isCurrent={isCurrent} />
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 /**
- * 卷轴式 爻辞展示 — 工笔风格的 6 爻独立卡片列表（A 方案）。
- * 左侧 mini 6 爻指示器（当前爻朱砂红高亮 + 左缘金线），右侧爻辞 / 释 / 今 / 深意。
- * 字段为空时显示「（待补）」占位符，确保 62/64 卦（暂无数据）仍能优雅渲染。
+ * 卷轴式 爻辞展示 — 工笔风格的 6 爻独立卡片列表（A 方案 V2 增强版）。
+ * 左侧放大版 mini 6 爻堆栈（真实爻形 + 当前爻红框红底高亮 + 其他爻灰显），
+ * 右侧 爻位徽章 + 卦辞 / 释 / 今 / 深意。
+ * 字段为空时显示「（待补）」占位符，确保空卦仍能优雅渲染。
  */
 export function YaoLineScroll({ yaoLines, className }: YaoLineScrollProps) {
   return (
@@ -35,48 +89,17 @@ export function YaoLineScroll({ yaoLines, className }: YaoLineScrollProps) {
             className="flex gap-3 pl-4 pr-5 py-4 bg-rice/70 rounded shadow-sm border border-june-bronze/15"
             data-yao-position={yao.position}
           >
-            {/* 左侧 mini 6 爻指示器 — 当前爻朱砂红 + 左缘金线 */}
-            <div
-              className="flex flex-col gap-[3px] shrink-0"
-              aria-label={`位置指示器，当前在第 ${yao.position} 爻`}
-              data-testid="mini-yao-stack"
-            >
-              {[6, 5, 4, 3, 2, 1].map((pos) => {
-                const isCurrent = pos === yao.position
-                return (
-                  <div
-                    key={pos}
-                    className={cn(
-                      'flex gap-[2px] py-[1px]',
-                      isCurrent
-                        ? 'px-[3px] bg-june-red/15 border-l-2 border-june-red rounded-sm'
-                        : 'px-0 border-l-2 border-transparent'
-                    )}
-                    data-current={isCurrent ? 'true' : 'false'}
-                  >
-                    <div
-                      className={cn(
-                        'h-[3px] w-[10px]',
-                        isCurrent ? 'bg-june-red' : 'bg-ink/20'
-                      )}
-                    />
-                    <div
-                      className={cn(
-                        'h-[3px] w-[10px]',
-                        isCurrent ? 'bg-june-red' : 'bg-ink/20'
-                      )}
-                    />
-                  </div>
-                )
-              })}
+            {/* 左侧放大版 mini 6 爻堆栈 */}
+            <div className="shrink-0">
+              <MiniHexagramStack yaoLines={yaoLines} currentLine={yao.position} />
             </div>
 
             {/* 右侧内容 */}
             <div className="flex-1 min-w-0">
-              {/* 爻位 + 卦辞：爻位作为小标签 */}
+              {/* 爻位徽章 + 卦辞 */}
               <div className="flex items-baseline gap-2 mb-1.5 flex-wrap">
                 <span
-                  className="font-display text-xs text-june-red font-bold tracking-widest shrink-0"
+                  className="inline-block px-2 py-0.5 bg-june-red text-rice text-xs font-display font-bold rounded-sm shrink-0"
                   aria-label={label}
                 >
                   {label}

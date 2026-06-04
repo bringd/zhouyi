@@ -158,23 +158,23 @@ describe('YaoLineScroll (option A design — mini yao indicator)', () => {
     expect(currentRows).toHaveLength(1)
   })
 
-  it('marks the correct position row as current for position 1', () => {
+  it('marks the correct position row as current for position 1 (V2 design)', () => {
     const lines = [yao({ position: 1, type: 'yang' })]
     const { container } = render(
       <MemoryRouter>
         <YaoLineScroll yaoLines={lines} />
       </MemoryRouter>
     )
-    // Find the stack and check that exactly one row is data-current="true"
     const stack = container.querySelector('[data-testid="mini-yao-stack"]')
     expect(stack).not.toBeNull()
     const currentRow = stack?.querySelector('[data-current="true"]')
     expect(currentRow).not.toBeNull()
-    // The current row should have the june-red border (border-june-red)
-    expect(currentRow?.className).toContain('border-june-red')
+    // V2 design: current row has red ring (ring-june-red) + red bg
+    expect(currentRow?.className).toContain('ring-june-red')
+    expect(currentRow?.className).toContain('bg-june-red')
   })
 
-  it('marks the correct position row as current for position 6', () => {
+  it('marks the correct position row as current for position 6 (V2 design)', () => {
     const lines = [yao({ position: 6, type: 'yin' })]
     const { container } = render(
       <MemoryRouter>
@@ -184,24 +184,44 @@ describe('YaoLineScroll (option A design — mini yao indicator)', () => {
     const stack = container.querySelector('[data-testid="mini-yao-stack"]')
     const currentRow = stack?.querySelector('[data-current="true"]')
     expect(currentRow).not.toBeNull()
-    expect(currentRow?.className).toContain('border-june-red')
+    expect(currentRow?.className).toContain('ring-june-red')
+    expect(currentRow?.className).toContain('bg-june-red')
   })
 
-  it('renders the position label as inline text (not a badge)', () => {
+  it('renders the position label as a red badge next to the original text (V2 design)', () => {
     const lines = [yao({ position: 2, type: 'yang' })]
     const { container } = render(
       <MemoryRouter>
         <YaoLineScroll yaoLines={lines} />
       </MemoryRouter>
     )
-    // The label is in a span with june-red color (text-june-red) and font-display
-    // but is NOT the old absolute-positioned 70px-pl badge
-    const oldBadge = container.querySelector('.absolute.left-3.top-3')
-    expect(oldBadge).toBeNull()
-    // New label exists in normal flow
+    // V2 design: label is a red background badge with white text
     const labelEl = screen.getByText('九二')
     expect(labelEl).toBeInTheDocument()
-    expect(labelEl.className).toContain('text-june-red')
+    expect(labelEl.className).toContain('bg-june-red')
+    expect(labelEl.className).toContain('text-rice')
+  })
+
+  it('V2 stack: current row has june-red ring + red bg, others are dimmed (V2 design)', () => {
+    const lines = Array.from({ length: 6 }, (_, i) =>
+      yao({
+        position: (i + 1) as 1 | 2 | 3 | 4 | 5 | 6,
+        type: (i + 1) % 2 === 0 ? 'yang' : 'yin',
+      })
+    )
+    const { container } = render(
+      <MemoryRouter>
+        <YaoLineScroll yaoLines={lines} />
+      </MemoryRouter>
+    )
+    // For each card, exactly one row in its mini-stack has data-current="true"
+    const cards = container.querySelectorAll('[data-yao-position]')
+    expect(cards).toHaveLength(6)
+    cards.forEach((card) => {
+      const stack = card.querySelector('[data-testid="mini-yao-stack"]')
+      const currentRows = stack?.querySelectorAll('[data-current="true"]')
+      expect(currentRows).toHaveLength(1)
+    })
   })
 
   it('shows 6 placeholder cards for an empty hexagram (all 6 yao cards render)', () => {
