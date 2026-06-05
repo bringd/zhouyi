@@ -190,7 +190,7 @@ describe('YaoLineScroll (option A design — mini yao indicator)', () => {
 
   it('renders the position label as a red badge next to the original text (V2 design)', () => {
     const lines = [yao({ position: 2, type: 'yang' })]
-    const { container } = render(
+    render(
       <MemoryRouter>
         <YaoLineScroll yaoLines={lines} />
       </MemoryRouter>
