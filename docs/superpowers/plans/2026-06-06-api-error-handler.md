@@ -143,7 +143,7 @@ async function readStdin() {
 }
 
 const flagContext = process.argv.find(a => a.startsWith('--context='));
-const context = flagContext !== null
+const context = flagContext !== undefined
   ? flagContext.slice('--context='.length)
   : await readStdin();
 
