@@ -306,15 +306,17 @@ saveRecord({ ..., version: 1 })
 ### 4.2 Commit 顺序（可逐层回滚）
 
 ```
-commit 1: type+storage (region 注释 + version 字段 + migrateRecord + Stamp.tsx 删除)
+commit 1: type+storage (region 注释 + version 字段 + migrateRecord)
 commit 2: Seal 增强 (compact prop)
 commit 3: MiniYaoStack 新建
-commit 4: 5 处 Stamp→Seal 替换 (V4)
+commit 4: 5 处 Stamp→Seal 替换 (V4) + Stamp.tsx 删除  ← 原子提交
 commit 5: V5 (Hero shadow) + V6 (Hero 冗余字) + D1 (节奏)
 commit 6: B7 (YaoLineScroll 改 import MiniYaoStack)
 commit 7: B1 (NumberBox useRef)
 commit 8: B2 (HexagramDetail try/catch)
 ```
+
+**关键：** `Stamp.tsx` 删除与 5 处替换必须**同一 commit**，否则 build 断裂。
 
 任一 commit 失败可单独 `git revert <sha>`，不影响其他层。
 
