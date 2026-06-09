@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { HexagramCard } from '@/components/hexagram/HexagramCard'
 import { Button } from '@/components/ui/Button'
-import { Stamp } from '@/components/ui/Stamp'
+import { Seal } from '@/components/ui/Seal'
 import { FlipEntry } from '@/components/motion/FlipEntry'
 import { BreathEffect } from '@/components/motion/BreathEffect'
 import { getTodayHexagram } from '@/lib/daily'
@@ -70,7 +70,7 @@ export function DailyHero({
                 第 {main.number} 卦
               </div>
               <div className="absolute top-4 right-4">
-                <Stamp text={main.shortName} size="sm" rotation={-3} />
+                <Seal text={main.shortName} size={44} rotation={-3} />
               </div>
               {/* Big hexagram glyph */}
               <div className="w-full max-w-xs">
@@ -80,9 +80,6 @@ export function DailyHero({
                   navigateOnClick={false}
                   showStamp={false}
                 />
-              </div>
-              <div className="absolute bottom-4 right-4 text-rice font-display text-2xl tracking-widest">
-                {main.shortName}
               </div>
             </div>
           </BreathEffect>

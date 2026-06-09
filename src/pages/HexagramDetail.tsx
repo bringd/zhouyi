@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { HexagramCard } from '@/components/hexagram/HexagramCard'
 import { YaoLineScroll } from '@/components/hexagram/YaoLineScroll'
-import { Stamp } from '@/components/ui/Stamp'
+import { Seal } from '@/components/ui/Seal'
 import { Button } from '@/components/ui/Button'
 import { BreathEffect } from '@/components/motion/BreathEffect'
 import { getHexagramById } from '@/lib/divination'
@@ -73,7 +73,7 @@ export default function HexagramDetail() {
           <BreathEffect className="rounded-md" duration={4500}>
             <div className="bg-rice border-2 border-june-bronze p-6 rounded-md shadow-lg w-fit relative">
               <div className="absolute top-3 right-3">
-                <Stamp text={hexagram.shortName} size="sm" rotation={-3} />
+                <Seal text={hexagram.shortName} size={38} rotation={-3} compact />
               </div>
               <HexagramCard hexagram={hexagram} size="lg" navigateOnClick={false} showStamp={false} />
             </div>

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Card } from '@/components/ui/Card'
-import { Stamp } from '@/components/ui/Stamp'
+import { Seal } from '@/components/ui/Seal'
 import { YaoLineStack } from './YaoLineStack'
 import { cn } from '@/utils/cn'
 import type { Hexagram, HexagramId } from '@/types'
@@ -83,7 +83,7 @@ export function HexagramCard({
         <div className="flex flex-col items-center gap-2">
           {showStampEffective && (
             <div className="self-end">
-              <Stamp text={hex.shortName} size="sm" rotation={-3} />
+              <Seal text={hex.shortName} size={38} rotation={-3} compact />
             </div>
           )}
           <YaoLineStack lines={lines} width={config.lineWidth} />

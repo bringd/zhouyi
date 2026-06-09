@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { HexagramCard } from '@/components/hexagram/HexagramCard'
 import { TwinSpread } from '@/components/hexagram/TwinSpread'
-import { Stamp } from '@/components/ui/Stamp'
+import { Seal } from '@/components/ui/Seal'
 import { FlipEntry } from '@/components/motion/FlipEntry'
 import { BreathEffect } from '@/components/motion/BreathEffect'
 import { PageTransition } from '@/components/motion'
@@ -109,12 +109,11 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
             <div className="aspect-square w-full bg-gradient-to-br from-june-red via-june-clay to-june-red relative flex items-center justify-center p-8 rounded-md shadow-2xl">
               <div className="absolute top-4 left-4 text-rice/60 font-display text-sm tracking-widest">第 {main.number} 卦</div>
               <div className="absolute top-4 right-4">
-                <Stamp text={main.shortName} size="sm" rotation={-3} />
+                <Seal text={main.shortName} size={44} rotation={-3} />
               </div>
               <div className="w-full max-w-xs">
                 <HexagramCard hexagram={main} size="lg" navigateOnClick={false} showStamp={false} />
               </div>
-              <div className="absolute bottom-4 right-4 text-rice font-display text-2xl tracking-widest">{main.shortName}</div>
             </div>
           </BreathEffect>
         </FlipEntry>

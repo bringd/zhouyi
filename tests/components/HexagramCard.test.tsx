@@ -58,14 +58,14 @@ describe('HexagramCard', () => {
     expect(screen.queryByText(/创造/)).not.toBeInTheDocument()
   })
 
-  it('renders stamp for md size by default', () => {
+  it('renders seal for md size by default', () => {
     renderWithRouter(<HexagramCard hexagram={mockQian} navigateOnClick={false} />)
-    expect(screen.getByLabelText('stamp: 乾')).toBeInTheDocument()
+    expect(screen.getByLabelText('乾')).toBeInTheDocument()
   })
 
-  it('does not render stamp for sm size by default', () => {
+  it('does not render seal for sm size by default', () => {
     renderWithRouter(<HexagramCard hexagram={mockQian} size="sm" navigateOnClick={false} />)
-    expect(screen.queryByLabelText('stamp: 乾')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('乾')).not.toBeInTheDocument()
   })
 
   it('calls custom onClick when provided', () => {

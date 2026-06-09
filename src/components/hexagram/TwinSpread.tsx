@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { cn } from '@/utils/cn'
 import { YaoLineStack } from './YaoLineStack'
-import { Stamp } from '@/components/ui/Stamp'
+import { Seal } from '@/components/ui/Seal'
 import type { Hexagram } from '@/types'
 
 export interface TwinSpreadProps {
@@ -58,7 +58,7 @@ export function TwinSpread({
             </div>
           )}
           <div className="flex flex-col items-center gap-3 pt-3">
-            <Stamp text={leftHex.shortName} size="sm" rotation={-3} />
+            <Seal text={leftHex.shortName} size={44} rotation={-3} bgColor="#8b6914" />
             <h3 className="font-display text-xl text-ink font-bold">{leftHex.name}</h3>
             <YaoLineStack lines={leftLines} width={140} thickness={6} highlightLine={movingLine} />
             <p
@@ -90,7 +90,7 @@ export function TwinSpread({
             </div>
           )}
           <div className="flex flex-col items-center gap-3 pt-3">
-            <Stamp text={rightHex.shortName} size="sm" rotation={3} />
+            <Seal text={rightHex.shortName} size={44} rotation={3} />
             <h3 className="font-display text-xl text-ink font-bold">{rightHex.name}</h3>
             <YaoLineStack lines={rightLines} width={140} thickness={6} />
             <p
