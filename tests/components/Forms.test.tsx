@@ -55,6 +55,99 @@ describe('NumberBox', () => {
     fireEvent.change(screen.getByRole('textbox'), { target: { value: '' } })
     expect(handler).toHaveBeenCalledWith(null)
   })
+
+  // Regression: bug where digit-by-digit typing cleared the input on each
+  // keystroke because the parent's null state overrode the visible value.
+  // The fix uses local state to keep partial input visible.
+  it('keeps partial input visible while user types digit-by-digit', () => {
+    const handler = vi.fn()
+    const { rerender } = render(<NumberBox value={null} onChange={handler} label="test" />)
+    const input = screen.getByRole('textbox') as HTMLInputElement
+
+    // Type "1" — not yet valid (1 < 100)
+    fireEvent.change(input, { target: { value: '1' } })
+    expect(input.value).toBe('1')
+    expect(handler).toHaveBeenLastCalledWith(null)
+
+    // Type "2" — parent re-renders with null (from previous onChange)
+    rerender(<NumberBox value={null} onChange={handler} label="test" />)
+    fireEvent.change(input, { target: { value: '12' } })
+    expect(input.value).toBe('12')
+    expect(handler).toHaveBeenLastCalledWith(null)
+
+    // Type "3" — now valid (123 in range)
+    rerender(<NumberBox value={null} onChange={handler} label="test" />)
+    fireEvent.change(input, { target: { value: '123' } })
+    expect(input.value).toBe('123')
+    expect(handler).toHaveBeenLastCalledWith(123)
+  })
+
+  // B1 regression: backspacing a valid 3-digit number to 2 digits must NOT
+  // clear the field. Old useEffect([value]) synced text to '' when value
+  // flipped from 111 to null, eating the user's partial input.
+  it('keeps partial 2-digit input visible after backspacing a valid number', () => {
+    const handler = vi.fn()
+    const { rerender } = render(<NumberBox value={111} onChange={handler} label="t" />)
+    const input = screen.getByRole('textbox') as HTMLInputElement
+    expect(input.value).toBe('111')
+
+    // User backspaces: 111 → 11
+    fireEvent.change(input, { target: { value: '11' } })
+    expect(input.value).toBe('11')
+    expect(handler).toHaveBeenLastCalledWith(null)
+
+    // Parent re-renders with value=null (its response to onChange(null))
+    rerender(<NumberBox value={null} onChange={handler} label="t" />)
+    expect(input.value).toBe('11')  // ← the bug would have cleared this
+  })
+
+  it('keeps partial 1-digit input visible after backspacing 2 digits', () => {
+    const handler = vi.fn()
+    const { rerender } = render(<NumberBox value={123} onChange={handler} label="t" />)
+    const input = screen.getByRole('textbox') as HTMLInputElement
+
+    fireEvent.change(input, { target: { value: '1' } })
+    expect(input.value).toBe('1')
+    rerender(<NumberBox value={null} onChange={handler} label="t" />)
+    expect(input.value).toBe('1')
+  })
+
+  it('still syncs to empty when parent externally resets', () => {
+    const handler = vi.fn()
+    const { rerender } = render(<NumberBox value={427} onChange={handler} label="t" />)
+    const input = screen.getByRole('textbox') as HTMLInputElement
+    expect(input.value).toBe('427')
+
+    // Parent externally resets to null (e.g., form reset button)
+    rerender(<NumberBox value={null} onChange={handler} label="t" />)
+    expect(input.value).toBe('')
+  })
+
+  it('still syncs to new value when parent externally updates', () => {
+    const handler = vi.fn()
+    const { rerender } = render(<NumberBox value={427} onChange={handler} label="t" />)
+    const input = screen.getByRole('textbox') as HTMLInputElement
+
+    rerender(<NumberBox value={555} onChange={handler} label="t" />)
+    expect(input.value).toBe('555')
+  })
+
+  it('strips non-digit characters from input', () => {
+    const handler = vi.fn()
+    render(<NumberBox value={null} onChange={handler} label="test" />)
+    const input = screen.getByRole('textbox') as HTMLInputElement
+    fireEvent.change(input, { target: { value: 'a1b2c3' } })
+    expect(input.value).toBe('123')
+    expect(handler).toHaveBeenLastCalledWith(123)
+  })
+
+  it('syncs local text when parent resets the value (e.g., form reset)', () => {
+    const handler = vi.fn()
+    const { rerender } = render(<NumberBox value={427} onChange={handler} label="test" />)
+    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('427')
+    rerender(<NumberBox value={null} onChange={handler} label="test" />)
+    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('')
+  })
 })
 
 describe('RelationTabs', () => {
