@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { cn } from '@/utils/cn'
 import type { YaoLine } from '@/types'
+import { MiniYaoStack } from './MiniYaoStack'
 
 export interface YaoLineScrollProps {
   /** The 6 yao lines for this hexagram, in order 1-6 (bottom to top in original I Ching convention) */
@@ -10,59 +11,6 @@ export interface YaoLineScrollProps {
 
 const POSITION_LABELS_YANG = ['初九', '九二', '九三', '九四', '九五', '上九'] as const
 const POSITION_LABELS_YIN = ['初六', '六二', '六三', '六四', '六五', '上六'] as const
-
-// 真实 mini 爻 — 阳实 / 阴断
-function MiniYao({ type, isCurrent }: { type: 'yin' | 'yang'; isCurrent: boolean }) {
-  const color = isCurrent ? '#9b2c2c' : 'rgba(26,26,26,0.18)'
-  const w = 32
-  if (type === 'yang') {
-    return <div style={{ width: w, height: 6, background: color, borderRadius: 1 }} />
-  }
-  return (
-    <div style={{ display: 'flex', gap: 4, width: w }}>
-      <div style={{ width: (w - 4) / 2, height: 6, background: color, borderRadius: 1 }} />
-      <div style={{ width: (w - 4) / 2, height: 6, background: color, borderRadius: 1 }} />
-    </div>
-  )
-}
-
-interface MiniHexagramStackProps {
-  yaoLines: YaoLine[]
-  currentLine: number
-}
-
-function MiniHexagramStack({ yaoLines, currentLine }: MiniHexagramStackProps) {
-  return (
-    <div
-      className="flex flex-col bg-rice/60 border border-june-bronze/30 rounded-md p-2"
-      style={{ gap: 7 }}
-      aria-label={`位置指示器，当前在第 ${currentLine} 爻`}
-      data-testid="mini-yao-stack"
-    >
-      {[6, 5, 4, 3, 2, 1].map((pos) => {
-        const isCurrent = pos === currentLine
-        const yao = yaoLines[pos - 1]
-        const type: 'yin' | 'yang' = yao?.type ?? 'yang'
-        return (
-          <div
-            key={pos}
-            data-current={isCurrent ? 'true' : 'false'}
-            data-position={pos}
-            className={cn(
-              'flex items-center justify-center rounded-sm transition-all',
-              isCurrent
-                ? 'bg-june-red/20 ring-2 ring-june-red shadow-sm'
-                : 'opacity-60',
-            )}
-            style={{ padding: '2px 4px' }}
-          >
-            <MiniYao type={type} isCurrent={isCurrent} />
-          </div>
-        )
-      })}
-    </div>
-  )
-}
 
 /**
  * 卷轴式 爻辞展示 — 工笔风格的 6 爻独立卡片列表（A 方案 V2 增强版）。
@@ -95,7 +43,7 @@ export function YaoLineScroll({ yaoLines, className }: YaoLineScrollProps) {
           >
             {/* 左侧放大版 mini 6 爻堆栈 */}
             <div className="shrink-0">
-              <MiniHexagramStack yaoLines={yaoLines} currentLine={yao.position} />
+              <MiniYaoStack yaoLines={yaoLines} currentLine={yao.position} />
             </div>
 
             {/* 右侧内容 */}
