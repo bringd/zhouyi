@@ -68,10 +68,13 @@ export default function HexagramDetail() {
           </div>
         </div>
 
-        {/* Hero card */}
+        {/* Hero card (V5: dropped redundant shadow-lg — BreathEffect provides the glow) */}
         <div className="flex justify-center mb-10">
           <BreathEffect className="rounded-md" duration={4500}>
-            <div className="bg-rice border-2 border-june-bronze p-6 rounded-md shadow-lg w-fit relative">
+            <div
+              data-testid="hero-card"
+              className="bg-rice border-2 border-june-bronze p-6 rounded-md w-fit relative"
+            >
               <div className="absolute top-3 right-3">
                 <Seal text={hexagram.shortName} size={38} rotation={-3} compact />
               </div>
@@ -80,76 +83,81 @@ export default function HexagramDetail() {
           </BreathEffect>
         </div>
 
-        {/* Classical texts */}
-        <div className="space-y-6 mb-10">
+        {/* 6-section rhythm (D1): each <section> separated by 1px june-red/20 divider */}
+        <div className="divide-y divide-june-red/20">
+          {/* 1. 卦辞 */}
           {hexagram.judgement && (
-            <div className="p-5 bg-rice border-2 border-june-bronze/30 rounded-md">
+            <section className="py-5 first:pt-0">
               <div className="text-xs text-june-bronze font-display tracking-widest mb-2">卦 辞</div>
               <p className="font-body text-ink leading-relaxed">{hexagram.judgement}</p>
-            </div>
+            </section>
           )}
+
+          {/* 2. 彖传 */}
           {hexagram.tuanzhuan && (
-            <div className="p-5 bg-rice border-2 border-june-bronze/30 rounded-md">
+            <section className="py-5">
               <div className="text-xs text-june-bronze font-display tracking-widest mb-2">彖 传</div>
               <p className="font-body text-ink leading-relaxed">{hexagram.tuanzhuan}</p>
-            </div>
+            </section>
           )}
+
+          {/* 3. 象传 */}
           {hexagram.xiangzhuan.daXiang && (
-            <div className="p-5 bg-rice border-2 border-june-bronze/30 rounded-md">
+            <section className="py-5">
               <div className="text-xs text-june-bronze font-display tracking-widest mb-2">象 传</div>
               <p className="font-body text-ink leading-relaxed">{hexagram.xiangzhuan.daXiang}</p>
-            </div>
+            </section>
+          )}
+
+          {/* 4. 六爻爻辞 — 卷轴式卡片（始终渲染，空卦显示 6 张占位卡） */}
+          <section className="py-5">
+            <h2 className="text-lg font-display text-ink mb-4 tracking-widest text-center">六 爻 爻 辞</h2>
+            <YaoLineScroll yaoLines={hexagram.yaoLines} />
+          </section>
+
+          {/* 5. 现代解读 */}
+          {hexagram.modernInterpretation && (
+            <section className="py-5">
+              <h2 className="text-lg font-display text-june-red mb-3 tracking-widest">现 代 解 读</h2>
+              <p className="font-body text-ink leading-relaxed">{hexagram.modernInterpretation}</p>
+            </section>
+          )}
+
+          {/* 6. 卦象关系 */}
+          {relationHex && (
+            <section className="py-5">
+              <h2 className="text-lg font-display text-ink mb-4 tracking-widest text-center">卦 象 关 系</h2>
+              <div className="flex justify-center gap-2 mb-6">
+                {RELATIONS.map((rel) => (
+                  <button
+                    key={rel.key}
+                    type="button"
+                    onClick={() => setActiveRelation(rel.key)}
+                    className={cn(
+                      'px-4 py-2 rounded-sm font-display text-sm transition-colors',
+                      activeRelation === rel.key
+                        ? 'bg-june-red text-rice'
+                        : 'bg-rice text-ink border border-june-bronze hover:bg-rice-dark'
+                    )}
+                    aria-pressed={activeRelation === rel.key}
+                  >
+                    {rel.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-center">
+                <Link to={`/hexagram/${relationHex.id}`} className="block">
+                  <div className="p-4 bg-rice border-2 border-june-bronze rounded-md text-center hover:bg-rice-dark transition-colors">
+                    <HexagramCard hexagram={relationHex} size="md" navigateOnClick={false} />
+                    <div className="text-xs text-june-bronze font-display mt-2 tracking-widest">
+                      查看 {relationHex.name}
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            </section>
           )}
         </div>
-
-        {/* Six yao lines — 卷轴式卡片（始终渲染，空卦显示 6 张占位卡） */}
-        <div className="mb-10">
-          <h2 className="text-lg font-display text-ink mb-4 tracking-widest text-center">六 爻 爻 辞</h2>
-          <YaoLineScroll yaoLines={hexagram.yaoLines} />
-        </div>
-
-        {/* Modern interpretation */}
-        {hexagram.modernInterpretation && (
-          <div className="mb-10 p-5 bg-june-red/5 border-2 border-june-bronze rounded-md">
-            <h2 className="text-lg font-display text-june-red mb-3 tracking-widest">现 代 解 读</h2>
-            <p className="font-body text-ink leading-relaxed">{hexagram.modernInterpretation}</p>
-          </div>
-        )}
-
-        {/* Relations tabs */}
-        {relationHex && (
-          <div className="mb-10">
-            <h2 className="text-lg font-display text-ink mb-4 tracking-widest text-center">卦 象 关 系</h2>
-            <div className="flex justify-center gap-2 mb-6">
-              {RELATIONS.map((rel) => (
-                <button
-                  key={rel.key}
-                  type="button"
-                  onClick={() => setActiveRelation(rel.key)}
-                  className={cn(
-                    'px-4 py-2 rounded-sm font-display text-sm transition-colors',
-                    activeRelation === rel.key
-                      ? 'bg-june-red text-rice'
-                      : 'bg-rice text-ink border border-june-bronze hover:bg-rice-dark'
-                  )}
-                  aria-pressed={activeRelation === rel.key}
-                >
-                  {rel.label}
-                </button>
-              ))}
-            </div>
-            <div className="flex justify-center">
-              <Link to={`/hexagram/${relationHex.id}`} className="block">
-                <div className="p-4 bg-rice border-2 border-june-bronze rounded-md text-center hover:bg-rice-dark transition-colors">
-                  <HexagramCard hexagram={relationHex} size="md" navigateOnClick={false} />
-                  <div className="text-xs text-june-bronze font-display mt-2 tracking-widest">
-                    查看 {relationHex.name}
-                  </div>
-                </div>
-              </Link>
-            </div>
-          </div>
-        )}
 
         {/* Action buttons */}
         <div className="flex flex-wrap justify-center gap-3">
