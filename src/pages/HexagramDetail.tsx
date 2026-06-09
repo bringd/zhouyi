@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { HexagramCard } from '@/components/hexagram/HexagramCard'
@@ -28,6 +28,18 @@ export default function HexagramDetail() {
 
   const hexagram = id ? getHexagramById(parseInt(id, 10) as HexagramId) : null
 
+  const relationResult = useMemo(() => {
+    if (!hexagram) return null
+    try {
+      const id = activeRelation === 'opposite' ? getOpposite(hexagram.id)
+        : activeRelation === 'inverse' ? getInverse(hexagram.id)
+        : getNuclear(hexagram.id)
+      return { ok: true as const, hex: getHexagramById(id as HexagramId) }
+    } catch (e) {
+      return { ok: false as const, error: e instanceof Error ? e.message : '关系数据缺失' }
+    }
+  }, [hexagram, activeRelation])
+
   if (!hexagram) {
     return (
       <PageLayout>
@@ -38,11 +50,6 @@ export default function HexagramDetail() {
       </PageLayout>
     )
   }
-
-  const relationId = activeRelation === 'opposite' ? getOpposite(hexagram.id)
-    : activeRelation === 'inverse' ? getInverse(hexagram.id)
-    : getNuclear(hexagram.id)
-  const relationHex = getHexagramById(relationId as HexagramId)
 
   return (
     <PageLayout>
@@ -124,7 +131,7 @@ export default function HexagramDetail() {
           )}
 
           {/* 6. 卦象关系 */}
-          {relationHex && (
+          {relationResult?.ok && relationResult.hex && (
             <section className="py-5">
               <h2 className="text-lg font-display text-ink mb-4 tracking-widest text-center">卦 象 关 系</h2>
               <div className="flex justify-center gap-2 mb-6">
@@ -146,16 +153,21 @@ export default function HexagramDetail() {
                 ))}
               </div>
               <div className="flex justify-center">
-                <Link to={`/hexagram/${relationHex.id}`} className="block">
+                <Link to={`/hexagram/${relationResult.hex.id}`} className="block">
                   <div className="p-4 bg-rice border-2 border-june-bronze rounded-md text-center hover:bg-rice-dark transition-colors">
-                    <HexagramCard hexagram={relationHex} size="md" navigateOnClick={false} />
+                    <HexagramCard hexagram={relationResult.hex} size="md" navigateOnClick={false} />
                     <div className="text-xs text-june-bronze font-display mt-2 tracking-widest">
-                      查看 {relationHex.name}
+                      查看 {relationResult.hex.name}
                     </div>
                   </div>
                 </Link>
               </div>
             </section>
+          )}
+          {relationResult && !relationResult.ok && (
+            <div className="text-center text-ink-light/60 text-sm py-6">
+              本卦关系数据缺失
+            </div>
           )}
         </div>
 
