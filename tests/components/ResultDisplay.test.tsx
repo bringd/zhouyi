@@ -28,6 +28,7 @@ const baseRecord: UserRecord = {
   mainHexagramId: 1,
   movingLine: 1,
   changedHexagramId: 2,
+  version: 1,
 }
 
 describe('ResultDisplay', () => {

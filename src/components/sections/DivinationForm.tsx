@@ -57,6 +57,7 @@ export function DivinationForm({ initialNumbers, initialQuestion = '', onResult,
         mainHexagramId: result.mainHexagramId,
         movingLine: result.movingLine,
         changedHexagramId: result.changedHexagramId,
+        version: 1,
       })
       if (onResult) onResult(recordId)
       else navigate(`/result/${recordId}`)

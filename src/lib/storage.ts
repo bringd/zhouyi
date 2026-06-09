@@ -76,12 +76,22 @@ export function getAllRecords(): UserRecord[] {
   const records: UserRecord[] = []
   for (const item of parsed) {
     if (item && typeof item === 'object' && 'id' in item && 'createdAt' in item) {
-      records.push(item as UserRecord)
+      records.push(migrateRecord(item))
     }
   }
   // Sort newest first.
   records.sort((a, b) => b.createdAt - a.createdAt)
   return records
+}
+
+/** 把 v0 老 record（无 version 字段）补 version: 1。新数据已自带 version 时原样返回。 */
+function migrateRecord(raw: unknown): UserRecord {
+  if (!raw || typeof raw !== 'object') return raw as UserRecord
+  const r = raw as Record<string, unknown>
+  if (typeof r.version !== 'number') {
+    return { ...r, version: 1 } as unknown as UserRecord
+  }
+  return r as unknown as UserRecord
 }
 
 /**

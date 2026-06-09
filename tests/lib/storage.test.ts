@@ -24,6 +24,7 @@ const sampleRecord: UserRecord = {
   mainHexagramId: 22,
   movingLine: 4,
   changedHexagramId: 30,
+  version: 1,
 }
 
 describe('storage: getAllRecords', () => {
@@ -158,5 +159,32 @@ describe('storage: clearAllRecords', () => {
     expect(clearAllRecords()).toBe(true)
     expect(getAllRecords()).toEqual([])
     expect(getSettings().apiKey).toBe('preserve-me')
+  })
+})
+
+describe('storage migration', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('migrates a v0 record (no version field) by adding version: 1', async () => {
+    // 写一条"老" record（无 version）到 localStorage
+    const oldRecord = {
+      id: 'old-1',
+      type: 'three-number',
+      createdAt: Date.now(),
+      region: 'Asia/Singapore',
+      timezone: 'Asia/Singapore',
+      mainHexagramId: 1,
+      movingLine: 1,
+      changedHexagramId: 2,
+    }
+    localStorage.setItem('zhouyi:records', JSON.stringify([oldRecord]))
+
+    const { getAllRecords: getAll } = await import('@/lib/storage')
+    const records = getAll()
+    expect(records).toHaveLength(1)
+    expect(records[0].version).toBe(1)
+    expect(records[0].id).toBe('old-1')
   })
 })

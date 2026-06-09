@@ -22,7 +22,7 @@ export interface UserRecord {
   /** 三数起卦的输入 */
   numbers?: [number, number, number]
 
-  /** 用户地区 (e.g. "Singapore") */
+  /** 时区 (IANA, e.g. 'Asia/Singapore') */
   region: string
 
   /** 时区 (e.g. "Asia/Singapore") */
@@ -42,6 +42,9 @@ export interface UserRecord {
 
   /** 用户备注 */
   userNote?: string
+
+  /** schema 版本 */
+  version: 1
 }
 
 /** 用户设置 */
