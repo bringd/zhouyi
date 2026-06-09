@@ -86,12 +86,11 @@ export function getAllRecords(): UserRecord[] {
 
 /** 把 v0 老 record（无 version 字段）补 version: 1。新数据已自带 version 时原样返回。 */
 function migrateRecord(raw: unknown): UserRecord {
-  if (!raw || typeof raw !== 'object') return raw as UserRecord
-  const r = raw as Record<string, unknown>
-  if (typeof r.version !== 'number') {
-    return { ...r, version: 1 } as unknown as UserRecord
+  if (raw && typeof raw === 'object' && 'id' in raw && 'createdAt' in raw) {
+    const r = raw as UserRecord
+    return r.version === 1 ? r : { ...r, version: 1 }
   }
-  return r as unknown as UserRecord
+  return raw as UserRecord // caller already filtered non-objects, but be safe
 }
 
 /**
