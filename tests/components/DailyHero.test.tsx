@@ -25,7 +25,7 @@ const mockQian: Hexagram = {
     originalText: '',
     explanation: '',
     modernMeaning: '',
-  })),
+  })) as Hexagram['yaoLines'],
   modernInterpretation: '乾为天，纯阳之卦。',
   relations: { opposite: 2, inverse: 1, nuclear: 1 },
 }
