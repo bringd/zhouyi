@@ -8,6 +8,11 @@ dist/
 build/
 *.tsbuildinfo
 
+# Server build output
+server/dist/
+server/.pg-data/
+server/scripts/.pg-data-cache/
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
@@ -37,6 +42,10 @@ coverage/
 # Vite cache
 .vite/
 .cache/
+
+# TypeScript composite project output
+node_modules/.tmp/
+*.tsbuildinfo
 
 # Claude / Claude Code
 .claude/
