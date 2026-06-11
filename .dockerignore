@@ -1,0 +1,69 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+server/.env
+
+# Build outputs (rebuilt in image)
+dist
+build
+server/dist
+*.tsbuildinfo
+node_modules
+
+# Test artifacts
+coverage
+.nyc_output
+
+# Vite
+.vite
+
+# Server dev-only
+server/.pg-data
+server/scripts/.pg-data-cache
+server/scripts/dev-pg-data
+
+# Screenshots / mockups (docs only, not runtime)
+screenshots
+docs/mockups
+.superpowers
+
+# Plan / spec / brainstorm docs (keep in repo but not in image)
+docs/superpowers/plans
+docs/superpowers/specs
+docs/superpowers/scratch
+
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+tests
+
+# Project-level verification scripts
+scripts/check-*.mjs
+scripts/debug-*.mjs
+scripts/fill-*.mjs
+scripts/measure-*.mjs
+scripts/proof-*.mjs
+scripts/repro-*.mjs
+scripts/shot-*.mjs
+scripts/verify-*.mjs
+scripts/screenshots.mjs

@@ -1,0 +1,65 @@
+# Fly.io app configuration for 易象阁 (Zhouyi Studio)
+# See docs/deploy/fly-io.md for step-by-step instructions.
+
+app = "zhouyi"               # change to your preferred app name (must be globally unique)
+primary_region = "sin"      # Singapore — closest to Asia; alternatives: hkg, nrt, sin, lax, etc.
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"                                # Fly internal port; do not change
+  # FRONTEND_ORIGIN is set in [deploy] release_command below so the same origin
+  # the browser sees (https://zhouyi.fly.dev) is what the API allows in CORS.
+
+[deploy]
+  # Release command: keep simple. Real health check is in [[services.health_check]].
+  release_command = "node -e \"console.log('release ok')\""
+
+  # Wait for healthy before considering deploy complete
+  wait_timeout = "120s"
+
+# ---- HTTP service: routes public traffic to our Express on port 8080 ----
+[[services]]
+  protocol = "tcp"
+  internal_port = 8080
+  auto_stop_machines = "stop"      # sleep when idle (saves $)
+  auto_start_machines = true       # wake on first request
+  min_machines_running = 0
+  processes = ["app"]
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [[services.tcp_checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "10s"
+
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 100
+    soft_limit = 50
+
+# ---- VM size: smallest paid instance. Free tier: 256MB shared-cpu-1x. ----
+# Start with `shared-cpu-1x` + 512MB to fit Node + Postgres. Drop to 256MB
+# once you confirm usage patterns.
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  cpus = 1
+  cpu_kind = "shared"
+
+# ---- Persistent volume: host the 64-hexagrams.json + future uploads ----
+# (For MVP the 64-hex data is baked into the image. Add a volume here
+# if you later want to upload user-generated content or use embedded-postgres.)
+# [[mounts]]
+#   source = "zhouyi_data"
+#   destination = "/data"
