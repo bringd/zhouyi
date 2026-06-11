@@ -30,6 +30,8 @@ export default {
         display: ['var(--font-display)'],
         body:    ['var(--font-body)'],
         num:     ['var(--font-num)'],
+        // 楷体 — 引文/爻辞原文用,fallback 到全局 body 字体
+        kaiti:   ["'KaiTi'", "'STKaiti'", 'var(--font-body)', 'serif'],
       },
       fontSize: {
         'display-lg': ['3.5rem', { lineHeight: '1.2' }],

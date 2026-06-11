@@ -13,7 +13,7 @@
  */
 
 import EmbeddedPostgres from 'embedded-postgres'
-import { existsSync, mkdirSync, rmSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
 const DATA_DIR = resolve('./.pg-data')
@@ -59,7 +59,13 @@ async function main() {
   })
 
   console.log('[dev-pg] starting postgres on port', PORT)
-  await pg.initialise()
+  // Skip initdb if a cluster already exists in DATA_DIR
+  const pgVersionFile = join(DATA_DIR, 'PG_VERSION')
+  if (existsSync(pgVersionFile)) {
+    console.log('[dev-pg] existing cluster detected at', DATA_DIR, '(PG_VERSION', readFileSync(pgVersionFile, 'utf8').trim() + ') — skipping initdb')
+  } else {
+    await pg.initialise()
+  }
   await pg.start()
 
   // Create the zhouyi database if it doesn't exist

@@ -107,7 +107,9 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
         <FlipEntry className="w-full">
           <BreathEffect className="w-full rounded-md" duration={4500}>
             <div className="aspect-square w-full bg-gradient-to-br from-june-red via-june-clay to-june-red relative flex items-center justify-center p-8 rounded-md shadow-2xl">
-              <div className="absolute top-4 left-4 text-rice/60 font-display text-sm tracking-widest">第 {main.number} 卦</div>
+              <div className="absolute top-4 left-4 px-3 py-1 bg-rice/15 backdrop-blur-sm border border-rice/30 rounded-sm text-rice font-display text-sm tracking-widest">
+                本 卦 · 第 {main.number} 卦
+              </div>
               <div className="absolute top-4 right-4">
                 <Seal text={main.shortName} size={44} rotation={-3} />
               </div>
@@ -130,12 +132,34 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
           {main.modernInterpretation && (
             <p className="font-body text-ink-light text-base leading-relaxed">{main.modernInterpretation}</p>
           )}
+
+          {/* 动爻 小卡 — 显式说明这一爻代表什么 */}
+          {(() => {
+            const yao = main.yaoLines[record.movingLine - 1]
+            if (!yao) return null
+            return (
+              <div className="mt-3 p-5 bg-rice-dark/50 border-l-4 border-june-red rounded-r-sm">
+                <div className="flex items-baseline gap-2 mb-3 whitespace-nowrap">
+                  <span className="text-xs text-june-red font-display tracking-widest">动 爻</span>
+                  <span className="text-xs text-june-bronze">第 {record.movingLine} 爻 · {yao.type === 'yang' ? '阳爻' : '阴爻'}</span>
+                </div>
+                {yao.originalText && (
+                  <p className="font-kaiti text-ink-light leading-loose mb-2 text-[1.0625rem]">
+                    {yao.originalText}
+                  </p>
+                )}
+                {yao.modernMeaning && (
+                  <p className="font-body text-ink-light text-sm leading-relaxed">{yao.modernMeaning}</p>
+                )}
+              </div>
+            )
+          })()}
+
           <div className="text-sm text-ink-light font-body">
-            动爻 · 第 <span className="text-june-red font-bold">{record.movingLine}</span> 爻
-            {' → '}
             <Link to={`/hexagram/${changed.id}`} className="text-june-red font-bold hover:underline">
               变卦 · {changed.name}
             </Link>
+            <span className="text-june-bronze/60 ml-1">→</span>
           </div>
         </motion.div>
       </div>
