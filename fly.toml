@@ -1,7 +1,7 @@
 # Fly.io app configuration for 易象阁 (Zhouyi Studio)
 # See docs/deploy/fly-io.md for step-by-step instructions.
 
-app = "zhouyi"               # change to your preferred app name (must be globally unique)
+app = "orix-studio"          # change to your preferred app name (must be globally unique)
 primary_region = "sin"      # Singapore — closest to Asia; alternatives: hkg, nrt, sin, lax, etc.
 
 [build]

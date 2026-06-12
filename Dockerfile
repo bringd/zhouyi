@@ -1,18 +1,8 @@
-# 易象阁 (Zhouyi Studio) production image
-# Multi-stage: build frontend + backend, single image runs both via Express serving dist/.
+# 易象阁 (Zhouyi Studio) BACKEND production image (Fly.io).
+# Frontend is hosted separately on Cloudflare Pages — see docs/deploy/cloudflare-pages.md
+# This image runs ONLY the Express API + (optionally) connects to a separate Fly Postgres.
 
-# ---- Stage 1: Build frontend (Vite) ----
-FROM node:20-alpine AS frontend-builder
-WORKDIR /frontend
-
-# Install deps separately for better layer caching
-COPY package.json package-lock.json* ./
-RUN npm ci
-
-COPY . .
-RUN npm run build
-
-# ---- Stage 2: Build backend (tsc) ----
+# ---- Stage 1: Build backend (tsc) ----
 FROM node:20-alpine AS backend-builder
 WORKDIR /app/server
 
@@ -22,21 +12,20 @@ RUN npm ci
 COPY server/ ./
 RUN npm run build
 
-# ---- Stage 3: Install production backend deps only ----
+# ---- Stage 2: Install production backend deps only ----
 FROM node:20-alpine AS backend-deps
 WORKDIR /app/server
 
 COPY server/package.json server/package-lock.json* ./
 RUN npm ci --omit=dev && npm cache clean --force
 
-# ---- Stage 4: Runtime ----
+# ---- Stage 3: Runtime ----
 FROM node:20-alpine
 WORKDIR /app
 
 # Copy built artifacts
-COPY --from=frontend-builder /frontend/dist ./dist
-COPY --from=backend-builder  /app/server/dist  ./server/dist
-COPY --from=backend-deps     /app/server/node_modules ./server/node_modules
+COPY --from=backend-builder /app/server/dist       ./server/dist
+COPY --from=backend-deps    /app/server/node_modules ./server/node_modules
 COPY server/package.json     ./server/package.json
 
 # Fly.io internal port convention: 8080 for HTTP services
@@ -53,3 +42,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
 USER node
 
 CMD ["node", "server/dist/index.js"]
+

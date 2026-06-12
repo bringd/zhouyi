@@ -1,6 +1,4 @@
 import express, { type Express, type NextFunction, type Request, type Response } from 'express'
-import { fileURLToPath } from 'node:url'
-import { dirname, resolve } from 'node:path'
 import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
@@ -19,9 +17,9 @@ import { favoritesRouter } from './routes/favorites.js'
  * Express app factory. Separated from index.ts so tests can import
  * the app without triggering listen().
  *
- * In production (`NODE_ENV=production`), also serves the Vite-built
- * `dist/` directory as static files and returns `index.html` for any
- * non-/api route (SPA fallback for client-side routing).
+ * Frontend is hosted separately on Cloudflare Pages — this service is
+ * API-only. CORS is the bridge: the browser sends the request with
+ * Origin: <Cloudflare Pages URL>, and we allow that origin here.
  */
 export function createApp(): Express {
   const app = express()
@@ -43,13 +41,6 @@ export function createApp(): Express {
   }
   app.use(requestLogger)
 
-  // Serve frontend static assets in production (Vite build output is in /app/dist)
-  if (config.NODE_ENV === 'production') {
-    const here = dirname(fileURLToPath(import.meta.url))
-    const distDir = resolve(here, '..', '..', 'dist')
-    app.use(express.static(distDir, { maxAge: '1y', immutable: true }))
-  }
-
   // Health check (no session — kept reachable even when DB is down)
   app.use('/health', healthRouter)
 
@@ -69,15 +60,6 @@ export function createApp(): Express {
   app.use('/api/records', recordsRouter)         // Task B5
   app.use('/api/favorites', favoritesRouter)     // Task B5
   // app.use('/api/auth', authRouter)            // Task B3
-
-  // SPA fallback: any non-/api GET returns index.html (so React Router handles it)
-  if (config.NODE_ENV === 'production') {
-    const here = dirname(fileURLToPath(import.meta.url))
-    const distDir = resolve(here, '..', '..', 'dist')
-    app.get(/^(?!\/api\/|\/health).*/, (_req, res) => {
-      res.sendFile(resolve(distDir, 'index.html'))
-    })
-  }
 
   // 404 + error handlers (must be last)
   app.use(notFound)

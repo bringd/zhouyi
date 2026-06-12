@@ -1,0 +1,23 @@
+# Cloudflare Pages / Workers config (orix-studio frontend).
+# See docs/deploy/cloudflare-pages.md for full setup steps.
+
+name = "orix-studio"
+compatibility_date = "2025-04-01"
+pages_build_output_dir = "./dist"
+
+# Build command: `npm run build` (Vite). Output dir: `dist`.
+# Configure in Cloudflare dashboard under:
+#   Pages → orix-studio → Settings → Builds
+#     Build command:        npm run build
+#     Build output:         dist
+#     Root directory:        /
+#     Build system version: 4 (latest)
+#     Node version:          20
+
+# Environment variables exposed to the build (PUBLIC_* are inlined at build
+# time by Vite). Add a custom domain in dashboard under "Custom domains".
+[vars]
+# Leave empty in repo — set in dashboard per environment.
+# Example:
+# NODE_VERSION = "20"
+# PUBLIC_API_BASE = "https://orix-studio.fly.dev"

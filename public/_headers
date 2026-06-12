@@ -1,0 +1,17 @@
+# Cloudflare Pages per-path HTTP headers.
+# _headers is a Pages-specific convention. Format: glob, then header pairs.
+
+# Long-cache hashed assets emitted by Vite under /assets/*
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Index / HTML: revalidate often so deploys roll out fast
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# (CSP intentionally omitted for now — too easy to break the app. Add
+# after the site is stable. See docs/deploy/cloudflare-pages.md for
+# a starter Content-Security-Policy.)

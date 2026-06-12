@@ -1,0 +1,6 @@
+# Cloudflare Pages SPA fallback.
+# Any non-file route (no extension) returns index.html so React Router
+# can handle it client-side. Static assets (with extensions) are served
+# by Pages directly without this rule.
+
+/*    /index.html   200
