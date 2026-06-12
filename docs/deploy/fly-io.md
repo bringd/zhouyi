@@ -279,4 +279,4 @@ fly releases rollback v3   # 失败立即回滚
 - `server/.env.example` — 加了 Fly.io / 生产 notes
 - `docs/deploy/fly-io.md` — 本文件（后端）
 - `docs/deploy/cloudflare-pages.md` — 前端部署
-- `wrangler.toml` + `public/_redirects` + `public/_headers` — Cloudflare Pages 配置
+- `wrangler.toml.example` + `public/_redirects` + `public/_headers` — Cloudflare Pages 配置参考

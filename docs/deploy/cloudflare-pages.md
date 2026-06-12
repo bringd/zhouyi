@@ -59,11 +59,15 @@
 
 | 文件 | 作用 | Pages 是否认 |
 |---|---|---|
-| `wrangler.toml` | Cloudflare 项目配置（name, build output dir） | ✅ 认（Pages 兼容） |
 | `public/_redirects` | SPA 路由兜底（任何路径 → index.html） | ✅ Pages 原生支持 |
 | `public/_headers` | 路径级 HTTP 头（缓存、安全头） | ✅ Pages 原生支持 |
+| `wrangler.toml.example` | 参考配置（不进 build） | ❌ 仅作文档参考 |
 
-**这三个文件已就绪在仓库根**。Pages dashboard 会自动读 `_redirects` 和 `_headers`；`wrangler.toml` 用于 CLI 模式。
+> **⚠️ 重要：** 仓库根**不能**有 `wrangler.toml`。Cloudflare Pages 检测到 `wrangler.toml` 会把项目当 **Workers** 部署，跑 `wrangler deploy`，失败于 `Missing entry-point to Worker script or to assets directory`。Pages 部署用 dashboard 的 build 配置（Build output: `dist`），不需要 wrangler.toml。
+>
+> 如果之前用 `wrangler pages deploy` CLI 模式，可以重命名 `wrangler.toml` → `wrangler.toml.example`，保持文档参考。
+
+**`_redirects` 和 `_headers` 已就绪在 `public/`**。Pages dashboard 会自动读它们。
 
 ## Step 3 — 持续部署
 
@@ -187,7 +191,7 @@ git push origin main
 
 ## 关键文件清单
 
-- `wrangler.toml` — Cloudflare 项目配置（可选，dashboard 模式不需要）
+- `wrangler.toml` ~~— Cloudflare 项目配置（**不要**有，参见 Step 2 警告）~~ → 改为 `wrangler.toml.example` 作文档参考
 - `public/_redirects` — SPA 路由兜底（**必须有**）
 - `public/_headers` — 缓存 + 安全头（**必须有**）
 - `docs/deploy/cloudflare-pages.md` — 本文件
@@ -202,7 +206,7 @@ git push origin main
 | `public/_headers` | **Pages** |
 | `public/*.svg`, `public/*.png` 等静态资源 | **Pages** |
 | `dist/` (Vite build output) | **Pages**（自动生成） |
-| `wrangler.toml` | **Pages**（仅作 build hint） |
+| `wrangler.toml.example` | **不部署**（仅文档参考） |
 | `server/src/` | **Fly** |
 | `server/package.json` | **Fly** |
 | `Dockerfile` | **Fly**（仅后端） |
