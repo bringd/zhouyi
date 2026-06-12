@@ -1,0 +1,53 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:        # 允许 dashboard 手动触发
+
+# 防止旧 deploy race condition: 同一 ref 取消在跑的
+concurrency:
+  group: "pages-deploy"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Test (smoke)
+        run: npm test -- --run
+        # 跑全测试套件；fail → 不部署
+        # 如果测试太慢可以改成只跑 critical path
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: orix-studio
+          directory: dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          # Optional: 部署 PR preview 而不是 main prod
+          # workflowName: preview
+          # route: /preview
+
+      - name: Comment on commit (optional)
+        if: github.event_name == 'push'
+        run: |
+          echo "✅ Deployed to https://orix-studio.pages.dev"
