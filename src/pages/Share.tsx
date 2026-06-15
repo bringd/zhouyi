@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Button } from '@/components/ui/Button'
@@ -28,22 +29,39 @@ export default function Share() {
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
   const [downloadBusy, setDownloadBusy] = useState(false)
 
-  // Parse fragment on mount, with optional /share/:id fallback.
+  const location = useLocation()
+
+  // Parse fragment on mount AND whenever the location hash changes. Uses
+  // the router's location rather than `window.location` so the component
+  // is testable under MemoryRouter (which does not sync the hash to
+  // `window.location.href`). The `/share/:id` fallback below does
+  // require `window.location` and is browser-only.
   useEffect(() => {
-    const fromHash = readShareFragment()
+    const syntheticUrl = `${location.pathname}${location.search}${location.hash}`
+    const fromHash = readShareFragment(syntheticUrl)
     if (fromHash) {
       setPayload(fromHash)
       return
     }
-    // Fallback: extract recordId from `/share/:id` and resolve from localStorage
-    const m = window.location.pathname.match(/^\/share\/([\w-]+)/)
-    if (m) {
-      const r = getRecord(m[1])
-      if (r) setFallbackRecord(r)
+    if (typeof window !== 'undefined') {
+      const m = window.location.pathname.match(/^\/share\/([\w-]+)/)
+      if (m) {
+        const r = getRecord(m[1])
+        if (r) setFallbackRecord(r)
+      }
     }
-  }, [])
+  }, [location.pathname, location.search, location.hash])
 
   const resolved = useMemo(() => resolveForRender(payload, fallbackRecord), [payload, fallbackRecord])
+
+  // Build the full canonical share URL from the current location. Using
+  // useLocation() (rather than window.location) keeps this testable
+  // under MemoryRouter, which does not sync the hash to window.location.
+  const shareUrl = useMemo(() => {
+    if (typeof window === 'undefined') return ''
+    const origin = `${window.location.protocol}//${window.location.host}`
+    return `${origin}${location.pathname}${location.hash}`
+  }, [location.pathname, location.hash])
 
   if (!resolved) {
     return (
@@ -67,7 +85,7 @@ export default function Share() {
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(window.location.href)
+      await navigator.clipboard.writeText(shareUrl)
       setCopyState('copied')
       setTimeout(() => setCopyState('idle'), 1800)
     } catch {
