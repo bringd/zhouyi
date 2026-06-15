@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>分享 标签 · 方案 B 纵向</title>
+<style>
+  :root {
+    --color-rice: #FAF6EC;
+    --color-rice-dark: #EDE2D0;
+    --color-june-red: #9B2C2C;
+    --color-june-gold: #C89E3A;
+    --color-june-bronze: #8B6914;
+    --color-june-clay: #6B4A2A;
+    --color-ink: #1A1A1A;
+    --color-ink-light: #4A371C;
+    --font-display: "Noto Serif SC", "Songti SC", "STSong", serif;
+    --font-body: "LXGW WenKai", "霞鹜文楷", "KaiTi", serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px;
+    background: linear-gradient(180deg, #F4E9D2 0%, #E6D5B0 100%);
+    font-family: var(--font-body); color: var(--color-ink);
+    min-height: 100vh;
+  }
+  .mockup-label {
+    position: fixed; top: 12px; right: 12px;
+    background: var(--color-june-red); color: var(--color-rice);
+    padding: 6px 14px; border-radius: 999px;
+    font-family: var(--font-display); font-size: 12px;
+    letter-spacing: 0.1em; z-index: 100;
+  }
+  .share-page {
+    max-width: 360px; margin: 0 auto;
+  }
+  .url-bar {
+    background: white; border: 1px solid var(--color-june-bronze)/30;
+    border-radius: 6px; padding: 10px 14px;
+    font-family: monospace; font-size: 11px;
+    color: var(--color-june-bronze); margin-bottom: 16px;
+    word-break: break-all;
+  }
+  /* 纵向书签卡 */
+  .card {
+    background: var(--color-rice);
+    border: 2px solid var(--color-june-bronze);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 6px 24px rgba(74,55,28,0.2);
+  }
+  .hex-hero {
+    background: linear-gradient(135deg, var(--color-june-red) 0%, var(--color-june-clay) 100%);
+    color: var(--color-rice);
+    padding: 24px 16px 20px;
+    text-align: center;
+  }
+  .hex-hero .name {
+    font-family: var(--font-display);
+    font-size: 26px; letter-spacing: 0.4em;
+    margin: 0 0 4px; font-weight: 500;
+  }
+  .hex-hero .palace {
+    font-size: 11px; opacity: 0.75;
+    letter-spacing: 0.2em;
+  }
+  .hex-svg {
+    width: 70px; height: 90px; margin: 12px auto 8px;
+    display: block;
+  }
+  .hex-row {
+    display: flex; justify-content: space-between;
+    padding: 10px 16px;
+    font-size: 13px; color: var(--color-ink);
+    border-bottom: 1px solid var(--color-june-bronze)/20;
+  }
+  .hex-row .lbl {
+    font-family: var(--font-display);
+    font-size: 11px; color: var(--color-june-bronze);
+    letter-spacing: 0.2em;
+  }
+  .hex-row .val { color: var(--color-june-red); font-weight: 500; }
+  .ai-block {
+    padding: 14px 16px;
+    background: rgba(200,158,58,0.06);
+    border-bottom: 1px solid var(--color-june-bronze)/20;
+  }
+  .ai-block .lbl {
+    font-family: var(--font-display);
+    font-size: 11px; color: var(--color-june-bronze);
+    letter-spacing: 0.3em; margin-bottom: 6px;
+  }
+  .ai-block .text {
+    font-size: 13px; line-height: 1.7;
+    color: var(--color-ink); margin: 0;
+  }
+  .note-block {
+    padding: 14px 16px;
+    background: rgba(155,44,44,0.04);
+  }
+  .note-block .lbl {
+    font-family: var(--font-display);
+    font-size: 11px; color: var(--color-june-red);
+    letter-spacing: 0.3em; margin-bottom: 6px;
+  }
+  .note-block .text {
+    font-size: 13px; line-height: 1.7;
+    color: var(--color-ink); font-style: italic;
+    margin: 0;
+  }
+  .footer {
+    background: var(--color-rice-dark);
+    padding: 12px 16px;
+    text-align: center;
+  }
+  .footer a {
+    font-family: var(--font-display);
+    font-size: 12px; color: var(--color-june-red);
+    text-decoration: none; letter-spacing: 0.2em;
+  }
+  .footer .meta {
+    font-size: 10px; color: var(--color-ink-light);
+    margin-top: 4px; letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+  <div class="mockup-label">分享 · 方案 B 纵向</div>
+
+  <div class="share-page">
+    <div class="url-bar">
+      https://orix-studio.pages.dev/share#d=eyJ2IjoxLCJtIjoxLCJjIjo5LCJsIjozLCJxIjoi5piv5LqG5LyY5YyFIiwibiI6IuW4iOWIs+WQjSIsInQiOjE3MTg0NDYyMDAwMDAsImEiOiJ44CM5Yi35a6z5pWL44CNIn0
+    </div>
+
+    <!-- 分享卡 -->
+    <div class="card">
+      <div class="hex-hero">
+        <svg class="hex-svg" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="var(--color-rice)" stroke-width="6" stroke-linecap="round">
+            <line x1="15" y1="15" x2="85" y2="15"/>
+            <line x1="15" y1="33" x2="85" y2="33"/>
+            <line x1="15" y1="51" x2="85" y2="51"/>
+            <line x1="15" y1="69" x2="85" y2="69"/>
+            <line x1="15" y1="87" x2="85" y2="87"/>
+            <line x1="15" y1="105" x2="85" y2="105"/>
+          </g>
+        </svg>
+        <h1 class="name">乾 为 天</h1>
+        <div class="palace">第 1 卦 · 乾宫 · 本宫卦</div>
+      </div>
+
+      <div class="hex-row">
+        <span class="lbl">动 爻</span>
+        <span class="val">第 3 爻</span>
+      </div>
+      <div class="hex-row">
+        <span class="lbl">变 卦</span>
+        <span class="val">天风姤</span>
+      </div>
+      <div class="hex-row">
+        <span class="lbl">时 间</span>
+        <span class="val" style="color: var(--color-ink);">2026-06-15 14:30</span>
+      </div>
+
+      <div class="ai-block">
+        <div class="lbl">AI 解 读</div>
+        <p class="text">乾卦纯阳之象，象征刚健中正。当前你处于事业上升期，行动力强，宜主动出击、把握先机。但刚易折，需防过刚易断。</p>
+      </div>
+
+      <div class="note-block">
+        <div class="lbl">感 言</div>
+        <p class="text">"今日问事业，乾卦三爻动，正合我心。即刻起，稳扎稳打。"</p>
+      </div>
+
+      <div class="footer">
+        <a href="#">查看完整卦象 ▸</a>
+        <div class="meta">易象阁 · 64 卦周易研究</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

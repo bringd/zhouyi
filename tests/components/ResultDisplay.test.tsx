@@ -47,7 +47,7 @@ describe('ResultDisplay', () => {
     expect(screen.getByText('重新起卦')).toBeInTheDocument()
   })
 
-  it('renders the question, header, and main hexagram name', () => {
+  it('renders the header and main hexagram name', () => {
     saveRecord(baseRecord)
     render(
       <MemoryRouter>
@@ -55,9 +55,10 @@ describe('ResultDisplay', () => {
       </MemoryRouter>
     )
     expect(screen.getByText('卦 象 已 成')).toBeInTheDocument()
-    expect(screen.getByText('Should I make this decision?')).toBeInTheDocument()
     // 乾为天 should appear (from id=1, which is 乾为天)
     expect(screen.getAllByText('乾为天').length).toBeGreaterThan(0)
+    // 动爻 should reference the recorded line
+    expect(screen.getAllByText(/第\s*1\s*爻/i).length).toBeGreaterThan(0)
   })
 
   it('renders the AI 解读 button initially', () => {
@@ -98,16 +99,17 @@ describe('ResultDisplay', () => {
     expect(screen.getByText('变卦')).toBeInTheDocument()
   })
 
-  it('renders the action buttons', () => {
+  it('renders the action buttons (template ①)', () => {
     saveRecord(baseRecord)
     render(
       <MemoryRouter>
         <ResultDisplay recordId="test-record-1" />
       </MemoryRouter>
     )
-    expect(screen.getByRole('button', { name: '再起一卦' })).toBeInTheDocument()
-    expect(screen.getByText('回到首页')).toBeInTheDocument()
-    expect(screen.getByText('查看本卦详情')).toBeInTheDocument()
+    // Template ①: 收藏 / 分享 / 再起一卦
+    expect(screen.getByRole('button', { name: /收藏本卦/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /分享/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /再起一卦/ })).toBeInTheDocument()
   })
 
   it('renders existing AI interpretation if present on record', () => {

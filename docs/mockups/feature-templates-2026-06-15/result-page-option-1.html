@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>卜卦结果页 · 方案 ① 纵列分层</title>
+<style>
+  :root {
+    --color-rice: #FAF6EC;
+    --color-rice-dark: #EDE2D0;
+    --color-june-red: #9B2C2C;
+    --color-june-gold: #C89E3A;
+    --color-june-bronze: #8B6914;
+    --color-june-clay: #6B4A2A;
+    --color-ink: #1A1A1A;
+    --color-ink-light: #4A371C;
+    --color-june-jade: #4A5A4A;
+    --font-display: "Noto Serif SC", "Songti SC", "STSong", serif;
+    --font-body: "LXGW WenKai", "霞鹜文楷", "KaiTi", serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px;
+    background: linear-gradient(180deg, #F4E9D2 0%, #E6D5B0 100%);
+    font-family: var(--font-body);
+    color: var(--color-ink);
+    min-height: 100vh;
+  }
+  .mockup-label {
+    position: fixed; top: 12px; right: 12px;
+    background: var(--color-june-red); color: var(--color-rice);
+    padding: 6px 14px; border-radius: 999px;
+    font-family: var(--font-display); font-size: 12px;
+    letter-spacing: 0.1em; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .page {
+    max-width: 720px; margin: 0 auto;
+    background: var(--color-rice);
+    border: 2px solid var(--color-june-bronze);
+    border-radius: 8px;
+    padding: 32px 28px;
+    box-shadow: 0 4px 24px rgba(74,55,28,0.15);
+  }
+  .header {
+    text-align: center; margin-bottom: 24px;
+    padding-bottom: 20px; border-bottom: 1px solid var(--color-june-bronze)/30;
+  }
+  .header h1 {
+    font-family: var(--font-display);
+    font-size: 28px; letter-spacing: 0.4em;
+    color: var(--color-ink); margin: 0 0 8px;
+  }
+  .header .timestamp {
+    font-size: 13px; color: var(--color-ink-light);
+    letter-spacing: 0.1em;
+  }
+  .hex-row {
+    display: grid; grid-template-columns: 130px 1fr;
+    gap: 24px; align-items: center;
+    padding: 20px; margin-bottom: 20px;
+    background: var(--color-rice-dark);
+    border-radius: 6px;
+  }
+  .hex-svg {
+    width: 110px; height: 130px;
+  }
+  .hex-info h2 {
+    font-family: var(--font-display);
+    font-size: 24px; margin: 0 0 6px;
+    color: var(--color-ink);
+  }
+  .hex-info .keywords {
+    display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 12px;
+  }
+  .hex-info .keywords span {
+    padding: 2px 10px; font-size: 11px;
+    background: rgba(155,44,44,0.1); color: var(--color-june-red);
+    border-radius: 999px; font-family: var(--font-display);
+  }
+  .hex-info .judgement {
+    font-size: 13px; color: var(--color-ink-light);
+    font-style: italic; margin: 0 0 8px;
+  }
+  .hex-info .moving {
+    font-size: 14px; color: var(--color-ink);
+  }
+  .hex-info .moving strong { color: var(--color-june-red); }
+  .section {
+    margin-bottom: 20px; padding: 18px 20px;
+    background: rgba(200,158,58,0.06);
+    border-left: 3px solid var(--color-june-gold);
+    border-radius: 4px;
+  }
+  .section-label {
+    font-family: var(--font-display);
+    font-size: 12px; color: var(--color-june-bronze);
+    letter-spacing: 0.3em; margin-bottom: 8px;
+  }
+  .ai-text {
+    font-size: 14px; line-height: 1.8;
+    color: var(--color-ink); margin: 0;
+  }
+  .expand-link {
+    display: inline-block; margin-top: 6px;
+    font-size: 12px; color: var(--color-june-red);
+    cursor: pointer;
+  }
+  .note-input {
+    width: 100%; min-height: 70px;
+    padding: 10px 12px; font-family: var(--font-body);
+    font-size: 14px; color: var(--color-ink);
+    background: white; border: 1px solid var(--color-june-bronze)/40;
+    border-radius: 4px; resize: vertical;
+  }
+  .save-btn {
+    margin-top: 8px; padding: 6px 16px;
+    background: var(--color-june-bronze); color: var(--color-rice);
+    border: none; border-radius: 4px;
+    font-family: var(--font-display); font-size: 12px;
+    cursor: pointer; letter-spacing: 0.1em;
+  }
+  .actions {
+    display: flex; justify-content: center; gap: 12px;
+    padding-top: 16px; border-top: 1px solid var(--color-june-bronze)/30;
+  }
+  .action-btn {
+    padding: 10px 22px;
+    font-family: var(--font-display); font-size: 14px;
+    letter-spacing: 0.2em; border-radius: 4px; cursor: pointer;
+    border: 1px solid var(--color-june-bronze);
+  }
+  .action-btn.primary {
+    background: var(--color-june-red); color: var(--color-rice); border-color: var(--color-june-red);
+  }
+  .action-btn.secondary {
+    background: var(--color-rice); color: var(--color-ink);
+  }
+  .action-btn.ghost {
+    background: transparent; color: var(--color-ink-light);
+  }
+  .heart { color: var(--color-june-red); }
+</style>
+</head>
+<body>
+  <div class="mockup-label">方案 ① 纵列分层</div>
+
+  <div class="page">
+    <!-- Header -->
+    <div class="header">
+      <h1>卦 象 已 成</h1>
+      <div class="timestamp">2026年6月15日 14:30 · 14:30 起卦</div>
+    </div>
+
+    <!-- 本卦 + 信息 左右分栏 -->
+    <div class="hex-row">
+      <svg class="hex-svg" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+        <!-- 乾为天 = 6 阳爻 (binary 111111) -->
+        <g stroke="var(--color-june-red)" stroke-width="6" stroke-linecap="round">
+          <line x1="15" y1="15" x2="85" y2="15"/>
+          <line x1="15" y1="33" x2="85" y2="33"/>
+          <line x1="15" y1="51" x2="85" y2="51"/>
+          <line x1="15" y1="69" x2="85" y2="69"/>
+          <line x1="15" y1="87" x2="85" y2="87"/>
+          <line x1="15" y1="105" x2="85" y2="105"/>
+        </g>
+      </svg>
+      <div class="hex-info">
+        <h2>乾为天</h2>
+        <div class="keywords">
+          <span>刚健</span><span>中正</span><span>创始</span>
+        </div>
+        <p class="judgement">卦辞：元亨利贞。</p>
+        <p class="moving">动爻 · 第 <strong>3</strong> 爻  →  变卦 · <strong>天风姤</strong></p>
+      </div>
+    </div>
+
+    <!-- AI 解读 · 简易版 -->
+    <div class="section">
+      <div class="section-label">AI 解读 · 简易版</div>
+      <p class="ai-text">
+        乾卦纯阳之象，象征刚健中正。当前你处于事业上升期，行动力强，宜主动出击、把握先机。但刚易折，需防过刚易断，注意听取他人意见。
+      </p>
+      <a class="expand-link">▼ 查看完整解读（6 段，约 600 字）</a>
+    </div>
+
+    <!-- 感言 -->
+    <div class="section" style="border-left-color: var(--color-june-red);">
+      <div class="section-label">感 言</div>
+      <textarea class="note-input" placeholder="在此写下你的感悟…">今日问事业，乾卦三爻动，正合我心。即刻起，稳扎稳打，不负此卦。</textarea>
+      <button class="save-btn">保存</button>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="action-btn primary"><span class="heart">♡</span> 收藏本卦</button>
+      <button class="action-btn secondary">↗ 分享</button>
+      <button class="action-btn ghost">↻ 再起一卦</button>
+    </div>
+  </div>
+</body>
+</html>

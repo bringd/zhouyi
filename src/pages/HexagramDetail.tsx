@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { BreathEffect } from '@/components/motion/BreathEffect'
 import { getHexagramById } from '@/lib/divination'
 import { getOpposite, getInverse, getNuclear } from '@/lib/relations'
+import { downloadCardPng, cardDataFromIds } from '@/lib/imageGen'
 import { SEO } from '@/lib/seo'
 import { cn } from '@/utils/cn'
 import type { HexagramId } from '@/types'
@@ -26,6 +27,27 @@ export default function HexagramDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [activeRelation, setActiveRelation] = useState<RelationKey>('opposite')
+  const [downloadBusy, setDownloadBusy] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+
+  const handleDownload = async () => {
+    if (!hexagram) return
+    setDownloadBusy(true)
+    try {
+      const data = cardDataFromIds({ mainId: hexagram.id })
+      if (data) {
+        await downloadCardPng(data, `易象阁-卦象-${hexagram.name}.png`)
+        setToast('已下载卦象卡')
+        setTimeout(() => setToast(null), 1800)
+      }
+    } catch (err) {
+      console.error('[HexagramDetail] download failed:', err)
+      setToast('下载失败')
+      setTimeout(() => setToast(null), 1800)
+    } finally {
+      setDownloadBusy(false)
+    }
+  }
 
   const hexagram = id ? getHexagramById(parseInt(id, 10) as HexagramId) : null
 
@@ -177,13 +199,22 @@ export default function HexagramDetail() {
 
         {/* Action buttons */}
         <div className="flex flex-wrap justify-center gap-3">
+          <Button onClick={handleDownload} variant="primary" loading={downloadBusy}>
+            <span className="text-june-red mr-1">♡</span> 收藏本卦
+          </Button>
           <Link to="/divination">
-            <Button variant="primary">三数起卦</Button>
+            <Button variant="secondary">三数起卦</Button>
           </Link>
           <Link to="/codex">
-            <Button variant="secondary">返回图鉴</Button>
+            <Button variant="ghost">返回图鉴</Button>
           </Link>
         </div>
+
+        {toast && (
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 px-5 py-2.5 bg-ink text-rice rounded-md font-display text-sm tracking-widest shadow-lg z-50">
+            {toast}
+          </div>
+        )}
       </motion.div>
     </PageLayout>
   )
