@@ -2,18 +2,41 @@ import { pgTable, uuid, text, timestamp, integer, jsonb, varchar, index, uniqueI
 
 /**
  * Users table.
+ *
+ * MVP auth model: session-cookie-only ("guest" users). Every visitor gets a
+ * row keyed off the session UUID, with no email/password. We still capture
+ * passive request signals (UA, language, referer, IP, last-seen, visit
+ * count) so the operator can see who's using the site without requiring
+ * registration. When real auth lands (future), guests can be promoted to
+ * real accounts without losing the session/observation data.
  */
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: varchar('email', { length: 255 }).notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   nickname: varchar('nickname', { length: 50 }),
+
+  // Geo / locale — populated by the client (browser Intl) when available;
+  // server cannot derive these from headers alone.
   region: varchar('region', { length: 100 }),
   timezone: varchar('timezone', { length: 100 }),
+
+  // Passive observation signals. Captured on first request, refreshed on
+  // every subsequent request. Defaults are non-null so existing rows
+  // backfill cleanly through the 0001 migration.
+  lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+  visitCount: integer('visit_count').notNull().default(1),
+  userAgent: text('user_agent').notNull().default(''),
+  acceptLanguage: varchar('accept_language', { length: 50 }).notNull().default(''),
+  firstReferer: text('first_referer'),
+  lastReferer: text('last_referer'),
+  ipAddress: varchar('ip_address', { length: 45 }).notNull().default(''),
+
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({
   emailIdx: uniqueIndex('users_email_idx').on(table.email),
+  lastSeenIdx: index('users_last_seen_idx').on(table.lastSeenAt),
 }))
 
 /**

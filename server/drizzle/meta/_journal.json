@@ -8,6 +8,13 @@
       "when": 1780399631572,
       "tag": "0000_lyrical_princess_powerful",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781494597985,
+      "tag": "0001_broad_monster_badoon",
+      "breakpoints": true
     }
   ]
 }
