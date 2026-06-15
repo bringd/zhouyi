@@ -11,6 +11,7 @@ import {
   getClientIp,
   DAILY_LIMIT,
 } from '../services/rateLimiter.js'
+import { categorizeUpstreamError } from '../services/upstreamErrors.js'
 
 export const aiRouter = Router()
 
@@ -140,12 +141,20 @@ aiRouter.post('/interpret', async (req: Request, res: Response) => {
       console.error('[ai] failed to record usage:', err)
     }
   } catch (err) {
-    console.error('[ai] claude error:', err)
-    // Headers may already be flushed; emit the error as an SSE event.
+    // Classify the upstream failure so the client can show a localized
+    // message and the user can quote the trace_id to support. Status code
+    // is already 200 (SSE handshake succeeded) so we can't surface 1027
+    // via HTTP — must ride the SSE event.
+    const upstream = categorizeUpstreamError(err)
+    console.error(
+      `[ai] upstream error code=${upstream.code} numeric=${upstream.numericCode ?? '-'} raw=${upstream.rawMessage}`
+    )
     res.write(
       `data: ${JSON.stringify({
         type: 'error',
-        error: err instanceof Error ? err.message : 'Unknown error',
+        code: upstream.code,
+        error: upstream.userMessage,
+        numericCode: upstream.numericCode,
       })}\n\n`
     )
   } finally {

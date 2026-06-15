@@ -55,7 +55,13 @@ export class AIError extends Error {
       | 'timeout' // 30s AbortController timeout
       | 'rate-limit' // 429 from backend
       | 'server-error' // 5xx from backend
-      | 'unauthorized', // 401 from backend (session expired)
+      | 'unauthorized' // 401 from backend (session expired)
+      | 'content-filtered' // 1027 — model output tripped safety filter
+      | 'input-filtered' // 1026 — user input tripped safety filter
+      | 'quota-exceeded' // 1008 — account balance exhausted
+      | 'upstream-error' // 2013 etc. — malformed upstream parameter
+      | 'token-limit', // 1039/2056 — max_tokens or plan cap exceeded
+    public numericCode?: number,
     public cause?: unknown,
   ) {
     super(message)
@@ -67,7 +73,7 @@ export class AIError extends Error {
 const API_BASE_URL =
   (import.meta.env?.VITE_API_BASE_URL as string | undefined) ??
   'http://localhost:3001'
-const API_TIMEOUT_MS = 30_000
+const API_TIMEOUT_MS = 60_000
 
 /**
  * Call the backend AI interpretation endpoint.
@@ -110,11 +116,12 @@ export async function generateInterpretation(
   } catch (err) {
     clearTimeout(timeoutId)
     if (err instanceof Error && err.name === 'AbortError') {
-      throw new AIError('请求超时', 'timeout', err)
+      throw new AIError('请求超时', 'timeout', undefined, err)
     }
     throw new AIError(
       err instanceof Error ? err.message : '网络错误',
       'network-error',
+      undefined,
       err,
     )
   }
@@ -181,6 +188,8 @@ export async function generateInterpretation(
               delta?: { type?: string; text?: string }
               usage?: { inputTokens: number; outputTokens: number }
               error?: string
+              code?: string
+              numericCode?: number
             }
 
             if (
@@ -195,7 +204,39 @@ export async function generateInterpretation(
             } else if (parsed.type === 'done' && parsed.usage) {
               usage = parsed.usage
             } else if (parsed.type === 'error') {
-              throw new AIError(parsed.error ?? 'AI 解读失败', 'server-error')
+              // Map backend's structured error.code to a stable AIError code.
+              // Backend never sends 'unauthorized' / 'rate-limit' here (those
+              // come back as HTTP 401/429 before the SSE stream opens).
+              const backendCode = parsed.code as
+                | 'content_filtered'
+                | 'input_filtered'
+                | 'quota_exceeded'
+                | 'unauthorized'
+                | 'invalid_params'
+                | 'rate_limited'
+                | 'token_limit'
+                | 'upstream_internal'
+                | 'unknown'
+                | undefined
+              const map: Record<
+                NonNullable<typeof backendCode>,
+                AIError['code']
+              > = {
+                content_filtered: 'content-filtered',
+                input_filtered: 'input-filtered',
+                quota_exceeded: 'quota-exceeded',
+                unauthorized: 'unauthorized',
+                invalid_params: 'upstream-error',
+                rate_limited: 'rate-limit',
+                token_limit: 'token-limit',
+                upstream_internal: 'server-error',
+                unknown: 'server-error',
+              }
+              throw new AIError(
+                parsed.error ?? 'AI 解读失败',
+                backendCode ? map[backendCode] : 'server-error',
+                parsed.numericCode,
+              )
             }
           } catch (err) {
             if (err instanceof AIError) throw err
