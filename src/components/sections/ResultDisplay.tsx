@@ -107,15 +107,14 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
         <FlipEntry className="w-full">
           <BreathEffect className="w-full rounded-md" duration={4500}>
             <div className="aspect-square w-full bg-gradient-to-br from-june-red via-june-clay to-june-red relative flex items-center justify-center p-8 rounded-md shadow-2xl">
-              <div className="absolute top-4 left-4 px-3 py-1 bg-rice/15 backdrop-blur-sm border border-rice/30 rounded-sm text-rice font-display text-sm tracking-widest">
-                本 卦 · 第 {main.number} 卦
-              </div>
+              <div className="absolute top-4 left-4 text-rice/60 font-display text-sm tracking-widest">第 {main.number} 卦</div>
               <div className="absolute top-4 right-4">
                 <Seal text={main.shortName} size={44} rotation={-3} />
               </div>
               <div className="w-full max-w-xs">
                 <HexagramCard hexagram={main} size="lg" navigateOnClick={false} showStamp={false} />
               </div>
+              <div className="absolute bottom-4 right-4 text-rice font-display text-2xl tracking-widest">{main.shortName}</div>
             </div>
           </BreathEffect>
         </FlipEntry>
@@ -132,34 +131,12 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
           {main.modernInterpretation && (
             <p className="font-body text-ink-light text-base leading-relaxed">{main.modernInterpretation}</p>
           )}
-
-          {/* 动爻 小卡 — 显式说明这一爻代表什么 */}
-          {(() => {
-            const yao = main.yaoLines[record.movingLine - 1]
-            if (!yao) return null
-            return (
-              <div className="mt-3 p-5 bg-rice-dark/50 border-l-4 border-june-red rounded-r-sm">
-                <div className="flex items-baseline gap-2 mb-3 whitespace-nowrap">
-                  <span className="text-xs text-june-red font-display tracking-widest">动 爻</span>
-                  <span className="text-xs text-june-bronze">第 {record.movingLine} 爻 · {yao.type === 'yang' ? '阳爻' : '阴爻'}</span>
-                </div>
-                {yao.originalText && (
-                  <p className="font-kaiti text-ink-light leading-loose mb-2 text-[1.0625rem]">
-                    {yao.originalText}
-                  </p>
-                )}
-                {yao.modernMeaning && (
-                  <p className="font-body text-ink-light text-sm leading-relaxed">{yao.modernMeaning}</p>
-                )}
-              </div>
-            )
-          })()}
-
           <div className="text-sm text-ink-light font-body">
+            动爻 · 第 <span className="text-june-red font-bold">{record.movingLine}</span> 爻
+            {' → '}
             <Link to={`/hexagram/${changed.id}`} className="text-june-red font-bold hover:underline">
               变卦 · {changed.name}
             </Link>
-            <span className="text-june-bronze/60 ml-1">→</span>
           </div>
         </motion.div>
       </div>
@@ -175,6 +152,55 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
         />
       </div>
 
+      {/* 动爻 · 爻辞 (moving line + the actual yao text — the answer to the divination) */}
+      {(() => {
+        const yao = main.yaoLines.find((y) => y.position === record.movingLine)
+        if (!yao) return null
+        return (
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mb-10 p-6 bg-rice border-2 border-june-bronze rounded-md"
+          >
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <h3 className="font-display text-lg text-ink tracking-widest">
+                动 爻 · 第 {record.movingLine} 爻
+              </h3>
+              <span className="text-xs text-june-bronze font-display tracking-widest">
+                {yao.type === 'yang' ? '阳爻' : '阴爻'} · {yao.type === 'yang' ? '九' : '六'}
+              </span>
+            </div>
+
+            {/* 爻辞原文 — 楷体大字号，模拟古籍引文 */}
+            <div className="relative mb-5 px-4 py-4 bg-june-red/5 border-l-4 border-june-red">
+              <div
+                className="font-body text-ink leading-loose"
+                style={{ fontFamily: 'KaiTi, STKaiti, serif', fontSize: '1.125rem' }}
+              >
+                {yao.originalText}
+              </div>
+            </div>
+
+            {/* 现代意义 */}
+            <div className="mb-4">
+              <div className="text-xs text-june-bronze font-display tracking-widest mb-1">现 代 意 义</div>
+              <p className="font-body text-ink-light leading-relaxed text-sm">{yao.modernMeaning}</p>
+            </div>
+
+            {/* 跳转锚点 */}
+            <div className="flex justify-end pt-3 border-t border-june-bronze/30">
+              <Link
+                to={`/hexagram/${main.id}#yao-${record.movingLine}`}
+                className="text-sm text-june-red font-display tracking-widest hover:underline"
+              >
+                查看本卦六爻全部 →
+              </Link>
+            </div>
+          </motion.section>
+        )
+      })()}
+
       {/* AI interpretation */}
       <div className="mb-10 p-6 bg-rice border-2 border-june-bronze rounded-md">
         <div className="flex items-center justify-between mb-4">
@@ -185,7 +211,14 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
             </Button>
           )}
         </div>
-        {aiError && <p className="text-june-red text-sm font-body mb-2">{aiError}</p>}
+        {aiError && (
+          <div className="flex items-center justify-between gap-3 mb-2 p-3 bg-june-red/5 border border-june-red/30 rounded-sm">
+            <p className="text-june-red text-sm font-body">{aiError}</p>
+            <Button onClick={handleAIInterpretation} variant="secondary" size="sm">
+              重试
+            </Button>
+          </div>
+        )}
         {aiText ? (
           <div className="font-body text-ink-light leading-relaxed whitespace-pre-wrap">{aiText}</div>
         ) : !aiError && (

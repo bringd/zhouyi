@@ -2,6 +2,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { PageLayout } from '@/components/layout/PageLayout'
+import { PageTitle } from '@/components/ui/PageTitle'
 import { HexagramCard } from '@/components/hexagram/HexagramCard'
 import { YaoLineScroll } from '@/components/hexagram/YaoLineScroll'
 import { Seal } from '@/components/ui/Seal'
@@ -28,18 +29,6 @@ export default function HexagramDetail() {
 
   const hexagram = id ? getHexagramById(parseInt(id, 10) as HexagramId) : null
 
-  const relationResult = useMemo(() => {
-    if (!hexagram) return null
-    try {
-      const id = activeRelation === 'opposite' ? getOpposite(hexagram.id)
-        : activeRelation === 'inverse' ? getInverse(hexagram.id)
-        : getNuclear(hexagram.id)
-      return { ok: true as const, hex: getHexagramById(id as HexagramId) }
-    } catch (e) {
-      return { ok: false as const, error: e instanceof Error ? e.message : '关系数据缺失' }
-    }
-  }, [hexagram, activeRelation])
-
   if (!hexagram) {
     return (
       <PageLayout>
@@ -50,6 +39,26 @@ export default function HexagramDetail() {
       </PageLayout>
     )
   }
+
+  // B2: wrap relation computation in try/catch + useMemo so a single bad
+  // data point (e.g. corrupt static JSON) renders a fallback instead of
+  // crashing the whole page.
+  const relation = useMemo<
+    { ok: true; hex: ReturnType<typeof getHexagramById> } | { ok: false }
+  >(() => {
+    try {
+      const id =
+        activeRelation === 'opposite'
+          ? getOpposite(hexagram.id)
+          : activeRelation === 'inverse'
+            ? getInverse(hexagram.id)
+            : getNuclear(hexagram.id)
+      return { ok: true, hex: getHexagramById(id as HexagramId) }
+    } catch {
+      return { ok: false }
+    }
+  }, [activeRelation, hexagram.id])
+  const relationHex = relation.ok ? relation.hex : null
 
   return (
     <PageLayout>
@@ -62,20 +71,27 @@ export default function HexagramDetail() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="text-sm text-june-bronze font-display tracking-widest mb-2">第 {hexagram.number} 卦</div>
-          <h1 className="text-display-lg font-display text-ink tracking-widest mb-3">{hexagram.name}</h1>
-          <div className="flex flex-wrap gap-2 justify-center">
-            {hexagram.keywords.map((kw) => (
-              <span key={kw} className="px-3 py-1 bg-june-red/10 text-june-red rounded-pill text-xs font-display">
-                {kw}
-              </span>
-            ))}
-          </div>
-        </div>
+        {/* Header — 卷轴匾额 (P0 UI optimization) */}
+        <PageTitle
+          title={hexagram.name}
+          kicker={`第 ${hexagram.number} 卦`}
+          size="lg"
+          className="mb-6 sm:mb-8"
+          trailing={
+            <div className="flex flex-wrap gap-2 justify-center">
+              {hexagram.keywords.map((kw) => (
+                <span
+                  key={kw}
+                  className="px-3 py-1 bg-june-red/10 text-june-red rounded-pill text-xs font-display"
+                >
+                  {kw}
+                </span>
+              ))}
+            </div>
+          }
+        />
 
-        {/* Hero card (V5: dropped redundant shadow-lg — BreathEffect provides the glow) */}
+        {/* Hero card — V5: removed shadow-lg so the breath halo is the only depth cue */}
         <div className="flex justify-center mb-10">
           <BreathEffect className="rounded-md" duration={4500}>
             <div
@@ -90,85 +106,73 @@ export default function HexagramDetail() {
           </BreathEffect>
         </div>
 
-        {/* 6-section rhythm (D1): each <section> separated by 1px june-red/20 divider */}
-        <div className="divide-y divide-june-red/20">
-          {/* 1. 卦辞 */}
+        {/* D1: section rhythm — 6 segments in <section> with divide-y separators */}
+        <div className="divide-y divide-june-bronze/30 mb-10">
           {hexagram.judgement && (
-            <section className="py-5 first:pt-0">
+            <section className="py-6 first:pt-0 last:pb-0">
               <div className="text-xs text-june-bronze font-display tracking-widest mb-2">卦 辞</div>
               <p className="font-body text-ink leading-relaxed">{hexagram.judgement}</p>
             </section>
           )}
-
-          {/* 2. 彖传 */}
           {hexagram.tuanzhuan && (
-            <section className="py-5">
+            <section className="py-6 first:pt-0 last:pb-0">
               <div className="text-xs text-june-bronze font-display tracking-widest mb-2">彖 传</div>
               <p className="font-body text-ink leading-relaxed">{hexagram.tuanzhuan}</p>
             </section>
           )}
-
-          {/* 3. 象传 */}
           {hexagram.xiangzhuan.daXiang && (
-            <section className="py-5">
+            <section className="py-6 first:pt-0 last:pb-0">
               <div className="text-xs text-june-bronze font-display tracking-widest mb-2">象 传</div>
               <p className="font-body text-ink leading-relaxed">{hexagram.xiangzhuan.daXiang}</p>
             </section>
           )}
-
-          {/* 4. 六爻爻辞 — 卷轴式卡片（始终渲染，空卦显示 6 张占位卡） */}
-          <section className="py-5">
+          <section className="py-6 first:pt-0 last:pb-0">
             <h2 className="text-lg font-display text-ink mb-4 tracking-widest text-center">六 爻 爻 辞</h2>
             <YaoLineScroll yaoLines={hexagram.yaoLines} />
           </section>
-
-          {/* 5. 现代解读 */}
           {hexagram.modernInterpretation && (
-            <section className="py-5">
+            <section className="py-6 first:pt-0 last:pb-0">
               <h2 className="text-lg font-display text-june-red mb-3 tracking-widest">现 代 解 读</h2>
               <p className="font-body text-ink leading-relaxed">{hexagram.modernInterpretation}</p>
             </section>
           )}
-
-          {/* 6. 卦象关系 */}
-          {relationResult?.ok && relationResult.hex && (
-            <section className="py-5">
-              <h2 className="text-lg font-display text-ink mb-4 tracking-widest text-center">卦 象 关 系</h2>
-              <div className="flex justify-center gap-2 mb-6">
-                {RELATIONS.map((rel) => (
-                  <button
-                    key={rel.key}
-                    type="button"
-                    onClick={() => setActiveRelation(rel.key)}
-                    className={cn(
-                      'px-4 py-2 rounded-sm font-display text-sm transition-colors',
-                      activeRelation === rel.key
-                        ? 'bg-june-red text-rice'
-                        : 'bg-rice text-ink border border-june-bronze hover:bg-rice-dark'
-                    )}
-                    aria-pressed={activeRelation === rel.key}
-                  >
-                    {rel.label}
-                  </button>
-                ))}
-              </div>
-              <div className="flex justify-center">
-                <Link to={`/hexagram/${relationResult.hex.id}`} className="block">
-                  <div className="p-4 bg-rice border-2 border-june-bronze rounded-md text-center hover:bg-rice-dark transition-colors">
-                    <HexagramCard hexagram={relationResult.hex} size="md" navigateOnClick={false} />
-                    <div className="text-xs text-june-bronze font-display mt-2 tracking-widest">
-                      查看 {relationResult.hex.name}
+          <section className="py-6 first:pt-0 last:pb-0">
+            <h2 className="text-lg font-display text-ink mb-4 tracking-widest text-center">卦 象 关 系</h2>
+            {relation.ok && relationHex ? (
+              <>
+                <div className="flex justify-center gap-2 mb-6">
+                  {RELATIONS.map((rel) => (
+                    <button
+                      key={rel.key}
+                      type="button"
+                      onClick={() => setActiveRelation(rel.key)}
+                      className={cn(
+                        'px-4 py-2 rounded-sm font-display text-sm transition-colors',
+                        activeRelation === rel.key
+                          ? 'bg-june-red text-rice'
+                          : 'bg-rice text-ink border border-june-bronze hover:bg-rice-dark'
+                      )}
+                      aria-pressed={activeRelation === rel.key}
+                    >
+                      {rel.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex justify-center">
+                  <Link to={`/hexagram/${relationHex.id}`} className="block">
+                    <div className="p-4 bg-rice border-2 border-june-bronze rounded-md text-center hover:bg-rice-dark transition-colors">
+                      <HexagramCard hexagram={relationHex} size="md" navigateOnClick={false} />
+                      <div className="text-xs text-june-bronze font-display mt-2 tracking-widest">
+                        查看 {relationHex.name}
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              </div>
-            </section>
-          )}
-          {relationResult && !relationResult.ok && (
-            <div className="text-center text-ink-light/60 text-sm py-6">
-              本卦关系数据缺失
-            </div>
-          )}
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <p className="text-center text-ink-light font-body">本卦关系数据缺失</p>
+            )}
+          </section>
         </div>
 
         {/* Action buttons */}

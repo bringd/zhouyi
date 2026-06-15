@@ -107,7 +107,28 @@ export function DivinationForm({ initialNumbers, initialQuestion = '', onResult,
       )}
 
       <div className="flex justify-center">
-        <Button type="submit" size="lg" loading={submitting} disabled={!isValid}>
+        <Button
+          type="submit"
+          size="lg"
+          loading={submitting}
+          disabled={!isValid}
+          leftIcon={
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              aria-hidden
+            >
+              <line x1="4" y1="6" x2="20" y2="6" />
+              <line x1="4" y1="12" x2="20" y2="12" />
+              <line x1="4" y1="18" x2="20" y2="18" />
+            </svg>
+          }
+        >
           {submitting ? '起卦中…' : '启 卦'}
         </Button>
       </div>
