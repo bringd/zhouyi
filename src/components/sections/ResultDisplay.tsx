@@ -74,6 +74,7 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
         else if (err.code === 'timeout') msg = '请求超时'
         else if (err.code === 'server-error') msg = '服务暂时不可用，请稍后再试'
         else if (err.code === 'network-error') msg = '网络错误，请检查网络后重试'
+        else if (err.code === 'no-backend') msg = err.message || 'AI 解读功能暂未上线'
         else msg = err.message
       } else {
         msg = err instanceof Error ? err.message : 'AI 解读失败'

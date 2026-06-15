@@ -5,19 +5,27 @@
  * Claude API key and applies per-user rate limiting; the browser no longer
  * talks to the Anthropic API directly.
  *
+ * When no backend is configured (production build without
+ * `VITE_API_BASE_URL` set) we short-circuit with a `'no-backend'` error so
+ * the UI can show a graceful "feature in development" message instead of
+ * a red network error. The same `API_BASE_URL` is also exposed via
+ * `isBackendConfigured()` so other surfaces (Records, Favorites) can
+ * branch on it.
+ *
  * Streams Server-Sent Events with the same event shape as Claude:
  *   - `content_block_delta` with `delta.text` for each text fragment
  *   - `done` event (with optional `usage`) when the stream finishes
  *   - `error` event on backend failure
  *
  * Error handling (HTTP status → AIError.code):
+ *   - 'no-backend'      → VITE_API_BASE_URL unset in production build
  *   - 401  → 'unauthorized'  (session expired / not logged in)
  *   - 429  → 'rate-limit'    (per-user daily quota hit)
  *   - 503  → 'server-error'  (Claude unreachable / not configured)
  *   - 5xx  → 'server-error'
  *   - other 4xx → 'network-error'
  *   - fetch failure → 'network-error'
- *   - AbortController timeout (30s) → 'timeout'
+ *   - AbortController timeout (60s) → 'timeout'
  */
 
 import type { Hexagram } from '@/types'
@@ -60,7 +68,8 @@ export class AIError extends Error {
       | 'input-filtered' // 1026 — user input tripped safety filter
       | 'quota-exceeded' // 1008 — account balance exhausted
       | 'upstream-error' // 2013 etc. — malformed upstream parameter
-      | 'token-limit', // 1039/2056 — max_tokens or plan cap exceeded
+      | 'token-limit' // 1039/2056 — max_tokens or plan cap exceeded
+      | 'no-backend', // VITE_API_BASE_URL unset on a production build
     public numericCode?: number,
     public cause?: unknown,
   ) {
@@ -69,10 +78,24 @@ export class AIError extends Error {
   }
 }
 
-/** Backend base URL. Configurable via VITE_API_BASE_URL for production. */
+/** Backend base URL. Configurable via VITE_API_BASE_URL for production.
+ *
+ *  Dev:    falls back to localhost:3001 if VITE_API_BASE_URL is unset.
+ *  Prod:   unset → empty string → `isBackendConfigured()` returns false and
+ *          `generateInterpretation` short-circuits with `AIError.code =
+ *          'no-backend'`. This keeps the static-only Cloudflare Pages
+ *          deploy from showing a misleading red "network error".
+ */
 const API_BASE_URL =
   (import.meta.env?.VITE_API_BASE_URL as string | undefined) ??
-  'http://localhost:3001'
+  (import.meta.env?.DEV ? 'http://localhost:3001' : '')
+
+/** True when the build can reach a backend. Use this to gate AI / records /
+ *  favorites UI so it shows a friendly "暂未上线" message instead of a red
+ *  network error. */
+export function isBackendConfigured(): boolean {
+  return API_BASE_URL.length > 0
+}
 const API_TIMEOUT_MS = 60_000
 
 /**
@@ -94,6 +117,14 @@ export async function generateInterpretation(
   _apiKey: string | null,
   onChunk?: (chunk: string) => void,
 ): Promise<AIInterpretationResult> {
+  // No backend → bail before any network work. UI will show "暂未上线".
+  if (!isBackendConfigured()) {
+    throw new AIError(
+      'AI 解读功能暂未上线，请稍后再试。',
+      'no-backend',
+    )
+  }
+
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS)
 
