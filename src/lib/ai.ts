@@ -1,29 +1,34 @@
 /**
- * AI 解读调用 (BYOK — Bring Your Own Key)
+ * AI 解读调用 (Backend AI Proxy Integration)
  *
- * Browser-direct call to Anthropic's `/v1/messages` streaming endpoint.
- * The site has no backend, so the user supplies their own Anthropic
- * API key in Settings; we read it from localStorage and use it
- * client-side. The server-side Claude client in `server/src/services/`
- * is kept untouched for any future self-hosted deployment.
+ * Calls the backend `/api/ai/interpret` endpoint. The backend holds the
+ * Claude API key and applies per-user rate limiting; the browser no longer
+ * talks to the Anthropic API directly.
  *
- * The `anthropic-dangerous-direct-browser-access: true` header is
- * required by Anthropic to opt into CORS for browser clients — see
- * https://docs.anthropic.com/en/api/client-sdks#browser-cors
+ * When no backend is configured (production build without
+ * `VITE_API_BASE_URL` set) we short-circuit with a `'no-backend'` error so
+ * the UI can show a graceful "feature in development" message instead of
+ * a red network error. The same `API_BASE_URL` is also exposed via
+ * `isBackendConfigured()` so other surfaces (Records, Favorites) can
+ * branch on it.
+ *
+ * Streams Server-Sent Events with the same event shape as Claude:
+ *   - `content_block_delta` with `delta.text` for each text fragment
+ *   - `done` event (with optional `usage`) when the stream finishes
+ *   - `error` event on backend failure
  *
  * Error handling (HTTP status → AIError.code):
- *   - 'no-api-key'      → no key stored; ask user to add one in Settings
- *   - 'invalid-api-key' → 401 / 403 from Anthropic
- *   - 'rate-limit'      → 429
- *   - 'server-error'    → 5xx
- *   - 'timeout'         → 60s AbortController
- *   - 'network-error'   → fetch failure / non-mapped HTTP status
- *   - 'content-filtered' / 'input-filtered' / 'quota-exceeded' /
- *     'upstream-error' / 'token-limit' → mapped from SSE `error` event
+ *   - 'no-backend'      → VITE_API_BASE_URL unset in production build
+ *   - 401  → 'unauthorized'  (session expired / not logged in)
+ *   - 429  → 'rate-limit'    (per-user daily quota hit)
+ *   - 503  → 'server-error'  (Claude unreachable / not configured)
+ *   - 5xx  → 'server-error'
+ *   - other 4xx → 'network-error'
+ *   - fetch failure → 'network-error'
+ *   - AbortController timeout (60s) → 'timeout'
  */
 
 import type { Hexagram } from '@/types'
-import { getApiConfig } from './apiConfig'
 
 export interface AIInterpretationInput {
   mainHexagram: Hexagram
@@ -33,9 +38,15 @@ export interface AIInterpretationInput {
 }
 
 export interface AIInterpretationResult {
+  /** Concatenated streamed text */
   text: string
+  /** Raw streaming chunks (for debugging) */
   chunks: string[]
-  usage?: { inputTokens: number; outputTokens: number }
+  /** Token usage (if reported by backend) */
+  usage?: {
+    inputTokens: number
+    outputTokens: number
+  }
 }
 
 /**
@@ -46,19 +57,19 @@ export class AIError extends Error {
   constructor(
     message: string,
     public code:
-      | 'missing-api-key' // legacy alias
-      | 'invalid-api-key' // legacy alias
-      | 'no-api-key' // no key in localStorage
-      | 'network-error' // fetch failure / non-mapped HTTP status
-      | 'timeout' // 60s AbortController
-      | 'rate-limit' // 429
-      | 'server-error' // 5xx
-      | 'unauthorized' // 401 from Anthropic
+      | 'missing-api-key' // kept for back-compat (no longer thrown in practice)
+      | 'invalid-api-key' // kept for back-compat
+      | 'network-error' // fetch failure / non-401/429/5xx HTTP error
+      | 'timeout' // 30s AbortController timeout
+      | 'rate-limit' // 429 from backend
+      | 'server-error' // 5xx from backend
+      | 'unauthorized' // 401 from backend (session expired)
       | 'content-filtered' // 1027 — model output tripped safety filter
       | 'input-filtered' // 1026 — user input tripped safety filter
       | 'quota-exceeded' // 1008 — account balance exhausted
       | 'upstream-error' // 2013 etc. — malformed upstream parameter
-      | 'token-limit', // 1039/2056 — max_tokens or plan cap exceeded
+      | 'token-limit' // 1039/2056 — max_tokens or plan cap exceeded
+      | 'no-backend', // VITE_API_BASE_URL unset on a production build
     public numericCode?: number,
     public cause?: unknown,
   ) {
@@ -67,110 +78,69 @@ export class AIError extends Error {
   }
 }
 
-// ---- Constants --------------------------------------------------------------
+/** Backend base URL. Configurable via VITE_API_BASE_URL for production.
+ *
+ *  Dev:    falls back to localhost:3001 if VITE_API_BASE_URL is unset.
+ *  Prod:   unset → empty string → `isBackendConfigured()` returns false and
+ *          `generateInterpretation` short-circuits with `AIError.code =
+ *          'no-backend'`. This keeps the static-only Cloudflare Pages
+ *          deploy from showing a misleading red "network error".
+ */
+const API_BASE_URL =
+  (import.meta.env?.VITE_API_BASE_URL as string | undefined) ??
+  (import.meta.env?.DEV ? 'http://localhost:3001' : '')
 
-const ANTHROPIC_VERSION = '2023-06-01'
-const ANTHROPIC_BROWSER_HEADER = 'anthropic-dangerous-direct-browser-access'
+/** True when the build can reach a backend. Use this to gate AI / records /
+ *  favorites UI so it shows a friendly "暂未上线" message instead of a red
+ *  network error. */
+export function isBackendConfigured(): boolean {
+  return API_BASE_URL.length > 0
+}
 const API_TIMEOUT_MS = 60_000
 
-// ---- System prompt (mirrors server/src/services/claudeClient.ts) ------------
-
-interface BuildPromptInput {
-  mainName: string
-  mainJudgement: string
-  movingLineText: string
-  changedName: string
-  changedJudgement: string
-  question?: string
-}
-
-function buildSystemPrompt(input: BuildPromptInput): string {
-  return `你是周易文化研究助手，正在为一位普通用户解读一次起卦结果。
-
-【卦象数据】
-本卦：${input.mainName}（卦辞：${input.mainJudgement}）
-动爻：第 ${input.movingLineText} 爻
-变卦：${input.changedName}（卦辞：${input.changedJudgement}）
-用户问题：${input.question || '（用户未提具体问题）'}
-
-【输出要求】
-请以现代人易理解的语言，分 6 段输出（每段 80-120 字）：
-1. 卦象概要
-2. 当前状态
-3. 变化原因
-4. 后续趋势
-5. 行动建议
-6. 风险提醒
-
-【语气约束】
-- 不使用"一定会"、"注定"等绝对化预测
-- 不承诺具体结果
-- 不替代现实决策
-- 用"周易文化研究中一种可能的解读是..."、"这个卦象提示..."等学术化语气
-- 鼓励用户结合自己的实际情况判断`
-}
-
-// ---- Public API -------------------------------------------------------------
-
 /**
- * Stream an AI interpretation of a divination result.
+ * Call the backend AI interpretation endpoint.
+ * The backend holds the Claude API key and applies rate limiting.
  *
- * The second parameter is kept for backwards compatibility with the
- * old backend-proxy signature; it's silently ignored. Callers may pass
- * `null` or any string.
+ * The second parameter `_apiKey` is kept for backwards compatibility with
+ * the previous BYOK signature; it is silently ignored. Callers may pass
+ * `null`, `''`, or any string without affecting behavior.
  *
  * @param input    The divination context
- * @param _apiKey  Ignored
+ * @param _apiKey  Ignored (kept for back-compat signature)
  * @param onChunk  Optional streaming callback fired per text delta
  * @returns        The interpretation result
- * @throws         {AIError} with a stable `code` on any failure
+ * @throws         {AIError} on backend failure (with a stable `code`)
  */
 export async function generateInterpretation(
   input: AIInterpretationInput,
   _apiKey: string | null,
   onChunk?: (chunk: string) => void,
 ): Promise<AIInterpretationResult> {
-  const config = getApiConfig()
-  if (!config.apiKey) {
+  // No backend → bail before any network work. UI will show "暂未上线".
+  if (!isBackendConfigured()) {
     throw new AIError(
-      '请先在设置中填写 Anthropic API Key。',
-      'no-api-key',
+      'AI 解读功能暂未上线，请稍后再试。',
+      'no-backend',
     )
   }
 
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS)
 
-  const yaoLine = input.mainHexagram.yaoLines[input.movingLine - 1]
-  const movingLineText =
-    yaoLine?.originalText?.trim() || `第 ${input.movingLine} 爻`
-
-  const systemPrompt = buildSystemPrompt({
-    mainName: input.mainHexagram.name,
-    mainJudgement: input.mainHexagram.judgement,
-    movingLineText,
-    changedName: input.changedHexagram.name,
-    changedJudgement: input.changedHexagram.judgement,
-    question: input.question,
-  })
-
   let response: Response
   try {
-    response = await fetch(config.baseUrl, {
+    response = await fetch(`${API_BASE_URL}/api/ai/interpret`, {
       method: 'POST',
+      credentials: 'include', // Send session cookie so backend can identify the user
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': config.apiKey,
-        'anthropic-version': ANTHROPIC_VERSION,
-        [ANTHROPIC_BROWSER_HEADER]: 'true',
-        Accept: 'text/event-stream',
       },
       body: JSON.stringify({
-        model: config.model,
-        max_tokens: 1024,
-        stream: true,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: '请按上述要求输出解读。' }],
+        mainHexagramId: input.mainHexagram.id,
+        changedHexagramId: input.changedHexagram.id,
+        movingLine: input.movingLine,
+        question: input.question,
       }),
       signal: controller.signal,
     })
@@ -189,25 +159,26 @@ export async function generateInterpretation(
 
   clearTimeout(timeoutId)
 
+  // Map HTTP status to AIError
   if (!response.ok) {
     if (response.status === 401) {
-      throw new AIError('API Key 无效或已过期，请检查设置。', 'unauthorized')
-    }
-    if (response.status === 403) {
-      throw new AIError('API Key 权限不足，请检查。', 'unauthorized')
+      throw new AIError('会话已过期，请刷新页面', 'unauthorized')
     }
     if (response.status === 429) {
-      let message = '请求过于频繁，请稍后再试。'
+      let message = '请求过于频繁，请稍后再试'
       try {
-        const body = (await response.json()) as { error?: { message?: string } }
-        if (body?.error?.message) message = body.error.message
+        const body = (await response.json()) as { message?: string } | null
+        if (body?.message) message = body.message
       } catch {
         // ignore JSON parse failure
       }
       throw new AIError(message, 'rate-limit')
     }
-    if (response.status === 529 || response.status >= 500) {
-      throw new AIError('Anthropic 服务暂时不可用', 'server-error')
+    if (response.status === 503) {
+      throw new AIError('服务暂时不可用', 'server-error')
+    }
+    if (response.status >= 500) {
+      throw new AIError('服务器错误', 'server-error')
     }
     throw new AIError(`请求失败 (${response.status})`, 'network-error')
   }
@@ -216,18 +187,11 @@ export async function generateInterpretation(
     throw new AIError('响应体为空', 'network-error')
   }
 
-  // Parse Anthropic SSE stream. Event format:
-  //   event: message_start
-  //   data: {"type":"message_start", ...}
-  //   event: content_block_delta
-  //   data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"..."}}
-  //   event: message_stop
-  //   data: {"type":"message_stop"}
-  //   event: error
-  //   data: {"type":"error","error":{"type":"...","message":"..."}}
+  // Parse SSE stream — events are separated by \n\n
   const chunks: string[] = []
   let fullText = ''
   let usage: { inputTokens: number; outputTokens: number } | undefined
+
   const reader = response.body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
@@ -238,61 +202,77 @@ export async function generateInterpretation(
       if (done) break
       buffer += decoder.decode(value, { stream: true })
 
-      // Anthropic SSE events are separated by \n\n. A single chunk can
-      // contain multiple events or a partial one — keep the tail in
-      // the buffer.
+      // Split on \n\n (SSE event separator); keep any incomplete tail in buffer
       const events = buffer.split('\n\n')
       buffer = events.pop() ?? ''
 
       for (const event of events) {
-        let dataPayload = ''
-        for (const line of event.split('\n')) {
-          if (line.startsWith('data:')) dataPayload += line.slice(5).trim()
-        }
-        if (!dataPayload) continue
-        if (dataPayload === '[DONE]') continue
+        const lines = event.split('\n')
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue
+          const data = line.slice(6).trim()
+          if (!data) continue
 
-        let parsed: {
-          type?: string
-          delta?: { type?: string; text?: string }
-          message?: { usage?: { input_tokens?: number; output_tokens?: number } }
-          usage?: { input_tokens?: number; output_tokens?: number }
-          error?: { type?: string; message?: string }
-        }
-        try {
-          parsed = JSON.parse(dataPayload) as typeof parsed
-        } catch {
-          continue
-        }
+          try {
+            const parsed = JSON.parse(data) as {
+              type?: string
+              delta?: { type?: string; text?: string }
+              usage?: { inputTokens: number; outputTokens: number }
+              error?: string
+              code?: string
+              numericCode?: number
+            }
 
-        if (
-          parsed.type === 'content_block_delta' &&
-          parsed.delta?.type === 'text_delta' &&
-          typeof parsed.delta.text === 'string'
-        ) {
-          const chunk = parsed.delta.text
-          chunks.push(chunk)
-          fullText += chunk
-          onChunk?.(chunk)
-        } else if (parsed.type === 'message_start' && parsed.message?.usage) {
-          usage = {
-            inputTokens: parsed.message.usage.input_tokens ?? 0,
-            outputTokens: parsed.message.usage.output_tokens ?? 0,
+            if (
+              parsed.type === 'content_block_delta' &&
+              parsed.delta?.type === 'text_delta' &&
+              typeof parsed.delta.text === 'string'
+            ) {
+              const chunk = parsed.delta.text
+              chunks.push(chunk)
+              fullText += chunk
+              onChunk?.(chunk)
+            } else if (parsed.type === 'done' && parsed.usage) {
+              usage = parsed.usage
+            } else if (parsed.type === 'error') {
+              // Map backend's structured error.code to a stable AIError code.
+              // Backend never sends 'unauthorized' / 'rate-limit' here (those
+              // come back as HTTP 401/429 before the SSE stream opens).
+              const backendCode = parsed.code as
+                | 'content_filtered'
+                | 'input_filtered'
+                | 'quota_exceeded'
+                | 'unauthorized'
+                | 'invalid_params'
+                | 'rate_limited'
+                | 'token_limit'
+                | 'upstream_internal'
+                | 'unknown'
+                | undefined
+              const map: Record<
+                NonNullable<typeof backendCode>,
+                AIError['code']
+              > = {
+                content_filtered: 'content-filtered',
+                input_filtered: 'input-filtered',
+                quota_exceeded: 'quota-exceeded',
+                unauthorized: 'unauthorized',
+                invalid_params: 'upstream-error',
+                rate_limited: 'rate-limit',
+                token_limit: 'token-limit',
+                upstream_internal: 'server-error',
+                unknown: 'server-error',
+              }
+              throw new AIError(
+                parsed.error ?? 'AI 解读失败',
+                backendCode ? map[backendCode] : 'server-error',
+                parsed.numericCode,
+              )
+            }
+          } catch (err) {
+            if (err instanceof AIError) throw err
+            console.warn('[ai] failed to parse SSE event:', data, err)
           }
-        } else if (parsed.type === 'message_delta' && parsed.usage) {
-          // Anthropic's `message_delta` event carries `usage` at the top
-          // level (not under `message`). It's typically only updated for
-          // output_tokens; fall back to the previous value for the rest.
-          usage = {
-            inputTokens: parsed.usage.input_tokens ?? usage?.inputTokens ?? 0,
-            outputTokens: parsed.usage.output_tokens ?? usage?.outputTokens ?? 0,
-          }
-        } else if (parsed.type === 'error' && parsed.error) {
-          throw new AIError(
-            parsed.error.message ?? 'AI 解读失败',
-            mapUpstreamErrorType(parsed.error.type),
-            undefined,
-          )
         }
       }
     }
@@ -303,46 +283,4 @@ export async function generateInterpretation(
   return usage
     ? { text: fullText, chunks, usage }
     : { text: fullText, chunks }
-}
-
-/**
- * Map Anthropic's error.type values from the SSE `error` event to the
- * stable AIError codes. Anthropic's documented types include
- * `invalid_request_error`, `authentication_error`, `permission_error`,
- * `not_found_error`, `request_too_large`, `rate_limit_error`,
- * `api_error`, `overloaded_error`. Third-party endpoints (MiniMax
- * etc.) sometimes surface numeric codes (1008, 1026, 1027, 2013)
- * instead — those land here as `upstream-error`.
- */
-function mapUpstreamErrorType(
-  type: string | undefined,
-): AIError['code'] {
-  switch (type) {
-    case 'invalid_request_error':
-      return 'upstream-error'
-    case 'authentication_error':
-    case 'permission_error':
-      return 'unauthorized'
-    case 'not_found_error':
-      return 'upstream-error'
-    case 'rate_limit_error':
-      return 'rate-limit'
-    case 'api_error':
-    case 'overloaded_error':
-      return 'server-error'
-    default:
-      return 'server-error'
-  }
-}
-
-// ---- Legacy helpers (kept for backwards compatibility) ----------------------
-
-/** True when a key is configured. Use to gate AI UI. */
-export function isApiKeyConfigured(): boolean {
-  return getApiConfig().apiKey.length > 0
-}
-
-/** @deprecated — kept so older imports don't break. */
-export function isBackendConfigured(): boolean {
-  return isApiKeyConfigured()
 }
