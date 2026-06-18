@@ -10,7 +10,7 @@ const Result = lazy(() => import('@/pages/Result'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
 const Records = lazy(() => import('@/pages/Records'))
 const Settings = lazy(() => import('@/pages/Settings'))
-const Share = lazy(() => import('@/pages/Share'))
+const Feed = lazy(() => import('@/pages/Feed'))
 const YaoDesignCompare = lazy(() => import('@/pages/YaoDesignCompare'))
 
 function PageLoader() {
@@ -33,8 +33,7 @@ export default function App() {
           <Route path="/result/:id" element={<Result />} />
           <Route path="/records" element={<Records />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/share" element={<Share />} />
-          <Route path="/share/:id" element={<Share />} />
+          <Route path="/feed" element={<Feed />} />
           <Route path="/yao-design-compare" element={<YaoDesignCompare />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

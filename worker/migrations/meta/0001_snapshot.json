@@ -1,0 +1,67 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "0001_initial",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "users": {
+      "name": "users",
+      "columns": {
+        "id": { "name": "id", "type": "text", "primaryKey": true, "notNull": true },
+        "email": { "name": "email", "type": "text", "primaryKey": false, "notNull": true },
+        "password_hash": { "name": "password_hash", "type": "text", "primaryKey": false, "notNull": true },
+        "nickname": { "name": "nickname", "type": "text", "primaryKey": false, "notNull": false },
+        "region": { "name": "region", "type": "text", "primaryKey": false, "notNull": false },
+        "timezone": { "name": "timezone", "type": "text", "primaryKey": false, "notNull": false },
+        "last_seen_at": { "name": "last_seen_at", "type": "integer", "primaryKey": false, "notNull": true },
+        "visit_count": { "name": "visit_count", "type": "integer", "primaryKey": false, "notNull": true },
+        "user_agent": { "name": "user_agent", "type": "text", "primaryKey": false, "notNull": true },
+        "accept_language": { "name": "accept_language", "type": "text", "primaryKey": false, "notNull": true },
+        "first_referer": { "name": "first_referer", "type": "text", "primaryKey": false, "notNull": false },
+        "last_referer": { "name": "last_referer", "type": "text", "primaryKey": false, "notNull": false },
+        "ip_address": { "name": "ip_address", "type": "text", "primaryKey": false, "notNull": true },
+        "created_at": { "name": "created_at", "type": "integer", "primaryKey": false, "notNull": true },
+        "updated_at": { "name": "updated_at", "type": "integer", "primaryKey": false, "notNull": true }
+      },
+      "indexes": {
+        "users_email_idx": { "columns": ["email"], "unique": true },
+        "users_last_seen_idx": { "columns": ["last_seen_at"] }
+      }
+    },
+    "shared_posts": {
+      "name": "shared_posts",
+      "columns": {
+        "id": { "name": "id", "type": "text", "primaryKey": true, "notNull": true },
+        "user_id": { "name": "user_id", "type": "text", "primaryKey": false, "notNull": true },
+        "main_hexagram_id": { "name": "main_hexagram_id", "type": "integer", "primaryKey": false, "notNull": true },
+        "changed_hexagram_id": { "name": "changed_hexagram_id", "type": "integer", "primaryKey": false, "notNull": true },
+        "moving_line": { "name": "moving_line", "type": "integer", "primaryKey": false, "notNull": true },
+        "question": { "name": "question", "type": "text", "primaryKey": false, "notNull": false },
+        "ai_summary": { "name": "ai_summary", "type": "text", "primaryKey": false, "notNull": false },
+        "note": { "name": "note", "type": "text", "primaryKey": false, "notNull": false },
+        "reply_count": { "name": "reply_count", "type": "integer", "primaryKey": false, "notNull": true },
+        "created_at": { "name": "created_at", "type": "integer", "primaryKey": false, "notNull": true }
+      },
+      "indexes": {
+        "shared_posts_created_idx": { "columns": ["created_at"] },
+        "shared_posts_user_idx": { "columns": ["user_id"] }
+      }
+    },
+    "shared_replies": {
+      "name": "shared_replies",
+      "columns": {
+        "id": { "name": "id", "type": "text", "primaryKey": true, "notNull": true },
+        "post_id": { "name": "post_id", "type": "text", "primaryKey": false, "notNull": true },
+        "user_id": { "name": "user_id", "type": "text", "primaryKey": false, "notNull": true },
+        "content": { "name": "content", "type": "text", "primaryKey": false, "notNull": true },
+        "created_at": { "name": "created_at", "type": "integer", "primaryKey": false, "notNull": true }
+      },
+      "indexes": {
+        "shared_replies_post_created_idx": { "columns": ["post_id", "created_at"] },
+        "shared_replies_user_idx": { "columns": ["user_id"] }
+      }
+    }
+  },
+  "enums": {},
+  "_meta": { "schemas": {}, "tables": {}, "columns": {} }
+}

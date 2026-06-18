@@ -10,6 +10,13 @@ import {
   describeApiKey,
   API_CONFIG_DEFAULTS,
 } from '@/lib/apiConfig'
+import {
+  getNickname,
+  isNicknameSet,
+  setNickname as saveNickname,
+  clearNickname,
+  NICKNAME_DEFAULTS,
+} from '@/lib/nickname'
 
 export default function Settings() {
   const [stored, setStored] = useState(() => getApiConfig())
@@ -19,6 +26,11 @@ export default function Settings() {
     apiKey: stored.apiKey,
     model: stored.model,
   })
+
+  const [nickname, setNicknameState] = useState(() => getNickname())
+  const [nickEditing, setNickEditing] = useState(false)
+  const [nickDraft, setNickDraft] = useState(nickname)
+
   const [toast, setToast] = useState<string | null>(null)
 
   const showToast = (msg: string) => {
@@ -53,6 +65,27 @@ export default function Settings() {
       })
       setEditing(false)
       showToast('已清除 API Key')
+    } else {
+      showToast('清除失败')
+    }
+  }
+
+  const handleSaveNickname = () => {
+    if (saveNickname(nickDraft)) {
+      setNicknameState(getNickname())
+      setNickEditing(false)
+      showToast('昵称已保存')
+    } else {
+      showToast('保存失败')
+    }
+  }
+
+  const handleClearNickname = () => {
+    if (clearNickname()) {
+      setNicknameState(NICKNAME_DEFAULTS.default)
+      setNickDraft(NICKNAME_DEFAULTS.default)
+      setNickEditing(false)
+      showToast('已恢复默认')
     } else {
       showToast('清除失败')
     }
@@ -225,6 +258,85 @@ export default function Settings() {
               如遇错误请联系端点方。
             </p>
           </details>
+        </section>
+
+        {/* 社区昵称 — 出现在"社区卦册"的发帖和留言上 */}
+        <section className="p-6 bg-rice border-2 border-june-bronze rounded-md">
+          <h2 className="font-display text-lg text-ink tracking-widest mb-1">
+            社 区 昵 称
+          </h2>
+          <p className="font-body text-sm text-ink-light mb-4 leading-relaxed">
+            出现在你在"社区卦册"发布的卦象和感言上。
+            留空则显示"访客"。
+          </p>
+
+          {!nickEditing && (
+            <div className="p-4 bg-rice-dark border border-june-bronze/40 rounded-sm">
+              <div className="font-display text-xs text-june-bronze tracking-widest mb-1">
+                {isNicknameSet() ? '已 配 置' : '使用默认'}
+              </div>
+              <div className="font-display text-lg text-ink">{nickname}</div>
+              <div className="mt-3 flex gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setNickDraft(nickname)
+                    setNickEditing(true)
+                  }}
+                >
+                  {isNicknameSet() ? '改名' : '设置昵称'}
+                </Button>
+                {isNicknameSet() && (
+                  <Button variant="ghost" size="sm" onClick={handleClearNickname}>
+                    恢复默认
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {nickEditing && (
+            <div className="space-y-3">
+              <label className="block">
+                <span className="font-display text-xs text-june-bronze tracking-widest">
+                  昵称
+                </span>
+                <input
+                  type="text"
+                  autoComplete="off"
+                  maxLength={NICKNAME_DEFAULTS.maxLength}
+                  value={nickDraft}
+                  onChange={(e) => setNickDraft(e.target.value)}
+                  placeholder={NICKNAME_DEFAULTS.default}
+                  className="mt-2 w-full px-3 py-2 font-body text-sm bg-white border border-june-bronze/40 rounded-sm focus:outline-none focus:border-june-red"
+                />
+                <span className="block mt-1 text-[11px] text-ink-light/70 font-body">
+                  最多 {NICKNAME_DEFAULTS.maxLength} 字。空着 = 显示"{NICKNAME_DEFAULTS.default}"。
+                </span>
+              </label>
+              <div className="flex gap-2">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleSaveNickname}
+                  disabled={nickDraft.trim().length === 0}
+                >
+                  保存
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setNickDraft(nickname)
+                    setNickEditing(false)
+                  }}
+                >
+                  取消
+                </Button>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* 其他设置占位 */}
