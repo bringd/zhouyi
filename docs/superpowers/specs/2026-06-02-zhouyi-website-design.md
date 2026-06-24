@@ -41,19 +41,26 @@
 
 ## 二、技术架构
 
+> **架构修订（2026-06-02 中期）：** 原"无后端纯前端 MVP"方案**已废弃**。项目确认部署到云服务器，因此采用**全栈架构**。原 LocalStorage 仅作离线缓存；AI 解读改为后端代理（费用由服务者承担，不再 BYOK）。
+
 ### 2.1 技术栈
 
 | 层 | 选型 | 理由 |
 |---|---|---|
 | 构建 | Vite 5 | 启动快、HMR 体验好、包体小 |
-| 框架 | React 18 | 生态最成熟、组件库丰富 |
+| 前端框架 | React 18 | 生态最成熟、组件库丰富 |
 | 样式 | Tailwind CSS 3 | 快速迭代、易维护 |
 | 动画 | Framer Motion 11 | 声明式动画、与 React 无缝集成 |
 | 路由 | React Router 6 | 简单稳定 |
 | 状态 | Zustand | 轻量、够用 |
-| 数据 | LocalStorage（无后端） | MVP 阶段够用、零运维 |
-| AI | 浏览器直连 Claude API（Key 由用户自带） | 简化架构、成本可控 |
-| 部署 | Cloudflare Pages / Netlify | 零成本、零运维 |
+| 后端框架 | Node.js + Express + TypeScript | 与前端共享 TypeScript、部署简单 |
+| 数据库 | PostgreSQL | 成熟稳定、支持 JSONB、适合结构化数据 |
+| ORM | Drizzle ORM（或 Kysely） | TypeScript 原生、轻量 |
+| 认证 | JWT（HttpOnly Cookie）| 无状态、安全 |
+| AI | 后端代理 Claude API（Key 服务端管理） | 服务者承担成本、用户无摩擦 |
+| 限流 | express-rate-limit + Redis / in-memory | 防止滥用 |
+| 离线缓存 | LocalStorage（前端） | 网络断时仍可浏览卦象 |
+| 部署 | 暂未决定（云服务器 / PaaS 备选） |  |
 | 字体 | 霞鹜文楷（正文）+ 思源宋体（标题）+ 等线（数字） | 兼顾工笔气质与可读性 |
 
 ### 2.2 目录结构
