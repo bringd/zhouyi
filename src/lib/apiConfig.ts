@@ -20,9 +20,28 @@
 
 const STORAGE_KEY = 'zhouyi:api-config:v1'
 
-/** The Anthropic-compatible endpoint the project ships with by
- *  default. The full URL is what the client POSTs to. */
-const DEFAULT_BASE_URL = 'https://api.minimaxi.com/anthropic/v1/messages'
+/** Production endpoint (used when the page is served from a real
+ *  domain that MiniMax's CORS already whitelists, e.g.
+ *  https://orix-studio.pages.dev). */
+const PROD_BASE_URL = 'https://api.minimaxi.com/anthropic/v1/messages'
+
+/** Dev-mode proxy path. Vite forwards this to PROD_BASE_URL's
+ *  origin so the browser sees a same-origin request and skips the
+ *  CORS preflight. */
+const DEV_PROXY_PATH = '/api-proxy/anthropic/v1/messages'
+
+/** Resolved at call time so we can pick the right URL based on
+ *  whether the page is being served by `vite dev` (DEV=true) or by
+ *  the production build (DEV=false). In SSR or test environments
+ *  where `window` isn't available, fall back to the prod URL. */
+function getDefaultBaseUrl(): string {
+  if (typeof window === 'undefined') return PROD_BASE_URL
+  if (import.meta.env?.DEV) {
+    return window.location.origin + DEV_PROXY_PATH
+  }
+  return PROD_BASE_URL
+}
+
 const DEFAULT_MODEL = 'minimax-m3'
 
 export interface ApiConfig {
@@ -82,7 +101,7 @@ function write(value: ApiConfig | null): boolean {
 export function getApiConfig(): ApiConfig {
   const stored = read()
   return {
-    baseUrl: (stored?.baseUrl ?? '').trim() || DEFAULT_BASE_URL,
+    baseUrl: (stored?.baseUrl ?? '').trim() || getDefaultBaseUrl(),
     apiKey: (stored?.apiKey ?? '').trim(),
     model: (stored?.model ?? '').trim() || DEFAULT_MODEL,
     updatedAt: stored?.updatedAt ?? 0,
@@ -153,7 +172,13 @@ export function describeApiKey(key: string | null): string {
 /** Re-export the defaults so Settings can show them as placeholders
  *  and tests can assert against them. */
 export const API_CONFIG_DEFAULTS = {
-  baseUrl: DEFAULT_BASE_URL,
+  // The dev-proxy path is what the user actually sees in the browser
+  // during local dev. Production deploys use the absolute URL via
+  // getDefaultBaseUrl() above. We expose the proxy path here so
+  // Settings shows a useful placeholder.
+  baseUrl: typeof window !== 'undefined' && import.meta.env?.DEV
+    ? window.location.origin + DEV_PROXY_PATH
+    : PROD_BASE_URL,
   model: DEFAULT_MODEL,
 } as const
 

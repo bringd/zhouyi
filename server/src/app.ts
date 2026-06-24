@@ -16,10 +16,6 @@ import { favoritesRouter } from './routes/favorites.js'
 /**
  * Express app factory. Separated from index.ts so tests can import
  * the app without triggering listen().
- *
- * Frontend is hosted separately on Cloudflare Pages — this service is
- * API-only. CORS is the bridge: the browser sends the request with
- * Origin: <Cloudflare Pages URL>, and we allow that origin here.
  */
 export function createApp(): Express {
   const app = express()
@@ -28,7 +24,16 @@ export function createApp(): Express {
   app.use(helmet())
   app.use(
     cors({
-      origin: config.FRONTEND_ORIGIN,
+      // Support comma-separated list of origins in FRONTEND_ORIGIN
+      // (e.g. "http://localhost:5173,http://localhost:4173") so dev / preview /
+      // production origins can all hit the API. Wildcard `*` is not allowed
+      // together with `credentials: true`, so callers must list their origin.
+      origin: (origin, callback) => {
+        const allowed = config.FRONTEND_ORIGIN_LIST
+        if (!origin) return callback(null, true) // curl / server-to-server
+        if (allowed.includes(origin)) return callback(null, true)
+        return callback(new Error(`CORS: origin ${origin} not allowed`))
+      },
       credentials: true,
     })
   )
