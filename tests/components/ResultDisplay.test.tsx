@@ -106,9 +106,9 @@ describe('ResultDisplay', () => {
         <ResultDisplay recordId="test-record-1" />
       </MemoryRouter>
     )
-    // Template ①: 收藏 / 分享 / 再起一卦
+    // Template ①: 收藏 / 发布到社区 / 再起一卦
     expect(screen.getByRole('button', { name: /收藏本卦/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /分享/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /发布到社区/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /再起一卦/ })).toBeInTheDocument()
   })
 

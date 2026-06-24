@@ -4,37 +4,55 @@
 
 ## 项目状态
 
-- **Phase:** 1 — 项目基础设施
+- **Phase:** MVP 96% 完成
 - **设计规格:** [`docs/superpowers/specs/2026-06-02-zhouyi-website-design.md`](docs/superpowers/specs/2026-06-02-zhouyi-website-design.md)
 - **实施计划:** [`docs/superpowers/plans/2026-06-02-zhouyi-website-mvp.md`](docs/superpowers/plans/2026-06-02-zhouyi-website-mvp.md)
 - **设计决策样例:** `.superpowers/brainstorm/367-1780359645/content/*.html`
+- **进度:** 44/46 任务、205/205 tests pass、45 commits
 
 ## 技术栈
 
 | 层 | 选型 |
 |---|---|
-| 构建 | Vite 5 |
-| 框架 | React 18 + TypeScript 5 |
-| 样式 | Tailwind CSS 3（设计 tokens 通过 `tailwind.config.ts` 注入）|
-| 动画 | Framer Motion 11 |
-| 路由 | React Router 6 |
-| 状态 | Zustand 4 |
-| 测试 | Vitest + @testing-library/react |
-| 数据 | LocalStorage（无后端）|
-| 部署 | Cloudflare Pages |
+| 前端构建 | Vite 5 |
+| 前端框架 | React 18 + TypeScript 5 |
+| 前端样式 | Tailwind CSS 3（设计 tokens 通过 `tailwind.config.ts` 注入）|
+| 前端动画 | Framer Motion 11 |
+| 前端路由 | React Router 6 |
+| 前端状态 | Zustand 4 |
+| 前端测试 | Vitest + @testing-library/react |
+| 前端 SEO | react-helmet-async + 自动 sitemap |
+| **后端框架** | **Node.js + Express + TypeScript** |
+| **数据库** | **PostgreSQL + Drizzle ORM** |
+| **AI 集成** | **后端代理 Claude API + IP 限流** |
+| **离线缓存** | **LocalStorage**（前端） |
+| 部署 | 暂未决定（云服务器 / PaaS 备选） |
 
 ## 快速开始
 
 ```bash
-npm install         # 安装依赖
-npm run dev         # 启动开发服务器（默认 http://localhost:5173）
-npm run build       # 生产构建（输出到 dist/）
-npm run preview     # 预览生产构建
-npm test            # 运行单元测试
-npm run typecheck   # TypeScript 类型检查（无 emit）
-npm run lint        # ESLint
-npm run format      # Prettier 格式化
+# 安装全部依赖（根 + server）
+npm install
+cd server && npm install && cd ..
+
+# 启动前端（http://localhost:5173）
+npm run dev
+
+# 启动后端（http://localhost:3001，需 Postgres）
+npm run server:dev
+
+# 同时启动
+npm run dev:all
+
+# 测试
+npm test
+npm run typecheck
+
+# 构建
+npm run build
 ```
+
+> **后端配置：** 启动后端前需在 `server/.env` 设置 `DATABASE_URL` 和 `ANTHROPIC_API_KEY`。参考 `server/.env.example`。
 
 ## 目录结构
 

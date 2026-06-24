@@ -33,7 +33,8 @@ describe('Header', () => {
 
   it('renders settings link', () => {
     render(<MemoryRouter><Header /></MemoryRouter>)
-    expect(screen.getByLabelText('设置')).toBeInTheDocument()
+    // Desktop + mobile both render a settings link (one is hidden via CSS)
+    expect(screen.getAllByLabelText('设置').length).toBeGreaterThanOrEqual(1)
   })
 })
 

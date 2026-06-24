@@ -9,10 +9,12 @@ describe('Button', () => {
     expect(btn).toBeInTheDocument()
   })
 
-  it('applies primary variant classes', () => {
+  it('applies primary variant classes (gradient + gold border)', () => {
     render(<Button variant="primary">Primary</Button>)
     const btn = screen.getByRole('button', { name: /primary/i })
-    expect(btn.className).toContain('bg-june-red')
+    // P0 UI: primary uses 朱砂渐变 + 金线边, not flat bg-june-red
+    expect(btn.className).toContain('bg-gradient-to-b')
+    expect(btn.className).toContain('border-june-gold')
   })
 
   it('applies secondary variant classes', () => {

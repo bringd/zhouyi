@@ -1,0 +1,31 @@
+name = "zhouyi-worker"
+main = "src/index.ts"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 binding. Create the DB first via:
+#   wrangler d1 create zhouyi-db
+# then paste the database_id below.
+[[d1_databases]]
+binding = "DB"
+database_name = "zhouyi-db"
+database_id = "c4cdb8e8-a4f6-4c65-be35-afa4b3ade0a2"
+# Tell wrangler where to find SQL migrations. By default it looks in
+# `./migrations/`, but we keep them alongside the schema.
+migrations_dir = "src/db/migrations"
+
+# CORS for the Pages frontend. The default origin is the production
+# Pages URL; override with `FRONTEND_ORIGIN` env var or a custom
+# domain in production.
+[vars]
+FRONTEND_ORIGIN = "https://orix-studio.pages.dev"
+SHARE_PAYLOAD_VERSION = "1"
+SHARE_AI_SUMMARY_MAX = "1000"
+
+[env.staging]
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "zhouyi-db-staging"
+database_id = "REPLACE_AFTER_CREATING_D1_STAGING"
+[env.staging.vars]
+FRONTEND_ORIGIN = "https://staging.orix-studio.pages.dev"

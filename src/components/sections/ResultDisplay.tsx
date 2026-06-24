@@ -1,18 +1,15 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { HexagramCard } from '@/components/hexagram/HexagramCard'
 import { TwinSpread } from '@/components/hexagram/TwinSpread'
-import { Seal } from '@/components/ui/Seal'
 import { FlipEntry } from '@/components/motion/FlipEntry'
-import { BreathEffect } from '@/components/motion/BreathEffect'
 import { PageTransition } from '@/components/motion'
 import { getHexagramById } from '@/lib/divination'
 import { getRecord, saveRecord } from '@/lib/storage'
 import { generateInterpretation, AIError } from '@/lib/ai'
-import { buildSharePayload, buildShareUrl } from '@/lib/share'
 import { downloadCardPng, cardDataFromIds } from '@/lib/imageGen'
+import { publishPost } from '@/lib/feed'
 import { cn } from '@/utils/cn'
 import type { UserRecord, HexagramId } from '@/types'
 
@@ -21,9 +18,6 @@ export interface ResultDisplayProps {
   recordId: string
   className?: string
 }
-
-/** Max characters shown in the "简易版" AI preview before collapsing. */
-const AI_SUMMARY_PREVIEW_CHARS = 120
 
 /**
  * Display the divination result for a given record id.
@@ -44,10 +38,11 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
   const [aiText, setAiText] = useState<string | null>(record?.aiInterpretation ?? null)
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState<string | null>(null)
-  const [aiExpanded, setAiExpanded] = useState(false)
-  const [noteDraft, setNoteDraft] = useState<string>(record?.userNote ?? '')
   const [toast, setToast] = useState<string | null>(null)
   const [downloadBusy, setDownloadBusy] = useState(false)
+  const [aiCopied, setAiCopied] = useState(false)
+  const [publishBusy, setPublishBusy] = useState(false)
+  const [publishedId, setPublishedId] = useState<string | null>(null)
 
   if (!record) {
     return (
@@ -89,12 +84,12 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
     } catch (err) {
       let msg: string
       if (err instanceof AIError) {
-        if (err.code === 'unauthorized') msg = '会话已过期，请刷新页面'
+        if (err.code === 'no-api-key') msg = err.message || '请先在设置中填写 API Key'
+        else if (err.code === 'unauthorized') msg = err.message || 'API Key 无效或已过期'
         else if (err.code === 'rate-limit') msg = err.message || '请求过于频繁，请稍后再试'
         else if (err.code === 'timeout') msg = '请求超时'
-        else if (err.code === 'server-error') msg = '服务暂时不可用，请稍后再试'
+        else if (err.code === 'server-error') msg = 'Anthropic 服务暂时不可用，请稍后再试'
         else if (err.code === 'network-error') msg = '网络错误，请检查网络后重试'
-        else if (err.code === 'no-backend') msg = err.message || 'AI 解读功能暂未上线'
         else msg = err.message
       } else {
         msg = err instanceof Error ? err.message : 'AI 解读失败'
@@ -105,13 +100,6 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
     }
   }
 
-  const handleSaveNote = () => {
-    const updated: UserRecord = { ...record, userNote: noteDraft }
-    setRecord(updated)
-    saveRecord(updated)
-    showToast('感言已保存')
-  }
-
   const handleDownload = async () => {
     setDownloadBusy(true)
     try {
@@ -120,7 +108,7 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
         changedId: changed.id,
         movingLine: record.movingLine,
         aiSummary: aiText?.trim() ? aiText.trim().slice(0, 280) : undefined,
-        userNote: noteDraft.trim() || undefined,
+        userNote: record.userNote ?? undefined,
         timestamp: timestampText,
       })
       if (data) {
@@ -136,22 +124,22 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
   }
 
   const handleShare = async () => {
+    setPublishBusy(true)
     try {
-      const payload = buildSharePayload({
+      const res = await publishPost({
         mainHexagramId: main.id,
         changedHexagramId: changed.id,
         movingLine: record.movingLine,
         question: record.question,
-        aiText: aiText?.trim() || undefined,
-        userNote: noteDraft.trim() || undefined,
-        createdAt: record.createdAt,
+        aiSummary: aiText?.trim() ? aiText.trim().slice(0, 280) : undefined,
       })
-      const url = buildShareUrl(payload)
-      await navigator.clipboard.writeText(url)
-      showToast('分享链接已复制')
+      setPublishedId(res.id)
+      showToast('已发布到社区卦册')
     } catch (err) {
-      console.error('[ResultDisplay] share failed:', err)
-      showToast('复制失败')
+      console.error('[ResultDisplay] publish failed:', err)
+      showToast(err instanceof Error ? err.message : '发布失败')
+    } finally {
+      setPublishBusy(false)
     }
   }
 
@@ -161,153 +149,155 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
   }
 
   return (
-    <PageTransition className={cn('max-w-2xl mx-auto p-4 md:p-8', className)}>
-      {/* 1. Header */}
-      <div className="text-center mb-6">
-        <h1 className="text-display-md font-display text-ink tracking-widest">卦 象 已 成</h1>
-        <div className="text-sm text-ink-light font-body mt-2">{timestampText} · 起卦</div>
+    <PageTransition
+      className={cn(
+        // 整页"展开的古书"外框：宣纸底 + 赭石描边 + 大圆角 + 长投影
+        'max-w-3xl mx-auto my-8 p-6 md:p-10',
+        'bg-rice border-2 border-june-bronze rounded-lg',
+        'shadow-[0_4px_24px_rgba(74,55,28,0.15)]',
+        className,
+      )}
+    >
+      {/* 1. Header — 收窄字号 + 加大字距,接近 mockup 的"古籍封面"比例 */}
+      <div className="text-center mb-6 pb-5 border-b border-june-bronze/20">
+        <h1 className="text-[28px] md:text-[32px] font-display text-ink tracking-[0.4em]">
+          卦 象 已 成
+        </h1>
+        <div className="text-sm text-ink-light font-body mt-2 tracking-widest">
+          {timestampText} · 起卦
+        </div>
       </div>
 
-      {/* 2. 本卦 + 信息 左右分栏 */}
-      <div className="grid grid-cols-[130px_1fr] gap-6 items-center p-5 mb-6 bg-rice-dark rounded-md">
-        <FlipEntry className="w-[110px]">
-          <BreathEffect className="rounded-md" duration={4500}>
-            <div className="relative bg-gradient-to-br from-june-red via-june-clay to-june-red p-3 rounded-md">
-              <div className="absolute top-1 left-1 text-rice/60 font-display text-[10px] tracking-widest">第 {main.number} 卦</div>
-              <div className="absolute top-1 right-1">
-                <Seal text={main.shortName} size={28} rotation={-3} />
-              </div>
-              <HexagramCard hexagram={main} size="md" navigateOnClick={false} showStamp={false} />
-            </div>
-          </BreathEffect>
+      {/* 1.5 所问何事 — 题词条版式：紧贴卦象头条(下间距收紧),作"卷首题字" */}
+      {record.question && (
+        <div className="text-center py-4 border-b border-june-bronze/20 mb-2">
+          <div className="text-[10px] text-june-bronze font-display tracking-[0.3em] mb-2">
+            — 所 问 何 事 —
+          </div>
+          <div className="font-display text-base text-ink leading-relaxed">
+            「{record.question}」
+          </div>
+        </div>
+      )}
+
+      {/* 2. 本卦 + 信息 + 动爻爻辞 — 统一 rice-dark 底,色条 bronze(卦象本体)。
+           卦象视觉/卦名/关键词/卦辞/动爻爻辞 全部并入这一张卡,mockup 节奏。 */}
+      <div className="grid grid-cols-1 sm:grid-cols-[130px_1fr] gap-4 sm:gap-6 items-center p-5 bg-rice-dark border-l-[3px] border-june-bronze rounded-sm mb-5">
+        <FlipEntry className="w-[110px] mx-auto sm:mx-0">
+          <HexagramCard hexagram={main} size="md" navigateOnClick={false} showStamp />
         </FlipEntry>
         <div>
-          <h2 className="font-display text-2xl text-ink mb-1">{main.name}</h2>
-          <div className="flex flex-wrap gap-1.5 my-2">
+          <h2 className="font-display text-2xl text-ink mb-1 tracking-wider text-center sm:text-left">
+            {main.name}
+          </h2>
+          <div className="flex flex-wrap gap-1.5 my-2 justify-center sm:justify-start">
             {main.keywords.slice(0, 3).map((kw) => (
               <span key={kw} className="px-2 py-0.5 bg-june-red/10 text-june-red rounded-pill text-[11px] font-display">
                 {kw}
               </span>
             ))}
           </div>
-          <p className="font-body text-xs text-ink-light italic mb-2">卦辞：{main.judgement}</p>
-          <p className="text-sm text-ink font-body">
+          <p className="font-body text-xs text-ink-light italic mb-2 text-center sm:text-left">
+            卦辞：{main.judgement}
+          </p>
+          <p className="text-sm text-ink font-body text-center sm:text-left">
             动爻 · 第 <span className="text-june-red font-bold">{record.movingLine}</span> 爻
             {' → '}
             <Link to={`/hexagram/${changed.id}`} className="text-june-red font-bold hover:underline">
               变卦 · {changed.name}
             </Link>
           </p>
+          {/* 动爻爻辞 — 合并进本卦卡,作为二级内容,不再独立成 section */}
+          {(() => {
+            const yao = main.yaoLines.find((y) => y.position === record.movingLine)
+            if (!yao) return null
+            return (
+              <div className="mt-4 pt-3 border-t border-june-bronze/20">
+                <div className="text-[10px] font-display tracking-widest text-june-bronze mb-2">
+                  动 爻 · 第 {record.movingLine} 爻 · {yao.type === 'yang' ? '九' : '六'}
+                </div>
+                <div
+                  className="px-3 py-2 bg-rice border-l-2 border-june-red text-ink leading-loose"
+                  style={{ fontFamily: 'KaiTi, STKaiti, serif', fontSize: '0.95rem' }}
+                >
+                  {yao.originalText}
+                </div>
+                {yao.modernMeaning && (
+                  <p className="mt-2 text-xs text-ink-light leading-relaxed">
+                    {yao.modernMeaning}
+                  </p>
+                )}
+              </div>
+            )
+          })()}
         </div>
       </div>
 
-      {/* 3. AI 解读 · 简易版 */}
-      <div className="mb-6 p-5 bg-june-gold/[0.06] border-l-[3px] border-june-gold rounded-sm">
-        <div className="font-display text-xs text-june-bronze tracking-[0.3em] mb-2">AI 解 读 · 简 易 版</div>
+      {/* 3. AI 解读 — 顶左色条换金;字数指示 + 复制按钮(简易版的"严重"替代) */}
+      <div className="p-5 bg-rice-dark border-l-[3px] border-june-gold rounded-sm mb-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="font-display text-xs text-june-bronze tracking-[0.3em] flex items-center gap-3">
+            <span>AI 解 读</span>
+            {aiText && (
+              <span className="text-ink-light/60 text-[10px] tracking-widest font-body">
+                · {aiText.length} 字
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {aiText && (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!aiText) return
+                  try {
+                    await navigator.clipboard.writeText(aiText)
+                    setAiCopied(true)
+                    showToast('已复制到剪贴板')
+                    setTimeout(() => setAiCopied(false), 1500)
+                  } catch {
+                    showToast('复制失败')
+                  }
+                }}
+                className="text-[10px] text-ink-light/60 hover:text-june-red font-body tracking-widest"
+                title="复制全文"
+              >
+                {aiCopied ? '✓ 已复制' : '复制'}
+              </button>
+            )}
+            {!aiText && !aiError && (
+              <Button onClick={handleAIInterpretation} loading={aiLoading} variant="primary" size="sm">
+                {aiLoading ? '解读中…' : '开始 AI 解读'}
+              </Button>
+            )}
+            {aiError && (
+              <Button onClick={handleAIInterpretation} variant="secondary" size="sm" loading={aiLoading}>
+                重试
+              </Button>
+            )}
+          </div>
+        </div>
         {!aiText && !aiError && (
           <p className="font-body text-sm text-ink-light/70 italic">
-            点击下方"开始 AI 解读"获取现代视角分析。
+            点击右上"开始 AI 解读"获取现代视角分析。
           </p>
         )}
         {aiError && (
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-june-red text-sm font-body">{aiError}</p>
-            <Button onClick={handleAIInterpretation} variant="secondary" size="sm" loading={aiLoading}>
-              重试
-            </Button>
-          </div>
+          <p className="text-june-red text-sm font-body">{aiError}</p>
         )}
         {aiText && (
-          <>
-            <p className="font-body text-sm text-ink leading-[1.8]">
-              {aiExpanded ? aiText : aiText.slice(0, AI_SUMMARY_PREVIEW_CHARS) + (aiText.length > AI_SUMMARY_PREVIEW_CHARS ? '…' : '')}
-            </p>
-            {aiText.length > AI_SUMMARY_PREVIEW_CHARS && (
-              <button
-                type="button"
-                onClick={() => setAiExpanded(!aiExpanded)}
-                className="mt-2 text-xs text-june-red font-body hover:underline"
-              >
-                {aiExpanded ? '▲ 收起完整解读' : '▼ 查看完整解读'}
-              </button>
-            )}
-          </>
-        )}
-        {!aiText && !aiError && (
-          <div className="mt-3">
-            <Button onClick={handleAIInterpretation} loading={aiLoading} variant="primary" size="sm">
-              {aiLoading ? '解读中…' : '开始 AI 解读'}
-            </Button>
-          </div>
+          <p className="font-body text-[15px] text-ink leading-[1.9] whitespace-pre-wrap">
+            {aiText}
+          </p>
         )}
       </div>
 
-      {/* 4. 感言 */}
-      <div className="mb-6 p-5 bg-june-red/[0.04] border-l-[3px] border-june-red rounded-sm">
-        <div className="flex items-center justify-between mb-2">
-          <div className="font-display text-xs text-june-red tracking-[0.3em]">感 言</div>
-          {noteDraft !== (record.userNote ?? '') && (
-            <button
-              type="button"
-              onClick={handleSaveNote}
-              className="px-3 py-1 bg-june-bronze text-rice rounded-sm font-display text-[11px] tracking-widest hover:opacity-90"
-            >
-              保存
-            </button>
-          )}
-        </div>
-        <textarea
-          value={noteDraft}
-          onChange={(e) => setNoteDraft(e.target.value)}
-          onBlur={() => {
-            if (noteDraft !== (record.userNote ?? '')) handleSaveNote()
-          }}
-          placeholder="在此写下你的感悟…"
-          className="w-full min-h-[70px] p-2.5 font-body text-sm text-ink bg-white border border-june-bronze/30 rounded-sm resize-y focus:outline-none focus:border-june-red"
-          maxLength={1000}
-        />
-        <div className="text-right text-[10px] text-ink-light/60 font-body mt-1">
-          {noteDraft.length} / 1000
-        </div>
-      </div>
+      {/* 4. (感言已删除 — 感言由"社区卦册"页的"留感言"输入,不是发布者写) */}
 
-      {/* 5. 动爻 · 爻辞 (the actual answer to the divination) */}
-      {(() => {
-        const yao = main.yaoLines.find((y) => y.position === record.movingLine)
-        if (!yao) return null
-        return (
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="mb-6 p-5 bg-rice border-2 border-june-bronze rounded-md"
-          >
-            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-              <h3 className="font-display text-base text-ink tracking-widest">
-                动 爻 · 第 {record.movingLine} 爻
-              </h3>
-              <span className="text-[10px] text-june-bronze font-display tracking-widest">
-                {yao.type === 'yang' ? '阳爻' : '阴爻'} · {yao.type === 'yang' ? '九' : '六'}
-              </span>
-            </div>
-            <div className="relative mb-4 px-3 py-3 bg-june-red/5 border-l-4 border-june-red">
-              <div
-                className="font-body text-ink leading-loose"
-                style={{ fontFamily: 'KaiTi, STKaiti, serif', fontSize: '1rem' }}
-              >
-                {yao.originalText}
-              </div>
-            </div>
-            <div className="mb-3">
-              <div className="text-[10px] text-june-bronze font-display tracking-widest mb-1">现 代 意 义</div>
-              <p className="font-body text-ink-light leading-relaxed text-xs">{yao.modernMeaning}</p>
-            </div>
-          </motion.section>
-        )
-      })()}
+      {/* 5. (爻辞已合并入本卦卡 — 见上方 "2. 本卦 + 信息") */}
 
       {/* 6. Twin spread: 本卦 + 变卦 with full judgements */}
-      <div className="mb-6">
+      <div className="mb-5">
         <TwinSpread
           leftHex={main}
           rightHex={changed}
@@ -317,12 +307,36 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
         />
       </div>
 
-      {/* 7. Action buttons (template ①: 收藏 / 分享 / 再起一卦) */}
-      <div className="flex flex-wrap justify-center gap-3 pt-4 border-t border-june-bronze/30">
-        <Button onClick={handleDownload} variant="primary" loading={downloadBusy}>
-          <span className="text-june-red mr-1">♡</span> 收藏本卦
-        </Button>
-        <Button onClick={handleShare} variant="secondary">↗ 分享</Button>
+      {/* 7. Action buttons — 收藏本卦(实心朱砂),发布到社区(描边),再起一卦(无边框) */}
+      <div className="flex flex-wrap justify-center items-center gap-3 pt-6 mt-2 border-t border-june-bronze/30">
+        <button
+          type="button"
+          onClick={handleDownload}
+          disabled={downloadBusy}
+          className="inline-flex items-center px-5 py-2.5
+                     bg-june-red text-rice border border-june-red
+                     font-display text-sm tracking-[0.2em] rounded-sm
+                     hover:bg-june-red/90 transition-colors
+                     disabled:opacity-50"
+          title="下载卦象卡 (PNG)"
+        >
+          收藏本卦
+        </button>
+        {publishedId ? (
+          <Link
+            to={`/feed`}
+            className="inline-flex items-center px-5 py-2.5
+                       border border-june-bronze text-june-bronze bg-transparent
+                       font-display text-sm tracking-[0.2em] rounded-sm
+                       hover:bg-june-bronze hover:text-rice transition-colors"
+          >
+            ✓ 已发布 · 查看
+          </Link>
+        ) : (
+          <Button onClick={handleShare} variant="ghost" loading={publishBusy}>
+            ↗ 发布到社区
+          </Button>
+        )}
         <Button onClick={() => navigate('/divination')} variant="ghost">↻ 再起一卦</Button>
       </div>
 
