@@ -84,7 +84,7 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
     } catch (err) {
       let msg: string
       if (err instanceof AIError) {
-        if (err.code === 'no-api-key') msg = err.message || '请先在设置中填写 API Key'
+        if (err.code === 'missing-api-key') msg = err.message || '请先在设置中填写 API Key'
         else if (err.code === 'unauthorized') msg = err.message || 'API Key 无效或已过期'
         else if (err.code === 'rate-limit') msg = err.message || '请求过于频繁，请稍后再试'
         else if (err.code === 'timeout') msg = '请求超时'
