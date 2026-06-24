@@ -1,4 +1,4 @@
-import { type InputHTMLAttributes, forwardRef, useEffect, useRef, useState } from 'react'
+import { type InputHTMLAttributes, forwardRef, useEffect, useState } from 'react'
 import { cn } from '@/utils/cn'
 
 export interface NumberBoxProps
@@ -29,22 +29,16 @@ export const NumberBox = forwardRef<HTMLInputElement, NumberBoxProps>(function N
   ref
 ) {
   const [text, setText] = useState(value === null ? '' : String(value))
-  // Track the value WE last emitted to the parent. Only sync from parent
-  // when its value diverges from this (i.e., parent did an external reset).
-  const lastEmittedRef = useRef<number | null>(value)
 
+  // Sync local text when parent resets the value (e.g., form reset)
   useEffect(() => {
-    if (value !== lastEmittedRef.current) {
-      setText(value === null ? '' : String(value))
-      lastEmittedRef.current = value
-    }
+    setText(value === null ? '' : String(value))
   }, [value])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const next = e.target.value.replace(/\D/g, '').slice(0, 3)
     setText(next)
     if (next === '') {
-      lastEmittedRef.current = null
       onChange(null)
       return
     }
@@ -53,10 +47,8 @@ export const NumberBox = forwardRef<HTMLInputElement, NumberBoxProps>(function N
     // Partial input (1-2 digits) keeps parent state unchanged, so the
     // user's typing stays visible locally without falsely enabling the form.
     if (num >= 100 && num <= 999) {
-      lastEmittedRef.current = num
       onChange(num)
     } else {
-      lastEmittedRef.current = null
       onChange(null)
     }
   }
