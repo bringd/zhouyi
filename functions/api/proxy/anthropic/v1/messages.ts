@@ -1,11 +1,10 @@
 /**
- * Cloudflare Pages Function: /api/proxy/*
+ * Cloudflare Pages Function: POST /api/proxy/anthropic/v1/messages
  *
  * Reverse proxy for the BYOK Anthropic-compatible endpoint. Browser
- * sends a same-origin POST to /api/proxy/anthropic/v1/messages,
- * the Pages Function forwards it to the configured upstream
- * (defaults to https://api.minimaxi.com/anthropic), and streams
- * the SSE response back unchanged.
+ * sends a same-origin POST, the Pages Function forwards it to the
+ * configured upstream (defaults to https://api.minimaxi.com/anthropic)
+ * and streams the SSE response back unchanged.
  *
  * Why this exists
  * ---------------
@@ -20,12 +19,11 @@
  *
  * Why this filename
  * -----------------
- * The Cloudflare Pages Functions catch-all convention is a file
- * named `[[slug]].ts` inside the routing directory. Placing this at
- * `functions/api/proxy/[[path]].ts` matches every URL under
- * /api/proxy/*. (`context.params.path` is the array of segments
- * after the prefix; we don't actually need it because we parse the
- * URL ourselves, but Pages sets it.)
+ * Cloudflare Pages Functions routing by filename is the most
+ * reliable match strategy. We place the file at
+ * `functions/api/proxy/anthropic/v1/messages.ts` so it exactly
+ * matches POST /api/proxy/anthropic/v1/messages — no wildcard
+ * needed.
  *
  * Configuration
  * -------------
@@ -48,7 +46,7 @@ interface CfContext {
 
 type PagesHandler = (ctx: CfContext) => Promise<Response> | Response
 
-const DEFAULT_UPSTREAM = 'https://api.minimaxi.com/anthropic'
+const DEFAULT_UPSTREAM = 'https://api.minimaxi.com/anthropic/v1/messages'
 
 // Hop-by-hop headers that must NOT be forwarded per RFC 7230 §6.1.
 // Also strip Cloudflare-specific and host headers so the upstream
@@ -72,10 +70,8 @@ const HOP_BY_HOP: ReadonlySet<string> = new Set([
   'x-real-ip',
 ])
 
-function buildUpstream(path: string[], env: Env): string {
-  const base = (env.AI_PROXY_UPSTREAM ?? DEFAULT_UPSTREAM).replace(/\/+$/, '')
-  if (path.length === 0) return base
-  return base + '/' + path.join('/')
+function resolveUpstream(env: Env): string {
+  return (env.AI_PROXY_UPSTREAM ?? DEFAULT_UPSTREAM).replace(/\/+$/, '')
 }
 
 function copyHeadersFiltered(src: Headers, blocked: ReadonlySet<string>): Headers {
@@ -88,25 +84,8 @@ function copyHeadersFiltered(src: Headers, blocked: ReadonlySet<string>): Header
 }
 
 const handler: PagesHandler = async (context) => {
-  // Wrap everything so we never throw raw 500s — return JSON
-  // diagnostics instead so the browser can surface a useful message.
   try {
-    const url = new URL(context.request.url)
-    // Strip "/api/proxy" prefix and split the rest.
-    const rest = url.pathname.replace(/^\/api\/proxy\/?/, '')
-    const segments = rest.split('/').filter(Boolean)
-
-    if (segments.length === 0) {
-      return new Response(
-        JSON.stringify({
-          error: 'missing-path',
-          message: 'Use /api/proxy/<upstream-path>, e.g. /api/proxy/v1/messages',
-        }),
-        { status: 404, headers: { 'Content-Type': 'application/json' } },
-      )
-    }
-
-    const upstreamUrl = buildUpstream(segments, context.env) + url.search
+    const upstreamUrl = resolveUpstream(context.env)
 
     const headers = copyHeadersFiltered(context.request.headers, HOP_BY_HOP)
     // Ensure these headers always reach the upstream.
