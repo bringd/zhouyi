@@ -23,23 +23,30 @@ const STORAGE_KEY = 'zhouyi:api-config:v1'
 /** Production endpoint (used when the page is served from a real
  *  domain that MiniMax's CORS already whitelists, e.g.
  *  https://orix-studio.pages.dev). */
-const PROD_BASE_URL = 'https://api.minimaxi.com/anthropic/v1/messages'
+const UPSTREAM_BASE_URL = 'https://api.minimaxi.com/anthropic'
 
-/** Dev-mode proxy path. Vite forwards this to PROD_BASE_URL's
+/** Dev-mode proxy path. Vite forwards this to UPSTREAM_BASE_URL's
  *  origin so the browser sees a same-origin request and skips the
  *  CORS preflight. */
-const DEV_PROXY_PATH = '/api-proxy/anthropic/v1/messages'
+const DEV_PROXY_PATH = '/api-proxy/anthropic'
+
+/** Production proxy path. The Cloudflare Pages Function at
+ *  `functions/api/proxy/[...path].ts` forwards to UPSTREAM_BASE_URL.
+ *  Same-origin → no browser CORS check. */
+const PROD_PROXY_PATH = '/api/proxy/anthropic'
 
 /** Resolved at call time so we can pick the right URL based on
  *  whether the page is being served by `vite dev` (DEV=true) or by
  *  the production build (DEV=false). In SSR or test environments
- *  where `window` isn't available, fall back to the prod URL. */
+ *  where `window` isn't available, fall back to the upstream URL. */
 function getDefaultBaseUrl(): string {
-  if (typeof window === 'undefined') return PROD_BASE_URL
+  if (typeof window === 'undefined') return UPSTREAM_BASE_URL + '/v1/messages'
   if (import.meta.env?.DEV) {
-    return window.location.origin + DEV_PROXY_PATH
+    return window.location.origin + DEV_PROXY_PATH + '/v1/messages'
   }
-  return PROD_BASE_URL
+  // Production: hit our own Pages Function so the browser sees a
+  // same-origin request. The Function handles the upstream hop.
+  return window.location.origin + PROD_PROXY_PATH + '/v1/messages'
 }
 
 const DEFAULT_MODEL = 'minimax-m3'
@@ -172,13 +179,13 @@ export function describeApiKey(key: string | null): string {
 /** Re-export the defaults so Settings can show them as placeholders
  *  and tests can assert against them. */
 export const API_CONFIG_DEFAULTS = {
-  // The dev-proxy path is what the user actually sees in the browser
-  // during local dev. Production deploys use the absolute URL via
-  // getDefaultBaseUrl() above. We expose the proxy path here so
-  // Settings shows a useful placeholder.
-  baseUrl: typeof window !== 'undefined' && import.meta.env?.DEV
-    ? window.location.origin + DEV_PROXY_PATH
-    : PROD_BASE_URL,
+  // The proxy path is what the user actually sees in the browser
+  // during local dev. Production deploys hit the Pages Function at
+  // /api/proxy/anthropic/* which forwards to the upstream. We
+  // expose the proxy path here so Settings shows a useful placeholder.
+  baseUrl: typeof window !== 'undefined'
+    ? window.location.origin + (import.meta.env?.DEV ? DEV_PROXY_PATH : PROD_PROXY_PATH) + '/v1/messages'
+    : UPSTREAM_BASE_URL + '/v1/messages',
   model: DEFAULT_MODEL,
 } as const
 
