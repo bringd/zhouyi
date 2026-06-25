@@ -104,11 +104,21 @@ function write(value: ApiConfig | null): boolean {
  * callers can always destructure `{ baseUrl, apiKey, model }` without
  * null checks. `apiKey` may still be empty if the user hasn't set
  * one yet — callers should check that separately.
+ *
+ * Migration: if the stored baseUrl is the legacy upstream URL
+ * (saved before the /api/proxy/ reverse proxy existed), rewrite
+ * it to the current proxy path so the call goes through the
+ * Pages Function and avoids the browser CORS rejection that
+ * surfaces as `TypeError: Failed to fetch`.
  */
 export function getApiConfig(): ApiConfig {
   const stored = read()
+  let baseUrl = (stored?.baseUrl ?? '').trim()
+  if (!baseUrl || baseUrl === UPSTREAM_BASE_URL || baseUrl === UPSTREAM_BASE_URL + '/v1/messages') {
+    baseUrl = getDefaultBaseUrl()
+  }
   return {
-    baseUrl: (stored?.baseUrl ?? '').trim() || getDefaultBaseUrl(),
+    baseUrl,
     apiKey: (stored?.apiKey ?? '').trim(),
     model: (stored?.model ?? '').trim() || DEFAULT_MODEL,
     updatedAt: stored?.updatedAt ?? 0,
