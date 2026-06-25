@@ -84,13 +84,46 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
     } catch (err) {
       let msg: string
       if (err instanceof AIError) {
-        if (err.code === 'missing-api-key') msg = err.message || '请先在设置中填写 API Key'
-        else if (err.code === 'unauthorized') msg = err.message || 'API Key 无效或已过期'
-        else if (err.code === 'rate-limit') msg = err.message || '请求过于频繁，请稍后再试'
-        else if (err.code === 'timeout') msg = '请求超时'
-        else if (err.code === 'server-error') msg = 'Anthropic 服务暂时不可用，请稍后再试'
-        else if (err.code === 'network-error') msg = '网络错误，请检查网络后重试'
-        else msg = err.message
+        // Map every stable AIError code to a user-readable message. New
+        // BYOK codes (no-api-key / invalid-api-key / no-backend / the
+        // upstream-error family) all fall through here too.
+        switch (err.code) {
+          case 'no-api-key':
+          case 'missing-api-key':
+            msg = err.message || '请先在设置中填写 API Key'
+            break
+          case 'invalid-api-key':
+          case 'unauthorized':
+            msg = err.message || 'API Key 无效或已过期'
+            break
+          case 'rate-limit':
+            msg = err.message || '请求过于频繁，请稍后再试'
+            break
+          case 'timeout':
+            msg = '请求超时'
+            break
+          case 'server-error':
+            msg = 'AI 服务暂时不可用，请稍后再试'
+            break
+          case 'content-filtered':
+          case 'input-filtered':
+            msg = err.message || '内容触发了安全过滤，请调整提问后重试'
+            break
+          case 'quota-exceeded':
+            msg = err.message || 'API 配额已用完'
+            break
+          case 'upstream-error':
+          case 'token-limit':
+            msg = err.message || '上游服务返回错误，请稍后再试'
+            break
+          case 'network-error':
+          default:
+            msg = err.message || '网络错误，请检查网络后重试'
+        }
+        // Surface the code + message in dev tools so users (and we)
+        // can see exactly which path failed without having to dig.
+        // eslint-disable-next-line no-console
+        console.error('[ai]', err.code, err.message, err.cause)
       } else {
         msg = err instanceof Error ? err.message : 'AI 解读失败'
       }
