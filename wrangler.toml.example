@@ -21,3 +21,15 @@ pages_build_output_dir = "./dist"
 # Example:
 # NODE_VERSION = "20"
 # PUBLIC_API_BASE = "https://orix-studio.fly.dev"
+
+# D1 binding shared with worker/zhouyi-worker for AI demo quota tracking.
+# When using `wrangler pages deploy`, this binding is picked up
+# automatically. When using the Cloudflare GitHub App auto-deploy,
+# the binding must also be added manually in the dashboard under:
+#   Pages → orix-studio → Settings → Functions → D1 database bindings
+#     Variable name: DB
+#     D1 database:  zhouyi-db
+[[d1_databases]]
+binding = "DB"
+database_name = "zhouyi-db"
+database_id = "c4cdb8e8-a4f6-4c65-be35-afa4b3ade0a2"

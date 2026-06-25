@@ -36,6 +36,42 @@ export interface AIInterpretationResult {
   text: string
   chunks: string[]
   usage?: { inputTokens: number; outputTokens: number }
+  /** Quota info from the Pages Function response headers (demo mode only). */
+  quota?: AiQuota
+}
+
+/**
+ * Quota information surfaced by the Pages Function in
+ * `X-AI-Quota-*` response headers. Present only when the call was
+ * served in `demo` mode (Function injected its own key). BYOK
+ * calls don't carry these headers (or carry zeros) since the user
+ * pays their own bill.
+ */
+export interface AiQuota {
+  /** 'byok' = user-supplied key, 'demo' = server demo key */
+  mode: 'byok' | 'demo'
+  /** Daily limit for demo mode (e.g. 5). Always present. */
+  limit: number
+  /** Quota used today (after this call). */
+  used: number
+  /** Quota remaining today. */
+  remaining: number
+}
+
+/**
+ * Read the quota headers off an AI response. Returns `null` for
+ * BYOK calls (no quota tracking), when headers are missing
+ * (older Function deployments, dev mode, etc.), or when the
+ * caller passed a partial mock (tests).
+ */
+export function readQuotaFromHeaders(headers: Headers | undefined | null): AiQuota | null {
+  if (!headers || typeof headers.get !== 'function') return null
+  const mode = headers.get('X-AI-Mode') as 'byok' | 'demo' | null
+  if (!mode) return null
+  const limit = Number.parseInt(headers.get('X-AI-Quota-Limit') ?? '0', 10)
+  const used = Number.parseInt(headers.get('X-AI-Quota-Used') ?? '0', 10)
+  const remaining = Number.parseInt(headers.get('X-AI-Quota-Remaining') ?? '0', 10)
+  return { mode, limit, used, remaining }
 }
 
 /**
@@ -156,15 +192,23 @@ export async function generateInterpretation(
 
   let response: Response
   try {
+    // Build headers — only include x-api-key when the user has set
+    // one. When the key is empty, the proxy Function detects the
+    // missing header and serves the request from its server-side
+    // demo key + per-IP quota (X-AI-Mode: demo). Sending an empty
+    // x-api-key header would silently bypass that path and trigger
+    // 401 from upstream.
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'anthropic-version': ANTHROPIC_VERSION,
+      [ANTHROPIC_BROWSER_HEADER]: 'true',
+      Accept: 'text/event-stream',
+    }
+    if (config.apiKey) headers['x-api-key'] = config.apiKey
+
     response = await fetch(config.baseUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': config.apiKey,
-        'anthropic-version': ANTHROPIC_VERSION,
-        [ANTHROPIC_BROWSER_HEADER]: 'true',
-        Accept: 'text/event-stream',
-      },
+      headers,
       body: JSON.stringify({
         model: config.model,
         max_tokens: 1024,
@@ -301,8 +345,8 @@ export async function generateInterpretation(
   }
 
   return usage
-    ? { text: fullText, chunks, usage }
-    : { text: fullText, chunks }
+    ? { text: fullText, chunks, usage, quota: readQuotaFromHeaders(response.headers) ?? undefined }
+    : { text: fullText, chunks, quota: readQuotaFromHeaders(response.headers) ?? undefined }
 }
 
 /**

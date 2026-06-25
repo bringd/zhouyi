@@ -7,7 +7,7 @@ import { FlipEntry } from '@/components/motion/FlipEntry'
 import { PageTransition } from '@/components/motion'
 import { getHexagramById } from '@/lib/divination'
 import { getRecord, saveRecord } from '@/lib/storage'
-import { generateInterpretation, AIError } from '@/lib/ai'
+import { generateInterpretation, AIError, type AiQuota } from '@/lib/ai'
 import { downloadCardPng, cardDataFromIds } from '@/lib/imageGen'
 import { publishPost } from '@/lib/feed'
 import { cn } from '@/utils/cn'
@@ -43,6 +43,7 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
   const [aiCopied, setAiCopied] = useState(false)
   const [publishBusy, setPublishBusy] = useState(false)
   const [publishedId, setPublishedId] = useState<string | null>(null)
+  const [aiQuota, setAiQuota] = useState<AiQuota | null>(null)
 
   if (!record) {
     return (
@@ -77,6 +78,7 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
         }
       )
       setAiText(result.text)
+      if (result.quota) setAiQuota(result.quota)
       // Save to record
       const updated: UserRecord = { ...record, aiInterpretation: result.text }
       setRecord(updated)
@@ -97,6 +99,10 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
             msg = err.message || 'API Key 无效或已过期'
             break
           case 'rate-limit':
+            // rate-limit from upstream (Anthropic 429) — generic.
+            // The Pages Function demo quota returns this same code
+            // for our per-IP limit too; the err.message includes the
+            // human-readable reason either way, so we just surface it.
             msg = err.message || '请求过于频繁，请稍后再试'
             break
           case 'timeout':
@@ -317,6 +323,28 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
         )}
         {aiError && (
           <p className="text-june-red text-sm font-body">{aiError}</p>
+        )}
+        {/* Demo-mode banner: shown only after a successful demo call
+            so we have an authoritative quota from the server. Tells
+            the user they're on the free tier and how many calls
+            remain today, plus a nudge to add their own key. */}
+        {aiText && aiQuota?.mode === 'demo' && aiQuota.limit > 0 && (
+          <p className="mt-3 text-[11px] text-ink-light/70 font-body flex items-center gap-2 flex-wrap">
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-june-bronze/15 text-june-bronze rounded-sm tracking-widest">
+              免费额度
+            </span>
+            <span>
+              今日已用 {aiQuota.used} / {aiQuota.limit} 次
+              {aiQuota.remaining > 0 ? ` · 剩 ${aiQuota.remaining} 次` : ' · 今日已满'}
+            </span>
+            <Link
+              to="/settings"
+              className="text-june-red hover:underline tracking-widest"
+              title="填入你自己的 API Key 即可无限制使用"
+            >
+              · 填入自有 Key 解锁无限
+            </Link>
+          </p>
         )}
         {aiText && (
           <p className="font-body text-[15px] text-ink leading-[1.9] whitespace-pre-wrap">

@@ -114,7 +114,12 @@ function write(value: ApiConfig | null): boolean {
 export function getApiConfig(): ApiConfig {
   const stored = read()
   let baseUrl = (stored?.baseUrl ?? '').trim()
-  if (!baseUrl || baseUrl === UPSTREAM_BASE_URL || baseUrl === UPSTREAM_BASE_URL + '/v1/messages') {
+  // Migration: rewrite the LEGACY bare-upstream URL (no path) to
+  // the current proxy path. We deliberately match only the bare
+  // upstream hostname so users who typed a custom endpoint or
+  // a different Anthropic-compatible service are not silently
+  // redirected through the proxy.
+  if (!baseUrl || baseUrl === UPSTREAM_BASE_URL) {
     baseUrl = getDefaultBaseUrl()
   }
   return {

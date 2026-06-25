@@ -119,6 +119,17 @@ export default function Settings() {
           </p>
 
           {/* 当前状态 */}
+          {!isConfigured && !editing && (
+            <div className="mb-4 p-4 bg-june-bronze/10 border border-june-bronze/40 rounded-sm">
+              <div className="font-display text-xs text-june-bronze tracking-widest mb-1.5">
+                免 费 体 验
+              </div>
+              <p className="text-[12px] text-ink-light font-body leading-relaxed">
+                未配置 API Key — 现在用站内共享免费额度（每日 5 次），无需注册。
+                想不限次数,可在下方填入你自己的 API Key（兼容 Anthropic 协议的 key 都行）。
+              </p>
+            </div>
+          )}
           {isConfigured && !editing && (
             <div className="mb-4 p-4 bg-rice-dark border border-june-bronze/40 rounded-sm space-y-2">
               <div>

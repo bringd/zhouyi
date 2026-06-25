@@ -86,6 +86,12 @@ describe('ai: generateInterpretation (BYOK browser-direct)', () => {
   })
 
   it('calls Anthropic API with correct URL, headers, and body', async () => {
+    // The previous test (`isApiKeyConfigured mirrors localStorage
+    // state`) ends with setApiConfig({ apiKey: TEST_KEY }) which
+    // overwrites baseUrl to the dev-default proxy path. Re-set it
+    // here so this test asserts against the expected upstream URL.
+    setApiConfig({ apiKey: TEST_KEY, baseUrl: TEST_BASE_URL, model: TEST_MODEL })
+
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       body: makeSSEStream([
