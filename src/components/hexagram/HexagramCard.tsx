@@ -82,12 +82,13 @@ export function HexagramCard({
       <Card padding="sm" interactive={isInteractive}>
         <div className="flex flex-col items-center gap-2">
           {showStampEffective && (
-            // Use -mr-1 instead of self-end so the seal doesn't overflow
-            // the Card's right padding when the card is narrow (md size
-            // is only w-36 ≈ 144px, and a 38px seal at self-end sits
-            // flush against the border).
-            <div className="self-end -mr-1">
-              <Seal text={hex.shortName} size={36} rotation={-3} compact />
+            // Pull the seal inward so neither the rotated top-right
+            // corner (rotation -3°) nor the right edge clips the
+            // Card's bronze border. -mr-2 keeps it ~8px inside the
+            // card edge; -mt-2 drops it ~8px below the top edge so
+            // the rotated corner doesn't poke through.
+            <div className="self-end -mr-2 -mt-2">
+              <Seal text={hex.shortName} size={34} rotation={-3} compact />
             </div>
           )}
           <YaoLineStack lines={lines} width={config.lineWidth} />
