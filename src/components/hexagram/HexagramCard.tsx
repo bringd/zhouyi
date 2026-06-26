@@ -28,7 +28,7 @@ export interface HexagramCardProps {
 
 const SIZE_CONFIG: Record<HexagramCardSize, { cardWidth: string; lineWidth: number; nameSize: string; kwSize: string; showStamp: boolean }> = {
   sm: { cardWidth: 'w-20', lineWidth: 60, nameSize: 'text-xs', kwSize: 'text-[8px]', showStamp: false },
-  md: { cardWidth: 'w-40', lineWidth: 120, nameSize: 'text-lg', kwSize: 'text-xs', showStamp: true },
+  md: { cardWidth: 'w-36', lineWidth: 110, nameSize: 'text-base', kwSize: 'text-[11px]', showStamp: true },
   lg: { cardWidth: 'w-60', lineWidth: 200, nameSize: 'text-2xl', kwSize: 'text-sm', showStamp: true },
 }
 

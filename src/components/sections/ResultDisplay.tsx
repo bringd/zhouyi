@@ -220,13 +220,15 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
       )}
 
       {/* 2. 本卦 + 信息 + 动爻爻辞 — 统一 rice-dark 底,色条 bronze(卦象本体)。
-           卦象视觉/卦名/关键词/卦辞/动爻爻辞 全部并入这一张卡,mockup 节奏。 */}
-      <div className="grid grid-cols-1 sm:grid-cols-[130px_1fr] gap-4 sm:gap-6 items-center p-5 bg-rice-dark border-l-[3px] border-june-bronze rounded-sm mb-5">
+           卦象视觉/卦名/关键词/卦辞/动爻爻辞 全部并入这一张卡,mockup 节奏。
+           items-start (而不是 center) 防止左列卡片垂直居中后和右列长
+           标题 "山天大畜" 在视觉上重叠。 */}
+      <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-4 sm:gap-6 items-start p-5 bg-rice-dark border-l-[3px] border-june-bronze rounded-sm mb-5">
         <FlipEntry className="w-[110px] mx-auto sm:mx-0">
           <HexagramCard hexagram={main} size="md" navigateOnClick={false} showStamp />
         </FlipEntry>
-        <div>
-          <h2 className="font-display text-2xl text-ink mb-1 tracking-wider text-center sm:text-left">
+        <div className="min-w-0">
+          <h2 className="font-display text-xl sm:text-2xl text-ink mb-1 tracking-wider text-center sm:text-left break-keep">
             {main.name}
           </h2>
           <div className="flex flex-wrap gap-1.5 my-2 justify-center sm:justify-start">
