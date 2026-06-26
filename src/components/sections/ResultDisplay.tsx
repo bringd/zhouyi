@@ -8,6 +8,7 @@ import { PageTransition } from '@/components/motion'
 import { getHexagramById } from '@/lib/divination'
 import { getRecord, saveRecord } from '@/lib/storage'
 import { generateInterpretation, AIError, type AiQuota } from '@/lib/ai'
+import { InterpretationRenderer } from '@/components/sections/InterpretationRenderer'
 import { downloadCardPng, cardDataFromIds } from '@/lib/imageGen'
 import { publishPost } from '@/lib/feed'
 import { cn } from '@/utils/cn'
@@ -349,9 +350,7 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
           </p>
         )}
         {aiText && (
-          <p className="font-body text-[15px] text-ink leading-[1.9] whitespace-pre-wrap">
-            {aiText}
-          </p>
+          <InterpretationRenderer text={aiText} />
         )}
       </div>
 
