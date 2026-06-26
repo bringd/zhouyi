@@ -64,7 +64,7 @@ interface CfContext {
 
 type PagesHandler = (ctx: CfContext) => Promise<Response> | Response
 
-const DEFAULT_UPSTREAM = 'https://api.minimaxi.com/anthropic'
+const DEFAULT_UPSTREAM = 'https://api.minimaxi.com/anthropic/v1/messages'
 const DEFAULT_DAILY_LIMIT = 5
 
 // Hop-by-hop headers that must NOT be forwarded per RFC 7230 §6.1.
