@@ -12,8 +12,9 @@ export interface SealProps {
   /** Background color. Default june-red (朱砂). */
   bgColor?: string
   /**
-   * When true, forces the inner character font-size to 32px regardless of
-   * `size`. Used in 38px sm cards so the glyph doesn't crowd the border.
+   * Reserved for future use; the inner character font is now sized
+   * automatically based on `text.length` so it always fits inside
+   * the seal. Kept on the API so older call-sites still type-check.
    * Default false.
    */
   compact?: boolean
@@ -35,13 +36,24 @@ export function Seal({
   rotation = 0,
   textColor = '#FAF6EC',
   bgColor = '#9b2c2c',
-  compact = false,
+  compact: _compact = false,
   onClick,
   className,
 }: SealProps) {
-  // Compute font size. `compact` forces 32px (used in 38px sm cards so the
-  // glyph doesn't crowd the border); otherwise scale with size, floored at 32.
-  const fontSize = compact ? 32 : Math.max(Math.round(size * 0.78), 32)
+  // ---- Font size: scale to text length ---------------------------------
+  // The old formula (fontSize * 2.2 in viewBox units) used a single
+  // ~70-unit font that fit one character but overflowed for 2-4
+  // characters — the right side of the text got clipped by the SVG
+  // viewport and the seal looked broken on multi-char hexagram names
+  // like 天地否. Scale the font down with character count so the
+  // whole string fits inside the 100-unit viewBox with ~10% padding.
+  //
+  //   1 char: 80 (fills the seal)
+  //   2 chars: 45 (each ~45, total 90)
+  //   3 chars: 30 (each ~30, total 90)
+  //   4 chars: 22 (each ~22, total 88)
+  const charCount = Math.max(1, text.length)
+  const viewBoxFontSize = Math.min(80, 90 / charCount)
 
   return (
     <svg
@@ -75,13 +87,15 @@ export function Seal({
         strokeWidth="0.8"
         opacity="0.6"
       />
-      {/* Character(s) — laid out vertically for traditional seal look */}
+      {/* Character(s) — sized in viewBox units so multi-char text
+          (e.g. 天地否) fits inside the seal without horizontal
+          overflow. See charCount formula above. */}
       <text
         x="50"
         y="50"
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize={fontSize * 2.2}
+        fontSize={viewBoxFontSize}
         fill={textColor}
         fontFamily="'Noto Serif SC', 'Songti SC', serif"
         fontWeight="500"
