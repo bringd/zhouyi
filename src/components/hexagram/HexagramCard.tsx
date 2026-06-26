@@ -80,15 +80,21 @@ export function HexagramCard({
       }}
     >
       <Card padding="sm" interactive={isInteractive}>
-        <div className="flex flex-col items-center gap-2">
+        {/* pt-8 reserves vertical space for the absolutely-positioned
+            seal in the top-right corner; the seal sits in the padding
+            gutter, not on top of the content. */}
+        <div className="flex flex-col items-center gap-2 relative pt-8">
           {showStampEffective && (
-            // Pull the seal inward so neither the rotated top-right
-            // corner (rotation -3°) nor the right edge clips the
-            // Card's bronze border. -mr-2 keeps it ~8px inside the
-            // card edge; -mt-2 drops it ~8px below the top edge so
-            // the rotated corner doesn't poke through.
-            <div className="self-end -mr-2 -mt-2">
-              <Seal text={hex.shortName} size={34} rotation={-3} compact />
+            // Use absolute positioning inside the card body so the
+            // rotated seal corner stays within the bronze border.
+            // Previous attempt used negative margins to pull the
+            // seal in, but -mt-N lifted it ABOVE the card body and
+            // the rotated top-right corner poked out through the
+            // top border. absolute + explicit insets keeps the
+            // seal inside the content area without escaping the
+            // card.
+            <div className="absolute top-1.5 right-1.5">
+              <Seal text={hex.shortName} size={32} rotation={-3} compact />
             </div>
           )}
           <YaoLineStack lines={lines} width={config.lineWidth} />
