@@ -31,6 +31,36 @@ describe('HexagramDetail Hero card', () => {
     expect(heroCard).not.toBeNull()
     expect(heroCard?.className).not.toMatch(/shadow-lg/)
   })
+
+  // Regression test for the "印章被遮挡" bug. The Seal must come
+  // AFTER the HexagramCard in DOM order inside the hero card wrapper;
+  // otherwise the card's opaque rice background paints over the
+  // Seal's left side (~26px) and the stamp looks chopped off. The
+  // explicit z-10 on the Seal is belt-and-suspenders for any future
+  // sibling inserted between them.
+  it('renders the outer Seal AFTER the HexagramCard so the card cannot paint over it', () => {
+    const { container } = renderAt('11')
+    const heroCard = container.querySelector('[data-testid="hero-card"]')
+    expect(heroCard).not.toBeNull()
+    const children = Array.from(heroCard!.children)
+    // The Seal is identifiable by its unique viewBox 0 0 100 100 (the
+    // only Seal-shaped SVG in the page; the YaoLineStack SVGs don't
+    // use this viewBox).
+    const sealWrapper = children.find((el) =>
+      el.querySelector('svg[viewBox="0 0 100 100"]') !== null
+    )
+    expect(sealWrapper).toBeDefined()
+    // The Card is the OTHER direct child of the hero wrapper.
+    const cardWrapper = children.find((el) => el !== sealWrapper)
+    expect(cardWrapper).toBeDefined()
+    const sealIndex = children.indexOf(sealWrapper!)
+    const cardIndex = children.indexOf(cardWrapper!)
+    expect(sealIndex).toBeGreaterThan(cardIndex)
+    // The Seal wrapper carries z-10 to keep stacking intent explicit
+    expect(sealWrapper!.className).toMatch(/z-10/)
+    // pointer-events-none so clicks pass through to the card body
+    expect(sealWrapper!.className).toMatch(/pointer-events-none/)
+  })
 })
 
 describe('HexagramDetail section rhythm (D1)', () => {

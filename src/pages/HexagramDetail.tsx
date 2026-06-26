@@ -113,17 +113,23 @@ export default function HexagramDetail() {
           }
         />
 
-        {/* Hero card — V5: removed shadow-lg so the breath halo is the only depth cue */}
+        {/* Hero card — V5: removed shadow-lg so the breath halo is the only depth cue.
+           The Seal is rendered AFTER HexagramCard so it paints on top of
+           the card's rice background. (When the Seal came first in DOM
+           order, the card's opaque background covered ~26px of the
+           seal's left side, making the stamp look "chopped off".) The
+           explicit z-10 makes the stacking intent self-documenting and
+           survives anyone inserting another sibling later. */}
         <div className="flex justify-center mb-10">
           <BreathEffect className="rounded-md" duration={4500}>
             <div
               data-testid="hero-card"
               className="bg-rice border-2 border-june-bronze p-6 rounded-md w-fit relative"
             >
-              <div className="absolute top-3 right-3">
-                <Seal text={hexagram.shortName} size={38} rotation={-3} compact />
-              </div>
               <HexagramCard hexagram={hexagram} size="lg" navigateOnClick={false} showStamp={false} />
+              <div className="absolute top-3 right-3 z-10 pointer-events-none">
+                <Seal text={hexagram.shortName} size={38} rotation={-3} />
+              </div>
             </div>
           </BreathEffect>
         </div>
