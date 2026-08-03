@@ -12,7 +12,7 @@ interface D1TestEnv {
 
 const db = (env as D1TestEnv).DB
 
-export async function applyD1Migrations(_dir: string): Promise<void> {
+export async function applyD1Migrations(): Promise<void> {
   await applyMigrations(db, inject('d1Migrations') as Migration[])
 }
 
