@@ -112,9 +112,17 @@ export const sessions = sqliteTable('sessions', {
   refreshTokenHash: text('refresh_token_hash').notNull(),
   expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+
+  // SMS 注册字段(migration 0002)
+  smsPhone: text('sms_phone'),
+  smsCode: text('sms_code'),
+  smsExpiresAt: integer('sms_expires_at', { mode: 'timestamp' }),
+  smsVerifyAttempts: integer('sms_verify_attempts').notNull().default(0),
+  smsLockedUntil: integer('sms_locked_until', { mode: 'timestamp' }),
 }, (table) => ({
   userIdx: index('sessions_user_idx').on(table.userId),
   refreshIdx: index('sessions_refresh_idx').on(table.refreshTokenHash),
+  smsPhoneIdx: index('sessions_sms_phone_idx').on(table.smsPhone),
 }))
 
 /**
