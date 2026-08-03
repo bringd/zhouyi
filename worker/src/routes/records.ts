@@ -26,9 +26,31 @@ const updateNoteSchema = z.object({
   userNote: z.string().max(2_000),
 })
 
-export const recordsRouter = new Hono<{ Variables: { userId: string } }>()
+export const recordsRouter = new Hono<{
+  Bindings: { DB: D1Database }
+  Variables: {
+    userId: string
+    sessionId: string
+    mode: 'guest' | 'registered'
+    remaining: number | null
+  }
+}>()
 
 recordsRouter.post('/', async (c) => {
+  // Quota gate: guests get 1 free record; the 2nd must register via SMS.
+  // Registered users (mode === 'registered') have remaining === null and skip this.
+  if (c.var.remaining === 0) {
+    return c.json(
+      {
+        code: 'quota_exceeded',
+        message: '请先注册以继续使用',
+        action: 'register_sms',
+        trigger: 'open_sms_modal',
+      },
+      402
+    )
+  }
+
   const body = await c.req.json().catch(() => null)
   const parsed = createSchema.safeParse(body)
   if (!parsed.success) {
