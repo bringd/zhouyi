@@ -1,7 +1,7 @@
-import type { Context, MiddlewareHandler } from 'hono'
+import type { MiddlewareHandler } from 'hono'
 import { getCookie, setCookie } from 'hono/cookie'
 import { getDb } from '../db/client'
-import { users, sessions } from '../db/schema'
+import { users, sessions, records } from '../db/schema'
 import { eq, sql } from 'drizzle-orm'
 
 /**
@@ -27,9 +27,14 @@ const COOKIE_NAME = 'zhouyi_session'
 const COOKIE_MAX_AGE_S = 365 * 24 * 60 * 60 // 1 year
 
 export type SessionEnv = {
+  Bindings: {
+    DB: D1Database
+  }
   Variables: {
     userId: string
     sessionId: string
+    mode: 'guest' | 'registered'
+    remaining: number | null
   }
 }
 
@@ -37,6 +42,8 @@ declare module 'hono' {
   interface ContextVariableMap {
     userId: string
     sessionId: string
+    mode: 'guest' | 'registered'
+    remaining: number | null
   }
 }
 
@@ -131,5 +138,28 @@ export const sessionMiddleware: MiddlewareHandler<SessionEnv> = async (c, next) 
 
   c.set('userId', userId)
   c.set('sessionId', sessionId)
+
+  const userRow = await db
+    .select({ email: users.email })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1)
+
+  const email = userRow[0]?.email ?? ''
+  const mode: 'guest' | 'registered' = /^guest-.*@zhouyi\.local$/.test(email)
+    ? 'guest'
+    : 'registered'
+
+  let remaining: number | null = null
+  if (mode === 'guest') {
+    const count = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(records)
+      .where(eq(records.userId, userId))
+    remaining = Math.max(0, 1 - Number(count[0]?.n ?? 0))
+  }
+
+  c.set('mode', mode)
+  c.set('remaining', remaining)
   await next()
 }
