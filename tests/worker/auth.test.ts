@@ -113,3 +113,47 @@ describe('POST /api/auth/sms/send', () => {
     expect((rows[0]?.smsExpiresAt as Date).getTime()).toBeGreaterThan(Date.now())
   })
 })
+
+describe('POST /api/auth/sms/verify', () => {
+  beforeEach(async () => {
+    await applyD1Migrations()
+    await runD1Query('DELETE FROM sessions')
+    await runD1Query('DELETE FROM users')
+  })
+
+  it('verifies correct code and upgrades user to registered', async () => {
+    const app = await setupApp()
+    const headers = { 'content-type': 'application/json' }
+    const phone = '13800138000'
+    const first = await app.request('/api/auth/sms/send', { method: 'POST', headers, body: JSON.stringify({ phone }) }, env)
+    const cookie = first.headers.get('set-cookie')!.split(';')[0]
+    const rows = await runD1Query<{ sms_code: string }>("SELECT sms_code FROM sessions WHERE sms_phone = '13800138000'")
+    const code = rows[0]?.sms_code
+    expect(code).toBeTruthy()
+    const res = await app.request('/api/auth/sms/verify', { method: 'POST', headers: { ...headers, cookie }, body: JSON.stringify({ phone, code }) }, env)
+    expect(res.status).toBe(200)
+    expect((await res.json()).mode).toBe('registered')
+  })
+
+  it('rejects wrong code with 401', async () => {
+    const app = await setupApp()
+    const headers = { 'content-type': 'application/json' }
+    const first = await app.request('/api/auth/sms/send', { method: 'POST', headers, body: JSON.stringify({ phone: '13800138000' }) }, env)
+    const cookie = first.headers.get('set-cookie')!.split(';')[0]
+    const res = await app.request('/api/auth/sms/verify', { method: 'POST', headers: { ...headers, cookie }, body: JSON.stringify({ phone: '13800138000', code: '000000' }) }, env)
+    expect(res.status).toBe(401)
+  })
+
+  it('locks after 5 wrong attempts', async () => {
+    const app = await setupApp()
+    const headers = { 'content-type': 'application/json' }
+    const first = await app.request('/api/auth/sms/send', { method: 'POST', headers, body: JSON.stringify({ phone: '13800138000' }) }, env)
+    const cookie = first.headers.get('set-cookie')!.split(';')[0]
+    for (let i = 0; i < 5; i++) {
+      await app.request('/api/auth/sms/verify', { method: 'POST', headers: { ...headers, cookie }, body: JSON.stringify({ phone: '13800138000', code: '000000' }) }, env)
+    }
+    const res = await app.request('/api/auth/sms/verify', { method: 'POST', headers: { ...headers, cookie }, body: JSON.stringify({ phone: '13800138000', code: '000000' }) }, env)
+    expect(res.status).toBe(401)
+    expect((await res.json()).code).toBe('too_many_attempts')
+  })
+})
