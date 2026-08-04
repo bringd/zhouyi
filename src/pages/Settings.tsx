@@ -106,7 +106,8 @@ export default function Settings() {
       <PageTitle title="设置" />
 
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* AI 解读 (BYOK) */}
+        {/* AI 解读 (BYOK) — Phase 1 hidden. Restore by removing {false && …} wrapper. */}
+        {false && (
         <section className="p-6 bg-rice border-2 border-june-bronze rounded-md">
           <h2 className="font-display text-lg text-ink tracking-widest mb-1">
             AI 解 读
@@ -270,6 +271,7 @@ export default function Settings() {
             </p>
           </details>
         </section>
+        )}
 
         {/* 社区昵称 — 出现在"社区卦册"的发帖和留言上 */}
         <section className="p-6 bg-rice border-2 border-june-bronze rounded-md">
