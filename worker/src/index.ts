@@ -21,6 +21,7 @@ import { recordsRouter } from './routes/records'
 import { favoritesRouter } from './routes/favorites'
 import { aiRouter } from './routes/ai'
 import { authRouter } from './routes/auth'
+import { meRouter } from './routes/me'
 
 export interface Env {
   DB: D1Database
@@ -49,5 +50,6 @@ app.route('/api/records', recordsRouter)
 app.route('/api/favorites', favoritesRouter)
 app.route('/api/ai', aiRouter)
 app.route('/api/auth', authRouter)
+app.route('/api/auth', meRouter)
 
 export default app
