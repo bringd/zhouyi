@@ -55,4 +55,4 @@ The implementation follows the existing component architecture rather than addin
 - Focused: 5 passed
 - Full frontend suite: 280 passed
 
-**Commit:** dba7e0d — fix(frontend): DivinationQuota test — spy on resetQuota to verify SMS success side-effect
+**Commit:** 61c1e54 — fix(frontend): DivinationQuota test — spy on resetQuota to verify SMS success side-effect
