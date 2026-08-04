@@ -17,6 +17,7 @@ vi.mock('react-router-dom', async () => {
 describe('DivinationForm', () => {
   beforeEach(() => {
     mockNavigate.mockClear()
+    localStorage.clear()
     clearAllRecords()
   })
 
