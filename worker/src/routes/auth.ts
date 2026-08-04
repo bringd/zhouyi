@@ -162,24 +162,54 @@ authRouter.post('/sms/verify', async (c) => {
     return c.json({ code: newAttempts >= MAX_VERIFY_ATTEMPTS ? 'too_many_attempts' : 'invalid_code', message: '验证码错误或已过期' }, 401)
   }
 
-  await db
-    .update(users)
-    .set({
-      email: phone,
-      passwordHash: 'sms',
-      updatedAt: new Date(now),
-    })
-    .where(eq(users.id, userId))
+  // `users.email` is UNIQUE. If this phone was already claimed by an
+  // earlier session (second browser, or the old session expired and the
+  // middleware minted a fresh guest user), `UPDATE users SET email = phone`
+  // would blow up on the unique index. Re-point the current session at the
+  // user that already owns the phone instead, and leave the throwaway
+  // guest user orphaned.
+  const existingOwner = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, phone))
+    .limit(1)
 
-  await db
-    .update(sessions)
-    .set({
-      smsCode: null,
-      smsExpiresAt: null,
-      smsVerifyAttempts: 0,
-      smsLockedUntil: null,
-    })
-    .where(eq(sessions.refreshTokenHash, sessionId))
+  let targetUserId: string
 
-  return c.json({ userId, mode: 'registered' })
+  if (existingOwner[0]) {
+    targetUserId = existingOwner[0].id
+    await db
+      .update(sessions)
+      .set({
+        userId: targetUserId,
+        smsCode: null,
+        smsExpiresAt: null,
+        smsVerifyAttempts: 0,
+        smsLockedUntil: null,
+      })
+      .where(eq(sessions.refreshTokenHash, sessionId))
+  } else {
+    await db
+      .update(users)
+      .set({
+        email: phone,
+        passwordHash: 'sms',
+        updatedAt: new Date(now),
+      })
+      .where(eq(users.id, userId))
+
+    await db
+      .update(sessions)
+      .set({
+        smsCode: null,
+        smsExpiresAt: null,
+        smsVerifyAttempts: 0,
+        smsLockedUntil: null,
+      })
+      .where(eq(sessions.refreshTokenHash, sessionId))
+
+    targetUserId = userId
+  }
+
+  return c.json({ userId: targetUserId, mode: 'registered' })
 })
