@@ -1,4 +1,5 @@
 {
+  "exclude": ["tests/worker", "worker"],
   "compilerOptions": {
     "target": "ES2022",
     "useDefineForClassFields": true,
