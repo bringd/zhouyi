@@ -24,3 +24,35 @@ Implemented the guest quota gate in `src/components/sections/DivinationForm.tsx`
 ## Self-review
 
 The implementation follows the existing component architecture rather than adding page-level state, because `DivinationForm` owns the submit handler. The full-suite failures and typecheck failures are documented concerns. No remote push performed.
+
+## Fix Pass (Task 10)
+
+**Fixes applied:**
+- [x] Critical 1: `beforeEach` added `localStorage.clear()` in `tests/components/DivinationForm.test.tsx`
+- [x] Critical 2: selector fixed in `tests/lib/DivinationQuota.test.tsx` (was false green due to NumberBox stripping maxLength)
+- [x] Critical 3: added negative assertions (no record saved, quota unchanged on blocked attempt)
+- [x] Important 4: added test for `mode === 'registered'` bypass
+- [x] Important 5: added test for SmsModal.onSuccess flow (markRegistered + resetQuota)
+- [x] Important 6: added test for `consumeQuota()` not running on `divination()` throw
+
+**Test results:**
+- Focused tests (DivinationQuota + DivinationForm): 15 passed
+- Full frontend suite: 280 passed
+
+**Commit:** dbffff8 — fix(frontend): DivinationQuota tests — clear localStorage, fix selector, add negative assertions
+
+**Files changed in this fix pass:**
+- `D:/eight/tests/components/DivinationForm.test.tsx`
+- `D:/eight/tests/lib/DivinationQuota.test.tsx`
+- `D:/eight/.superpowers/sdd/task-10-report.md`
+
+## Final Fix Pass (Task 10)
+
+**Fix applied:**
+- [x] Important 5 hardened: added `vi.spyOn(quota, 'resetQuota')` and asserted it was called in the SMS success test
+
+**Test results:**
+- Focused: 5 passed
+- Full frontend suite: 280 passed
+
+**Commit:** dba7e0d — fix(frontend): DivinationQuota test — spy on resetQuota to verify SMS success side-effect

@@ -5,6 +5,7 @@ import Divination from '@/pages/Divination'
 import { readQuota, consumeQuota, resetQuota } from '@/lib/quota'
 import { getAllRecords, clearAllRecords } from '@/lib/storage'
 import * as auth from '@/lib/auth'
+import * as quota from '@/lib/quota'
 
 vi.mock('@/lib/seo', () => ({ SEO: () => null }))
 vi.mock('@/components/layout/PageLayout', () => ({ PageLayout: ({ children }: { children: React.ReactNode }) => <>{children}</> }))
@@ -78,6 +79,10 @@ describe('Divination quota gate', () => {
   // IMPORTANT 5: SmsModal.onSuccess side-effects (markRegistered + resetQuota).
   it('SmsModal.onSuccess calls markRegistered(phone) and resetQuota()', async () => {
     const markRegisteredSpy = vi.spyOn(auth, 'markRegistered')
+    // Direct spy on resetQuota: asserting `mode === 'registered'` alone would
+    // still pass if a refactor marked the user registered by another path
+    // while dropping the resetQuota() call.
+    const resetQuotaSpy = vi.spyOn(quota, 'resetQuota')
 
     // Mock fetch for /api/auth/sms/send and /api/auth/sms/verify (both 200).
     const fetchMock = vi.fn().mockResolvedValue({
@@ -111,7 +116,11 @@ describe('Divination quota gate', () => {
 
     // Side-effects fired.
     await waitFor(() => expect(markRegisteredSpy).toHaveBeenCalledWith('13800138000'))
+    await waitFor(() => expect(resetQuotaSpy).toHaveBeenCalledTimes(1))
+    // ...and it was the real implementation, so the resulting state is correct.
     expect(readQuota().mode).toBe('registered')
+
+    resetQuotaSpy.mockRestore()
   })
 })
 
