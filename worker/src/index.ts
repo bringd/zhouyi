@@ -20,6 +20,7 @@ import { feedRouter } from './routes/feed'
 import { recordsRouter } from './routes/records'
 import { favoritesRouter } from './routes/favorites'
 import { aiRouter } from './routes/ai'
+import { authRouter } from './routes/auth'
 
 export interface Env {
   DB: D1Database
@@ -47,5 +48,6 @@ app.route('/api/feed', feedRouter)
 app.route('/api/records', recordsRouter)
 app.route('/api/favorites', favoritesRouter)
 app.route('/api/ai', aiRouter)
+app.route('/api/auth', authRouter)
 
 export default app
