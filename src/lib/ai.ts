@@ -179,12 +179,11 @@ export async function generateInterpretation(
   onChunk?: (chunk: string) => void,
 ): Promise<AIInterpretationResult> {
   const config = getApiConfig()
-  if (!config.apiKey) {
-    throw new AIError(
-      '请先在设置中填写 Anthropic API Key。',
-      'no-api-key',
-    )
-  }
+  // Phase 1: BYOK UI is hidden. The proxy Function falls back to
+  // AI_DEMO_KEY from .dev.vars when no x-api-key header is sent.
+  // We removed the early "no-api-key" throw here so the request can
+  // reach the proxy and use the server-side demo key.
+  // (If BYOK is re-enabled later, restore the check.)
 
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS)
