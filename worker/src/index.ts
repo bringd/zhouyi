@@ -11,45 +11,41 @@
  * All cross-origin requests from the Pages frontend are allowed
  * when their Origin matches FRONTEND_ORIGIN.
  */
-import { Hono } from 'hono'
-import { corsMiddleware } from './middleware/cors'
-import { sessionMiddleware } from './middleware/session'
-import { errorHandler } from './middleware/errorHandler'
-import { healthRouter } from './routes/health'
-import { feedRouter } from './routes/feed'
-import { recordsRouter } from './routes/records'
-import { favoritesRouter } from './routes/favorites'
-import { aiRouter } from './routes/ai'
-import { authRouter } from './routes/auth'
-import { meRouter } from './routes/me'
+import { Hono } from "hono";
+import { corsMiddleware } from "./middleware/cors";
+import { sessionMiddleware } from "./middleware/session";
+import { errorHandler } from "./middleware/errorHandler";
+import { healthRouter } from "./routes/health";
+import { feedRouter } from "./routes/feed";
+import { recordsRouter } from "./routes/records";
+import { favoritesRouter } from "./routes/favorites";
+import { aiRouter } from "./routes/ai";
+import { authRouter } from "./routes/auth";
+import { meRouter } from "./routes/me";
+import type { Env } from "./types.js";
 
-export interface Env {
-  DB: D1Database
-  FRONTEND_ORIGIN?: string
-}
-
-const app = new Hono<{ Bindings: Env }>()
+const app = new Hono<{ Bindings: Env }>();
 
 // Global error handler — keeps the response shape tidy.
-app.onError(errorHandler)
+app.onError(errorHandler);
 
 // CORS for every request (handles preflight internally).
-app.use('*', corsMiddleware)
+app.use("*", corsMiddleware);
 
 // Health is mounted BEFORE the session middleware so it doesn't
 // touch the DB on every probe.
-app.route('/health', healthRouter)
+app.route("/health", healthRouter);
 
 // Mount session middleware for everything else. The /api/ai/* routes
 // are still safe under session (the stub doesn't care who's calling).
-app.use('/api/*', sessionMiddleware)
+app.use("/api/*", sessionMiddleware);
 
 // API routes
-app.route('/api/feed', feedRouter)
-app.route('/api/records', recordsRouter)
-app.route('/api/favorites', favoritesRouter)
-app.route('/api/ai', aiRouter)
-app.route('/api/auth', authRouter)
-app.route('/api/auth', meRouter)
+app.route("/api/feed", feedRouter);
+app.route("/api/records", recordsRouter);
+app.route("/api/favorites", favoritesRouter);
+app.route("/api/ai", aiRouter);
+app.route("/api/auth", authRouter);
+app.route("/api/auth", meRouter);
 
-export default app
+export default app;
