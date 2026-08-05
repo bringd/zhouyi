@@ -153,7 +153,7 @@ const handler: PagesHandler = async (context) => {
             error: 'demo-unavailable',
             message: 'AI demo temporarily unavailable. Add your own API key in Settings to continue.',
           }),
-          { status: 503, headers: { 'Content-Type': 'application/json' } },
+          { status: 503, headers: { 'Content-Type': 'application/json', 'X-AI-Mode': 'demo', 'X-AI-Quota-Limit': String(limit) } },
         )
       }
       if (!context.env.DB) {
@@ -216,7 +216,7 @@ const handler: PagesHandler = async (context) => {
       const message = err instanceof Error ? err.message : 'upstream-unreachable'
       return new Response(
         JSON.stringify({ error: 'upstream-unreachable', message }),
-        { status: 502, headers: { 'Content-Type': 'application/json' } },
+        { status: 502, headers: { 'Content-Type': 'application/json', 'X-AI-Mode': mode, 'X-AI-Quota-Limit': String(limit) } },
       )
     }
 
