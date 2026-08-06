@@ -132,7 +132,7 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
         // eslint-disable-next-line no-console
         console.error('[ai]', err.code, err.message, err.cause)
       } else {
-        msg = err instanceof Error ? err.message : 'AI 解读失败'
+        msg = err instanceof Error ? err.message : '卦象详解失败'
       }
       setAiError(msg)
     } finally {
@@ -309,7 +309,7 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
             )}
             {!aiText && !aiError && (
               <Button onClick={handleAIInterpretation} loading={aiLoading} variant="primary" size="sm">
-                {aiLoading ? '解读中…' : '开始 AI 解读'}
+                {aiLoading ? '解读中…' : '卦象详解'}
               </Button>
             )}
             {aiError && (
@@ -321,7 +321,7 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
         </div>
         {!aiText && !aiError && (
           <p className="font-body text-sm text-ink-light/70 italic">
-            点击右上"开始 AI 解读"获取现代视角分析。
+            点击右上"卦象详解"获取现代视角分析。
           </p>
         )}
         {aiError && (

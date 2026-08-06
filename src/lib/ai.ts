@@ -344,7 +344,7 @@ export async function generateInterpretation(
           }
         } else if (parsed.type === 'error' && parsed.error) {
           throw new AIError(
-            parsed.error.message ?? 'AI 解读失败',
+            parsed.error.message ?? '卦象详解失败',
             mapUpstreamErrorType(parsed.error.type),
             undefined,
           )

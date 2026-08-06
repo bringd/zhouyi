@@ -113,7 +113,7 @@ export default function Settings() {
             AI 解 读
           </h2>
           <p className="font-body text-sm text-ink-light mb-4 leading-relaxed">
-            本站为纯静态部署，AI 解读由浏览器直连{' '}
+            本站为纯静态部署，卦象详解由浏览器直连{' '}
             <span className="font-mono text-[12px] bg-rice-dark px-1 rounded">Anthropic 兼容端点</span>。
             填入你自己的 Key + 端点 URL + 模型名，存于本机 localStorage，
             不上传任何服务器。

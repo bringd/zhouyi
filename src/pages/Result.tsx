@@ -9,7 +9,7 @@ export default function Result() {
   if (!id) {
     return (
       <PageLayout>
-        <SEO title="起卦结果" description="查看你的起卦结果与 AI 解读。" />
+        <SEO title="起卦结果" description="查看你的起卦结果与卦象详解。" />
         <div className="text-center py-12">
           <p className="text-ink-light font-body mb-4">无效的起卦记录</p>
           <Link to="/divination">
@@ -21,7 +21,7 @@ export default function Result() {
   }
   return (
     <PageLayout>
-      <SEO title="起卦结果" description="查看你的起卦结果与 AI 解读。" />
+      <SEO title="起卦结果" description="查看你的起卦结果与卦象详解。" />
       <ResultDisplay recordId={id} />
     </PageLayout>
   )

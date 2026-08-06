@@ -61,14 +61,14 @@ describe('ResultDisplay', () => {
     expect(screen.getAllByText(/第\s*1\s*爻/i).length).toBeGreaterThan(0)
   })
 
-  it('renders the AI 解读 button initially', () => {
+  it('renders the 卦象详解 button initially', () => {
     saveRecord(baseRecord)
     render(
       <MemoryRouter>
         <ResultDisplay recordId="test-record-1" />
       </MemoryRouter>
     )
-    expect(screen.getByRole('button', { name: '开始 AI 解读' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '卦象详解' })).toBeInTheDocument()
   })
 
   it('calls generateInterpretation (backend) when AI button clicked — no apiKey needed', async () => {
@@ -79,7 +79,7 @@ describe('ResultDisplay', () => {
         <ResultDisplay recordId="test-record-1" />
       </MemoryRouter>
     )
-    fireEvent.click(screen.getByRole('button', { name: '开始 AI 解读' }))
+    fireEvent.click(screen.getByRole('button', { name: '卦象详解' }))
     // The backend is mocked to resolve; the displayed text comes from result.text
     expect(await screen.findByText('解读完成')).toBeInTheDocument()
     // Verify generateInterpretation was called (with null apiKey now)
@@ -121,6 +121,6 @@ describe('ResultDisplay', () => {
     )
     expect(screen.getByText('pre-cached interpretation')).toBeInTheDocument()
     // AI button should NOT be present since aiText is set
-    expect(screen.queryByRole('button', { name: '开始 AI 解读' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '卦象详解' })).not.toBeInTheDocument()
   })
 })
