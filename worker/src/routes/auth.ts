@@ -1,8 +1,8 @@
-import { Hono } from 'hono'
-import { z } from 'zod'
-import { getDb } from '../db/client'
-import { sessions, users } from '../db/schema'
-import { eq, sql, and } from 'drizzle-orm'
+import { Hono } from "hono";
+import { z } from "zod";
+import { getDb } from "../db/client";
+import { sessions, users } from "../db/schema";
+import { eq, sql, and } from "drizzle-orm";
 
 /**
  * Auth routes — SMS-based registration flow.
@@ -15,49 +15,48 @@ import { eq, sql, and } from 'drizzle-orm'
  * real implementation would need a dedicated `sms_send_log`
  * table. Out of scope for Phase 1 per the plan.
  */
-const PHONE_REGEX = /^1[3-9]\d{9}$/
-const TTL_SEC = 300
-const RESEND_COOLDOWN_S = 60
-const MAX_ATTEMPTS_PER_HOUR = 5
-const MAX_VERIFY_ATTEMPTS = 5
-const LOCK_DURATION_MS = 3600 * 1000
+const PHONE_REGEX = /^1[3-9]\d{9}$/;
+const TTL_SEC = 300;
+const RESEND_COOLDOWN_S = 60;
+const MAX_ATTEMPTS_PER_HOUR = 5;
+const MAX_VERIFY_ATTEMPTS = 5;
+const LOCK_DURATION_MS = 3600 * 1000;
 
 export const authRouter = new Hono<{
-  Bindings: { DB: D1Database }
+  Bindings: { DB: D1Database };
   Variables: {
-    userId: string
-    sessionId: string
-    mode: 'guest' | 'registered'
-    remaining: number | null
-  }
-}>()
+    userId: string;
+    sessionId: string;
+    mode: "guest" | "registered";
+  };
+}>();
 
 const sendSchema = z.object({
-  phone: z.string().regex(PHONE_REGEX, 'invalid_phone'),
-})
+  phone: z.string().regex(PHONE_REGEX, "invalid_phone"),
+});
 
 const verifySchema = z.object({
-  phone: z.string().regex(PHONE_REGEX, 'invalid_phone'),
-  code: z.string().regex(/^\d{6}$/, 'invalid_code'),
-})
+  phone: z.string().regex(PHONE_REGEX, "invalid_phone"),
+  code: z.string().regex(/^\d{6}$/, "invalid_code"),
+});
 
 function generateCode(): string {
-  const bytes = new Uint8Array(6)
-  crypto.getRandomValues(bytes)
+  const bytes = new Uint8Array(6);
+  crypto.getRandomValues(bytes);
   // Take 6 digits 0-9.
-  return Array.from(bytes, (b) => (b % 10).toString()).join('')
+  return Array.from(bytes, (b) => (b % 10).toString()).join("");
 }
 
-authRouter.post('/sms/send', async (c) => {
-  const raw = await c.req.json().catch(() => ({}))
-  const parsed = sendSchema.safeParse(raw)
+authRouter.post("/sms/send", async (c) => {
+  const raw = await c.req.json().catch(() => ({}));
+  const parsed = sendSchema.safeParse(raw);
   if (!parsed.success) {
-    return c.json({ code: 'invalid_phone', message: '手机号格式错误' }, 400)
+    return c.json({ code: "invalid_phone", message: "手机号格式错误" }, 400);
   }
-  const phone = parsed.data.phone
+  const phone = parsed.data.phone;
 
-  const db = getDb(c.env.DB)
-  const sessionId = c.var.sessionId
+  const db = getDb(c.env.DB);
+  const sessionId = c.var.sessionId;
 
   // 60s resend cooldown. Keyed on the session row's sms_expires_at:
   // if the most recent send was within the cooldown window, reject.
@@ -65,14 +64,22 @@ authRouter.post('/sms/send', async (c) => {
     .select({ expiresAt: sessions.smsExpiresAt })
     .from(sessions)
     .where(eq(sessions.refreshTokenHash, sessionId))
-    .limit(1)
+    .limit(1);
 
-  const now = Date.now()
-  if (recent[0]?.expiresAt && new Date(recent[0].expiresAt).getTime() > now - RESEND_COOLDOWN_S * 1000) {
+  const now = Date.now();
+  if (
+    recent[0]?.expiresAt &&
+    new Date(recent[0].expiresAt).getTime() > now - RESEND_COOLDOWN_S * 1000
+  ) {
     const retryAfter = Math.ceil(
-      (new Date(recent[0].expiresAt).getTime() - (now - RESEND_COOLDOWN_S * 1000)) / 1000
-    )
-    return c.json({ code: 'rate_limited', retryAfter, message: '请求过于频繁' }, 429)
+      (new Date(recent[0].expiresAt).getTime() -
+        (now - RESEND_COOLDOWN_S * 1000)) /
+        1000,
+    );
+    return c.json(
+      { code: "rate_limited", retryAfter, message: "请求过于频繁" },
+      429,
+    );
   }
 
   // 1h attempt cap. Approximation per the plan — we count sessions
@@ -80,23 +87,26 @@ authRouter.post('/sms/send', async (c) => {
   // the same row rather than INSERT, this counts the session itself
   // (always 1), so the cap never trips in practice. A real
   // implementation needs a `sms_send_log` table; out of scope.
-  const hourAgo = now - 3600 * 1000
+  const hourAgo = now - 3600 * 1000;
   const countRows = await db
     .select({ n: sql<number>`count(*)` })
     .from(sessions)
     .where(
       and(
         eq(sessions.refreshTokenHash, sessionId),
-        sql`${sessions.createdAt} > ${hourAgo}`
-      )
-    )
+        sql`${sessions.createdAt} > ${hourAgo}`,
+      ),
+    );
   if (Number(countRows[0]?.n ?? 0) >= MAX_ATTEMPTS_PER_HOUR) {
-    return c.json({ code: 'too_many_attempts', message: '1h 内尝试次数过多' }, 429)
+    return c.json(
+      { code: "too_many_attempts", message: "1h 内尝试次数过多" },
+      429,
+    );
   }
 
   // Mint a 6-digit code and persist on the session row.
-  const code = generateCode()
-  const expiresAt = new Date(now + TTL_SEC * 1000)
+  const code = generateCode();
+  const expiresAt = new Date(now + TTL_SEC * 1000);
 
   await db
     .update(sessions)
@@ -107,40 +117,49 @@ authRouter.post('/sms/send', async (c) => {
       smsVerifyAttempts: 0,
       smsLockedUntil: null,
     })
-    .where(eq(sessions.refreshTokenHash, sessionId))
+    .where(eq(sessions.refreshTokenHash, sessionId));
 
   // MOCK SMS: log the code so the test/dev can see it.
-  console.log(`[SMS] code=${code} phone=${phone} ttl=${TTL_SEC}s`)
+  console.log(`[SMS] code=${code} phone=${phone} ttl=${TTL_SEC}s`);
 
-  return c.json({ ttl: TTL_SEC, message: '验证码已发送' })
-})
+  return c.json({ ttl: TTL_SEC, message: "验证码已发送" });
+});
 
-authRouter.post('/sms/verify', async (c) => {
-  const raw = await c.req.json().catch(() => ({}))
-  const parsed = verifySchema.safeParse(raw)
+authRouter.post("/sms/verify", async (c) => {
+  const raw = await c.req.json().catch(() => ({}));
+  const parsed = verifySchema.safeParse(raw);
   if (!parsed.success) {
-    return c.json({ code: 'invalid_phone', message: '手机号或验证码格式错误' }, 400)
+    return c.json(
+      { code: "invalid_phone", message: "手机号或验证码格式错误" },
+      400,
+    );
   }
-  const { phone, code } = parsed.data
+  const { phone, code } = parsed.data;
 
-  const db = getDb(c.env.DB)
-  const sessionId = c.var.sessionId
-  const userId = c.var.userId
-  const now = Date.now()
+  const db = getDb(c.env.DB);
+  const sessionId = c.var.sessionId;
+  const userId = c.var.userId;
+  const now = Date.now();
 
   const rows = await db
     .select()
     .from(sessions)
     .where(eq(sessions.refreshTokenHash, sessionId))
-    .limit(1)
+    .limit(1);
 
-  const session = rows[0]
+  const session = rows[0];
   if (!session) {
-    return c.json({ code: 'session_expired', message: '会话失效' }, 401)
+    return c.json({ code: "session_expired", message: "会话失效" }, 401);
   }
 
-  if (session.smsLockedUntil && new Date(session.smsLockedUntil).getTime() > now) {
-    return c.json({ code: 'too_many_attempts', message: '尝试次数过多,1h 后再试' }, 401)
+  if (
+    session.smsLockedUntil &&
+    new Date(session.smsLockedUntil).getTime() > now
+  ) {
+    return c.json(
+      { code: "too_many_attempts", message: "尝试次数过多,1h 后再试" },
+      401,
+    );
   }
 
   const invalid =
@@ -148,18 +167,30 @@ authRouter.post('/sms/verify', async (c) => {
     !session.smsCode ||
     !session.smsExpiresAt ||
     new Date(session.smsExpiresAt).getTime() < now ||
-    session.smsCode !== code
+    session.smsCode !== code;
 
   if (invalid) {
-    const newAttempts = (session.smsVerifyAttempts ?? 0) + 1
+    const newAttempts = (session.smsVerifyAttempts ?? 0) + 1;
     const updates: { smsVerifyAttempts: number; smsLockedUntil?: Date } = {
       smsVerifyAttempts: newAttempts,
-    }
+    };
     if (newAttempts >= MAX_VERIFY_ATTEMPTS) {
-      updates.smsLockedUntil = new Date(now + LOCK_DURATION_MS)
+      updates.smsLockedUntil = new Date(now + LOCK_DURATION_MS);
     }
-    await db.update(sessions).set(updates).where(eq(sessions.refreshTokenHash, sessionId))
-    return c.json({ code: newAttempts >= MAX_VERIFY_ATTEMPTS ? 'too_many_attempts' : 'invalid_code', message: '验证码错误或已过期' }, 401)
+    await db
+      .update(sessions)
+      .set(updates)
+      .where(eq(sessions.refreshTokenHash, sessionId));
+    return c.json(
+      {
+        code:
+          newAttempts >= MAX_VERIFY_ATTEMPTS
+            ? "too_many_attempts"
+            : "invalid_code",
+        message: "验证码错误或已过期",
+      },
+      401,
+    );
   }
 
   // `users.email` is UNIQUE. If this phone was already claimed by an
@@ -172,12 +203,12 @@ authRouter.post('/sms/verify', async (c) => {
     .select({ id: users.id })
     .from(users)
     .where(eq(users.email, phone))
-    .limit(1)
+    .limit(1);
 
-  let targetUserId: string
+  let targetUserId: string;
 
   if (existingOwner[0]) {
-    targetUserId = existingOwner[0].id
+    targetUserId = existingOwner[0].id;
     await db
       .update(sessions)
       .set({
@@ -187,16 +218,16 @@ authRouter.post('/sms/verify', async (c) => {
         smsVerifyAttempts: 0,
         smsLockedUntil: null,
       })
-      .where(eq(sessions.refreshTokenHash, sessionId))
+      .where(eq(sessions.refreshTokenHash, sessionId));
   } else {
     await db
       .update(users)
       .set({
         email: phone,
-        passwordHash: 'sms',
+        passwordHash: "sms",
         updatedAt: new Date(now),
       })
-      .where(eq(users.id, userId))
+      .where(eq(users.id, userId));
 
     await db
       .update(sessions)
@@ -206,10 +237,10 @@ authRouter.post('/sms/verify', async (c) => {
         smsVerifyAttempts: 0,
         smsLockedUntil: null,
       })
-      .where(eq(sessions.refreshTokenHash, sessionId))
+      .where(eq(sessions.refreshTokenHash, sessionId));
 
-    targetUserId = userId
+    targetUserId = userId;
   }
 
-  return c.json({ userId: targetUserId, mode: 'registered' })
-})
+  return c.json({ userId: targetUserId, mode: "registered" });
+});
