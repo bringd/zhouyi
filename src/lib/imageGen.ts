@@ -58,9 +58,11 @@ const C = {
 } as const
 
 // Font stack: system defaults that are always present. Avoids embedding
-// CJK fonts in the SVG (would bloat PNGs by megabytes).
-const FONT_DISPLAY = '"Noto Serif SC", "Songti SC", "STSong", "SimSun", serif'
-const FONT_BODY = '"LXGW WenKai", "KaiTi", "STKaiti", "Microsoft YaHei", "PingFang SC", sans-serif'
+// CJK fonts in the SVG (would bloat PNGs by megabytes). Quotes are escaped
+// so the resulting font-family attribute is valid XML when the constant
+// is interpolated into <text font-family="...">.
+const FONT_DISPLAY = '&quot;Noto Serif SC&quot;, &quot;Songti SC&quot;, &quot;STSong&quot;, &quot;SimSun&quot;, serif'
+const FONT_BODY = '&quot;LXGW WenKai&quot;, &quot;KaiTi&quot;, &quot;STKaiti&quot;, &quot;Microsoft YaHei&quot;, &quot;PingFang SC&quot;, sans-serif'
 
 /**
  * Compose the SVG markup for a card. Exported for unit tests; the

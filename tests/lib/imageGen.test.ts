@@ -87,6 +87,27 @@ describe('imageGen', () => {
       expect(svg).toContain('易象阁')
     })
 
+    it('produces a well-formed XML document (browser SVG loaders are strict)', () => {
+      // Regression: font-family values used to embed raw " characters which
+      // produced malformed XML inside font-family="..." attributes. Chromium
+      // silently rejects such SVGs when loaded as Image, so downloadCardPng
+      // returned no PNG. Verify the SVG parses as XML.
+      const data = cardDataFromIds({ mainId: 1, aiSummary: '乾卦纯阳之象' })
+      const svg = renderCardSvg(data!)
+      // We avoid pulling a real XML parser into the test (jsdom does not
+      // ship one), so assert the structural invariants that matter:
+      // 1) every font-family attribute value is well-quoted (no leading ")
+      expect(svg).not.toMatch(/font-family=""[^"]/)
+      // 2) every <text> tag has a matching closing </text>
+      const openCount = (svg.match(/<text[\s>]/g) ?? []).length
+      const closeCount = (svg.match(/<\/text>/g) ?? []).length
+      expect(openCount).toBe(closeCount)
+      // 3) every <g> tag has a matching closing </g>
+      const gOpen = (svg.match(/<g[\s>]/g) ?? []).length
+      const gClose = (svg.match(/<\/g>/g) ?? []).length
+      expect(gOpen).toBe(gClose)
+    })
+
     it('includes the moving-line + changed-hexagram section when both provided', () => {
       // Use a fixed pair (main=1 乾为天, changed=2 坤为地) and check
       // against the actual names resolved from the static JSON.
