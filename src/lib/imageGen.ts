@@ -52,6 +52,8 @@ const C = {
   gold: '#C89E3A',
   bronze: '#8B6914',
   clay: '#6B4A2A',
+  goldLight: '#E8C76A',
+  shadowInk: 'rgba(26,26,26,0.12)',
   riceWhite: '#FFFFFF',
 } as const
 
@@ -64,32 +66,61 @@ const FONT_BODY = '"LXGW WenKai", "KaiTi", "STKaiti", "Microsoft YaHei", "PingFa
  * Compose the SVG markup for a card. Exported for unit tests; the
  * production download path calls {@link downloadCardPng} directly.
  */
+function renderHexagramLines(
+  hero: Hexagram,
+  w: number,
+  yTop: number,
+  yBottom: number
+): string {
+  const lineHeight = (yBottom - yTop) / 6
+  const cx = w / 2
+  const segWidth = 110
+  const segHeight = 26
+  const gap = 28
+  const radius = 4
+  const parts: string[] = []
+
+  for (let i = 0; i < 6; i++) {
+    const isYang = hero.binaryCode[5 - i] === '1'
+    const y = yTop + i * lineHeight + lineHeight / 2
+    const yTopRect = y - segHeight / 2
+    const yBotRect = y + segHeight / 2
+
+    if (i < 5) {
+      const sepY = yBotRect + (lineHeight - segHeight) / 2
+      parts.push(
+        `<line x1="${cx - 130}" y1="${sepY}" x2="${cx + 130}" y2="${sepY}" stroke="${C.shadowInk}" stroke-width="0.8"/>`
+      )
+    }
+
+    if (isYang) {
+      parts.push(`<g>
+        <rect x="${cx - segWidth}" y="${yTopRect}" width="${segWidth * 2}" height="${segHeight}" fill="${C.gold}" stroke="${C.ink}" stroke-width="1.2" rx="${radius}"/>
+        <rect x="${cx - segWidth + 4}" y="${yTopRect + 3}" width="${segWidth * 2 - 8}" height="3" fill="${C.goldLight}" opacity="0.55" rx="2"/>
+      </g>`)
+    } else {
+      const seg1Right = cx - gap / 2
+      const seg1Left = seg1Right - segWidth
+      const seg2Left = cx + gap / 2
+      parts.push(`<g>
+        <rect x="${seg1Left}" y="${yTopRect}" width="${segWidth}" height="${segHeight}" fill="${C.gold}" stroke="${C.ink}" stroke-width="1.2" rx="${radius}"/>
+        <rect x="${seg1Left + 3}" y="${yTopRect + 3}" width="${segWidth - 6}" height="3" fill="${C.goldLight}" opacity="0.55" rx="2"/>
+        <rect x="${seg2Left}" y="${yTopRect}" width="${segWidth}" height="${segHeight}" fill="${C.gold}" stroke="${C.ink}" stroke-width="1.2" rx="${radius}"/>
+        <rect x="${seg2Left + 3}" y="${yTopRect + 3}" width="${segWidth - 6}" height="3" fill="${C.goldLight}" opacity="0.55" rx="2"/>
+      </g>`)
+    }
+  }
+
+  return parts.join('\n  ')
+}
+
 export function renderCardSvg(data: CardData): string {
   const hero = data.emphasis === 'changed' && data.changed ? data.changed : data.main
   const yHexName = 110
   const yBinaryLines = 130
   const yBinaryEnd = 540
-  const lineHeight = (yBinaryEnd - yBinaryLines) / 6
-
-  // Lines: y=0 is the top of the hexagram (line 6), y=5 is the bottom (line 1)
-  const lines: string[] = []
-  for (let i = 0; i < 6; i++) {
-    const isYang = hero.binaryCode[5 - i] === '1'
-    const y = yBinaryLines + i * lineHeight + lineHeight / 2
-    if (isYang) {
-      lines.push(
-        `<line x1="${W / 2 - 80}" y1="${y}" x2="${W / 2 + 80}" y2="${y}" stroke="${C.rice}" stroke-width="14" stroke-linecap="round"/>`
-      )
-    } else {
-      const gap = 12
-      lines.push(
-        `<line x1="${W / 2 - 80}" y1="${y}" x2="${W / 2 - gap}" y2="${y}" stroke="${C.rice}" stroke-width="14" stroke-linecap="round"/>`
-      )
-      lines.push(
-        `<line x1="${W / 2 + gap}" y1="${y}" x2="${W / 2 + 80}" y2="${y}" stroke="${C.rice}" stroke-width="14" stroke-linecap="round"/>`
-      )
-    }
-  }
+  // Hexagram body: 6 stylized gold bars with highlight + inter-line separators
+  const lines = renderHexagramLines(hero, W, yBinaryLines, yBinaryEnd)
 
   const yAfterHex = yBinaryEnd + 30
   const sectionY = data.movingLine !== undefined && data.changed ? yAfterHex + 30 : yAfterHex
@@ -166,7 +197,7 @@ export function renderCardSvg(data: CardData): string {
   <rect x="${PADDING}" y="${PADDING}" width="${W - 2 * PADDING}" height="${yBinaryEnd - yBinaryLines + 80}"
         fill="url(#heroGrad)" rx="8"/>
   <g>
-    ${lines.join('\n    ')}
+    ${lines}
   </g>
   <text x="${W / 2}" y="${yHexName}" text-anchor="middle" font-family="${FONT_DISPLAY}"
         font-size="36" fill="${C.rice}" letter-spacing="14" font-weight="500">${escapeXml(hero.name)}</text>

@@ -18,22 +18,33 @@ describe('imageGen', () => {
       expect(svg).toContain('乾为天')
     })
 
-    it('renders 6 lines (3 yin + 3 yang) for 乾 (binary 111111)', () => {
+    it('renders 6 yang rects for 乾 (binary 111111)', () => {
       const data = cardDataFromIds({ mainId: 1 })
       const svg = renderCardSvg(data!)
-      // 6 yang lines → 6 single <line> elements (no gap)
-      const singleLines = svg.match(/<line[^/]*\/>/g) ?? []
-      // Each yang line is one <line>; expect 6 yang lines plus the moving/decorative lines.
-      // The simplest sanity check: total <line> count is at least 6.
-      expect(singleLines.length).toBeGreaterThanOrEqual(6)
+      const rectCount = (svg.match(/<rect /g) ?? []).length
+      // hero background 1 + 6 yang fills + 6 highlights = 13 rects
+      expect(rectCount).toBeGreaterThanOrEqual(13)
     })
 
-    it('renders 6 broken (yin) lines for 坤 (binary 000000)', () => {
+    it('renders 12 yin rects for 坤 (binary 000000)', () => {
       const data = cardDataFromIds({ mainId: 2 }) // 坤为地
       const svg = renderCardSvg(data!)
-      // Each yin line = 2 segments → 12 <line> elements for 6 yin lines
-      const lineCount = (svg.match(/<line /g) ?? []).length
-      expect(lineCount).toBeGreaterThanOrEqual(12)
+      const rectCount = (svg.match(/<rect /g) ?? []).length
+      // hero background 1 + 12 yin fills (2 segments x 6) + 12 highlights = 25 rects
+      expect(rectCount).toBeGreaterThanOrEqual(25)
+    })
+
+    it('uses gold fill for hexagram body', () => {
+      const data = cardDataFromIds({ mainId: 1 })
+      const svg = renderCardSvg(data!)
+      expect(svg).toMatch(/fill="#C89E3A"/)
+    })
+
+    it('renders 5 inter-line separators', () => {
+      const data = cardDataFromIds({ mainId: 1 })
+      const svg = renderCardSvg(data!)
+      // Each separator uses shadowInk stroke; expect exactly 5
+      expect((svg.match(/stroke="rgba\(26,26,26,0\.12\)"/g) ?? []).length).toBe(5)
     })
 
     it('omits AI summary section when not provided', () => {

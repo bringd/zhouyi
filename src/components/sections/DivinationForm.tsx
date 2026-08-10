@@ -3,9 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { QuestionInput } from "@/components/ui/QuestionInput";
-import { NumberBox } from "@/components/ui/NumberBox";
+import {
+  NumberBoxWithRandomizer,
+  type RandomVariant,
+} from "@/components/ui/NumberBoxRandomizer";
 import { divination } from "@/lib/divination";
 import { saveRecord } from "@/lib/storage";
+import { buildNumberError } from "@/lib/validation";
 import { cn } from "@/utils/cn";
 
 export interface DivinationFormProps {
@@ -27,6 +31,7 @@ export function DivinationForm({
   >(initialNumbers ?? [null, null, null]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [variant, setVariant] = useState<RandomVariant>("reel");
   const navigate = useNavigate();
   const isValid = numbers.every((n) => n !== null && n >= 100 && n <= 999);
 
@@ -34,7 +39,7 @@ export function DivinationForm({
     e.preventDefault();
     setError(null);
     if (!isValid) {
-      setError("请输入三个有效的三位数（100-999）");
+      setError(buildNumberError(numbers) ?? "起卦失败，请重试");
       return;
     }
     setSubmitting(true);
@@ -87,25 +92,45 @@ export function DivinationForm({
       </p>
       <QuestionInput value={question} onChange={setQuestion} className="mb-6" />
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <NumberBox
+        <NumberBoxWithRandomizer
           value={numbers[0]}
           onChange={(v) => setNumbers([v, numbers[1], numbers[2]])}
           label="第一灵数"
           description="下卦"
+          variant={variant}
         />
-        <NumberBox
+        <NumberBoxWithRandomizer
           value={numbers[1]}
           onChange={(v) => setNumbers([numbers[0], v, numbers[2]])}
           label="第二灵数"
           description="上卦"
+          variant={variant}
         />
-        <NumberBox
+        <NumberBoxWithRandomizer
           value={numbers[2]}
           onChange={(v) => setNumbers([numbers[0], numbers[1], v])}
           label="第三灵数"
           description="动爻"
+          variant={variant}
         />
       </div>
+      {import.meta.env.DEV && (
+        <fieldset className="mb-6 flex justify-center gap-4 text-xs font-body text-ink-light">
+          <legend className="sr-only">随机动画风格（仅 dev）</legend>
+          {(["reel", "scroll", "stem-branch"] as RandomVariant[]).map((v) => (
+            <label key={v} className="flex items-center gap-1 cursor-pointer">
+              <input
+                type="radio"
+                name="random-variant"
+                value={v}
+                checked={variant === v}
+                onChange={() => setVariant(v)}
+              />
+              {v}
+            </label>
+          ))}
+        </fieldset>
+      )}
       {error && (
         <div className="text-june-red text-sm text-center font-body mb-4">
           {error}
