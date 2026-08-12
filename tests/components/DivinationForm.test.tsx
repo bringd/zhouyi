@@ -40,9 +40,7 @@ describe("DivinationForm", () => {
         <DivinationForm />
       </MemoryRouter>,
     );
-    expect(
-      screen.getByPlaceholderText(/请输入您想询问的问题/),
-    ).toBeInTheDocument();
+    expect(document.querySelector("textarea")).not.toBeNull();
   });
 
   it("renders all 3 number box labels", () => {
@@ -74,7 +72,7 @@ describe("DivinationForm", () => {
         />
       </MemoryRouter>,
     );
-    expect(screen.getByDisplayValue("my question")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("my question")).toBeInTheDocument();
     expect(screen.getByDisplayValue("123")).toBeInTheDocument();
     expect(screen.getByDisplayValue("456")).toBeInTheDocument();
     expect(screen.getByDisplayValue("789")).toBeInTheDocument();
@@ -142,18 +140,54 @@ describe("DivinationForm", () => {
     expect(path).toMatch(/^\/result\/[a-f0-9-]+$/);
   });
 
-  it("saves record with undefined question when question is empty", () => {
+  it("saves the default question when the user does not type anything", () => {
     const onResult = vi.fn();
     render(
       <MemoryRouter>
-        <DivinationForm initialNumbers={[123, 456, 789]} onResult={onResult} />
+        <DivinationForm
+          initialNumbers={[123, 456, 789]}
+          initialQuestion="my question"
+          onResult={onResult}
+        />
       </MemoryRouter>,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "启 卦" }));
 
     const records = getAllRecords();
-    expect(records[0].question).toBeUndefined();
+    expect(records[0].question).toBe("my question");
+  });
+
+  it("saves the user-typed question when provided", () => {
+    const onResult = vi.fn();
+    render(
+      <MemoryRouter>
+        <DivinationForm
+          initialNumbers={[123, 456, 789]}
+          initialQuestion="my question"
+          onResult={onResult}
+        />
+      </MemoryRouter>,
+    );
+
+    const textarea = screen.getByPlaceholderText("my question");
+    fireEvent.change(textarea, { target: { value: "用户自己写的问题" } });
+    fireEvent.click(screen.getByRole("button", { name: "启 卦" }));
+
+    const records = getAllRecords();
+    expect(records[0].question).toBe("用户自己写的问题");
+  });
+
+  it("shows a random sample question as placeholder when no initialQuestion is provided", () => {
+    render(
+      <MemoryRouter>
+        <DivinationForm />
+      </MemoryRouter>,
+    );
+    const textarea = document.querySelector("textarea");
+    expect(textarea).not.toBeNull();
+    const ph = textarea?.getAttribute("placeholder") ?? "";
+    expect(ph.length).toBeGreaterThan(0);
   });
 
   it("disables submit when fields are missing so the user cannot trigger an error display yet", () => {
