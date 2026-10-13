@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import trigramsData from '@/data/trigrams.json'
 import hexagramsData from '@/data/hexagrams.json'
 import { getOpposite, getInverse, getNuclear } from '@/lib/relations'
+import { validateModernInterpretation } from '@/lib/modernInterpretation'
 import type { HexagramId } from '@/types'
 
 const byBinary = new Map(hexagramsData.map((h) => [h.binaryCode, h.id]))
@@ -53,8 +54,8 @@ describe('Data structure sanity', () => {
 })
 
 describe('relations (错卦 / 综卦 / 互卦)', () => {
-  // Audit finding C4: all 192 relation fields held the literal 0 — a dead,
-  // wrong schema. scripts/fill-relations.mjs backfilled them.
+  // Audit finding C4: all 192 relation fields originally held the literal 0 —
+  // a dead, wrong schema. scripts/fill-relations.mjs backfilled them.
   it('are legal hexagram ids (1-64) for all 64 entries', () => {
     for (const h of hexagramsData) {
       for (const key of ['opposite', 'inverse', 'nuclear'] as const) {
@@ -96,6 +97,37 @@ describe('relations (错卦 / 综卦 / 互卦)', () => {
     for (const h of hexagramsData) {
       expect(byId.get(h.relations.opposite)!.relations.opposite, `id=${h.id} 错`).toBe(h.id)
       expect(byId.get(h.relations.inverse)!.relations.inverse, `id=${h.id} 综`).toBe(h.id)
+    }
+  })
+})
+
+describe('modernInterpretation', () => {
+  // Audit finding C1: 60 of 64 entries were empty, and the UI silently dropped
+  // the section (`{hex.modernInterpretation && …}`). scripts/fill-modern-
+  // interpretations.mjs backfilled them.
+  //
+  // The contract itself lives in src/lib/modernInterpretation.ts — the same
+  // module the generator imports before writing, so the two cannot drift.
+  it('satisfies the shared spec §3.2 contract (200-300 字, prose shape, closing formula)', () => {
+    const failures = hexagramsData
+      .map((h) => ({ h, problems: validateModernInterpretation(h.modernInterpretation, h.id) }))
+      .filter((x) => x.problems.length > 0)
+      .map((x) => `id=${x.h.id} ${x.h.name}: ${x.problems.join('; ')}`)
+    expect(failures).toEqual([])
+  })
+
+  it('keeps the four hand-written reference entries verbatim', () => {
+    // These define the target style and must never be replaced by generated
+    // text (the generator skips id 1-4 unless --force is passed).
+    const anchors: Record<number, string> = {
+      1: '乾为天，纯阳之卦',
+      2: '坤为地，纯阴之卦',
+      3: '屯者，盈也、物之初生也',
+      4: '蒙者，昧也、物之幼稚也',
+    }
+    for (const [id, anchor] of Object.entries(anchors)) {
+      const h = byId.get(Number(id))!
+      expect(h.modernInterpretation, `id=${id} ${h.name}`).toContain(anchor)
     }
   })
 })
