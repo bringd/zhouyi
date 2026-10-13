@@ -84,9 +84,9 @@
     ],
     "modernInterpretation": "乾为天，纯阳之卦，三爻皆阳，象征刚健、创造、领导之力。此卦昭示：万物之始，皆由刚健之动而发。在事业层面，乾卦提示主动进取、自强不息的精神——唯有不畏艰难、持续精进，方能成就大业。在人际交往中，则提醒以诚信立身、以果敢决断。乾之德虽刚，然过刚则折，故应持守中正、知进知退。读乾卦者，宜取其刚健不息的进取心，去其刚愎自用的偏执，方为得卦之真意。",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 2,
+      "inverse": 1,
+      "nuclear": 1
     }
   },
   {
@@ -174,9 +174,9 @@
     ],
     "modernInterpretation": "坤为地，纯阴之卦，象征包容、柔顺、承载、化育之德。此卦昭示：大地以广博承载万物而不辞，君子亦应以厚德包容万象。在事业层面，坤卦提示以退为进、以柔克刚的智慧——能顺势而行、善于配合协助者，往往能在群体中发挥不可替代的作用。在人际交往中，则提醒以柔顺谦下为美、以诚信宽厚立身。坤之德虽顺，然过顺则失，故应在顺从中保持主见、在柔和中内含刚健。读坤卦者，宜取其厚德载物的胸怀，去其优柔寡断的软弱，方为得卦之真意。",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 1,
+      "inverse": 2,
+      "nuclear": 2
     }
   },
   {
@@ -264,9 +264,9 @@
     ],
     "modernInterpretation": "屯者，盈也、物之初生也。屯卦上坎下震，象征云雷交作、天地初开之艰难。此卦昭示：万事开头难，凡事初创之时必然经历一段混沌与困顿。在事业层面，屯卦提示勿急于求成，宜稳扎稳打、聚拢人心、借势而起。在人生起步阶段，则提醒积蓄力量、广结善缘，等待时机成熟。在困境中，最忌盲目冒进与孤立无援；最宜守持正固、寻求合作。此卦之要在于明辨'难'与'机'——大难之中往往蕴藏大机，唯有心怀远见、沉着应对者，方能转危为安。读屯卦者，宜取其坚韧不拔的毅力，去其犹豫不决的迟疑，方为得卦之真意。",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 50,
+      "inverse": 4,
+      "nuclear": 23
     }
   },
   {
@@ -355,9 +355,9 @@
     ],
     "modernInterpretation": "蒙者，昧也、物之幼稚也。蒙卦上艮下坎，象征山下有险、蒙稚未启之象。此卦昭示：人生若处蒙昧之中，当以启发自新为要。在教育层面，蒙卦提示求学者应主动诚心、求教有道；施教者应因材施教、严宽相济。在人生修养层面，则提醒人须常怀谦下之心，承认自身不足、乐于求教他人。蒙之要在于'问'与'学'——能问则明，能学则进。此卦之诫在于：困于蒙而不自知、固执己见者，必将悔吝；唯有主动破除蒙蔽、虚心向学，方能渐入佳境。读蒙卦者，宜取其谦逊好学的态度，去其优柔寡断的迟疑，方为得卦之真意。",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 49,
+      "inverse": 3,
+      "nuclear": 24
     }
   },
   {
@@ -446,9 +446,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 35,
+      "inverse": 6,
+      "nuclear": 38
     }
   },
   {
@@ -537,9 +537,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 36,
+      "inverse": 5,
+      "nuclear": 37
     }
   },
   {
@@ -628,9 +628,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 13,
+      "inverse": 8,
+      "nuclear": 24
     }
   },
   {
@@ -718,9 +718,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 14,
+      "inverse": 7,
+      "nuclear": 23
     }
   },
   {
@@ -808,9 +808,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 16,
+      "inverse": 10,
+      "nuclear": 38
     }
   },
   {
@@ -899,9 +899,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 15,
+      "inverse": 9,
+      "nuclear": 37
     }
   },
   {
@@ -990,9 +990,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 12,
+      "inverse": 12,
+      "nuclear": 54
     }
   },
   {
@@ -1081,9 +1081,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 11,
+      "inverse": 11,
+      "nuclear": 53
     }
   },
   {
@@ -1172,9 +1172,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 7,
+      "inverse": 14,
+      "nuclear": 44
     }
   },
   {
@@ -1263,9 +1263,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 8,
+      "inverse": 13,
+      "nuclear": 43
     }
   },
   {
@@ -1355,9 +1355,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 10,
+      "inverse": 16,
+      "nuclear": 40
     }
   },
   {
@@ -1447,9 +1447,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 9,
+      "inverse": 15,
+      "nuclear": 39
     }
   },
   {
@@ -1539,9 +1539,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 18,
+      "inverse": 18,
+      "nuclear": 53
     }
   },
   {
@@ -1631,9 +1631,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 17,
+      "inverse": 17,
+      "nuclear": 54
     }
   },
   {
@@ -1722,9 +1722,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 33,
+      "inverse": 20,
+      "nuclear": 24
     }
   },
   {
@@ -1813,9 +1813,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 34,
+      "inverse": 19,
+      "nuclear": 23
     }
   },
   {
@@ -1904,9 +1904,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 48,
+      "inverse": 22,
+      "nuclear": 39
     }
   },
   {
@@ -1994,9 +1994,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 47,
+      "inverse": 21,
+      "nuclear": 40
     }
   },
   {
@@ -2085,9 +2085,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 43,
+      "inverse": 24,
+      "nuclear": 2
     }
   },
   {
@@ -2176,9 +2176,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 44,
+      "inverse": 23,
+      "nuclear": 2
     }
   },
   {
@@ -2266,9 +2266,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 46,
+      "inverse": 26,
+      "nuclear": 53
     }
   },
   {
@@ -2357,9 +2357,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 45,
+      "inverse": 25,
+      "nuclear": 54
     }
   },
   {
@@ -2447,9 +2447,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 28,
+      "inverse": 27,
+      "nuclear": 2
     }
   },
   {
@@ -2538,9 +2538,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 27,
+      "inverse": 28,
+      "nuclear": 1
     }
   },
   {
@@ -2628,9 +2628,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 30,
+      "inverse": 29,
+      "nuclear": 27
     }
   },
   {
@@ -2719,9 +2719,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 29,
+      "inverse": 30,
+      "nuclear": 28
     }
   },
   {
@@ -2809,9 +2809,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 41,
+      "inverse": 32,
+      "nuclear": 44
     }
   },
   {
@@ -2899,9 +2899,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 42,
+      "inverse": 31,
+      "nuclear": 43
     }
   },
   {
@@ -2990,9 +2990,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 19,
+      "inverse": 34,
+      "nuclear": 44
     }
   },
   {
@@ -3081,9 +3081,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 20,
+      "inverse": 33,
+      "nuclear": 43
     }
   },
   {
@@ -3172,9 +3172,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 5,
+      "inverse": 36,
+      "nuclear": 39
     }
   },
   {
@@ -3263,9 +3263,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 6,
+      "inverse": 35,
+      "nuclear": 40
     }
   },
   {
@@ -3353,9 +3353,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 40,
+      "inverse": 38,
+      "nuclear": 64
     }
   },
   {
@@ -3444,9 +3444,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 39,
+      "inverse": 37,
+      "nuclear": 63
     }
   },
   {
@@ -3534,9 +3534,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 38,
+      "inverse": 40,
+      "nuclear": 64
     }
   },
   {
@@ -3625,9 +3625,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 37,
+      "inverse": 39,
+      "nuclear": 63
     }
   },
   {
@@ -3715,9 +3715,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 31,
+      "inverse": 42,
+      "nuclear": 24
     }
   },
   {
@@ -3806,9 +3806,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 32,
+      "inverse": 41,
+      "nuclear": 23
     }
   },
   {
@@ -3897,9 +3897,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 23,
+      "inverse": 44,
+      "nuclear": 1
     }
   },
   {
@@ -3988,9 +3988,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 24,
+      "inverse": 43,
+      "nuclear": 1
     }
   },
   {
@@ -4079,9 +4079,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 26,
+      "inverse": 46,
+      "nuclear": 53
     }
   },
   {
@@ -4170,9 +4170,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 25,
+      "inverse": 45,
+      "nuclear": 54
     }
   },
   {
@@ -4260,9 +4260,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 22,
+      "inverse": 48,
+      "nuclear": 37
     }
   },
   {
@@ -4351,9 +4351,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 21,
+      "inverse": 47,
+      "nuclear": 38
     }
   },
   {
@@ -4442,9 +4442,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 4,
+      "inverse": 50,
+      "nuclear": 44
     }
   },
   {
@@ -4533,9 +4533,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 3,
+      "inverse": 49,
+      "nuclear": 43
     }
   },
   {
@@ -4623,9 +4623,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 57,
+      "inverse": 52,
+      "nuclear": 39
     }
   },
   {
@@ -4714,9 +4714,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 58,
+      "inverse": 51,
+      "nuclear": 40
     }
   },
   {
@@ -4805,9 +4805,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 54,
+      "inverse": 54,
+      "nuclear": 64
     }
   },
   {
@@ -4895,9 +4895,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 53,
+      "inverse": 53,
+      "nuclear": 63
     }
   },
   {
@@ -4985,9 +4985,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 59,
+      "inverse": 56,
+      "nuclear": 28
     }
   },
   {
@@ -5076,9 +5076,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 60,
+      "inverse": 55,
+      "nuclear": 28
     }
   },
   {
@@ -5167,9 +5167,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 51,
+      "inverse": 58,
+      "nuclear": 38
     }
   },
   {
@@ -5258,9 +5258,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 52,
+      "inverse": 57,
+      "nuclear": 37
     }
   },
   {
@@ -5349,9 +5349,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 55,
+      "inverse": 60,
+      "nuclear": 27
     }
   },
   {
@@ -5440,9 +5440,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 56,
+      "inverse": 59,
+      "nuclear": 27
     }
   },
   {
@@ -5531,9 +5531,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 62,
+      "inverse": 61,
+      "nuclear": 27
     }
   },
   {
@@ -5621,9 +5621,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 61,
+      "inverse": 62,
+      "nuclear": 28
     }
   },
   {
@@ -5712,9 +5712,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 64,
+      "inverse": 64,
+      "nuclear": 64
     }
   },
   {
@@ -5803,9 +5803,9 @@
     ],
     "modernInterpretation": "",
     "relations": {
-      "opposite": 0,
-      "inverse": 0,
-      "nuclear": 0
+      "opposite": 63,
+      "inverse": 63,
+      "nuclear": 63
     }
   }
 ]
