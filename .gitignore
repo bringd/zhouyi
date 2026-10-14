@@ -76,3 +76,8 @@ screenshots/
 .opencode/node_modules/
 .opencode/bun.lock
 .opencode/package-lock.json
+
+# Per-machine npm config: registry mirrors (e.g. npmmirror.com in CN),
+# package manager toggles, etc. Project-level policy belongs in
+# package.json's `packageManager` field instead.
+.npmrc
