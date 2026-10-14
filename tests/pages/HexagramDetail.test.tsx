@@ -3,6 +3,7 @@ import { render } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 import HexagramDetail from '@/pages/HexagramDetail'
+import { validateModernInterpretation } from '@/lib/modernInterpretation'
 
 // Same providers as the Smoke test: <SEO /> needs HelmetProvider.
 function withProviders(node: React.ReactNode) {
@@ -60,6 +61,30 @@ describe('HexagramDetail Hero card', () => {
     expect(sealWrapper!.className).toMatch(/z-10/)
     // pointer-events-none so clicks pass through to the card body
     expect(sealWrapper!.className).toMatch(/pointer-events-none/)
+  })
+})
+
+// Regression test for audit finding C1. The section is rendered behind
+// `{hexagram.modernInterpretation && …}`, so 60 of 64 pages silently dropped
+// it while every data-level check still passed — nothing asserted that the
+// text reaches the DOM. These tests fail if that guard ever hides real copy.
+describe('现代解读 renders (C1 regression)', () => {
+  /** The <p> inside the 现代解读 <section>, or null if the section is absent. */
+  const modernParagraph = (container: HTMLElement): string | null => {
+    const h2 = Array.from(container.querySelectorAll('h2')).find(
+      (el) => el.textContent?.replace(/\s/g, '') === '现代解读'
+    )
+    if (!h2) return null
+    return h2.parentElement?.querySelector('p')?.textContent ?? null
+  }
+
+  // id 1 is hand-written, 30 and 64 were empty before the backfill.
+  it.each([1, 30, 64])('renders filled, spec-compliant copy for hexagram %i', (id) => {
+    const { container } = renderAt(String(id))
+    const text = modernParagraph(container)
+    expect(text, `id=${id} has no 现代解读 paragraph`).not.toBeNull()
+    // Same contract the generator and the data tests use — one source of truth.
+    expect(validateModernInterpretation(text, id), `id=${id}`).toEqual([])
   })
 })
 

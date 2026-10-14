@@ -87,3 +87,32 @@ describe('DailyHero', () => {
     expect(screen.getByText('三数起卦')).toBeInTheDocument()
   })
 })
+
+// Regression test for audit finding C1: this is the second render site that
+// hides the copy behind `{main.modernInterpretation && …}`, so the home hero
+// showed nothing for 60 of 64 daily hexagrams. `.line-clamp-4` is unique to
+// this paragraph (verified in DailyHero.tsx), so it identifies the node.
+describe('DailyHero modernInterpretation (C1 regression)', () => {
+  it('renders the daily hexagram modernInterpretation', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <DailyHero mainHexagram={mockQian} changedHexagram={mockKun} movingLine={4} />
+      </MemoryRouter>
+    )
+    expect(screen.getByText('乾为天，纯阳之卦。')).toBeInTheDocument()
+    expect(container.querySelector('.line-clamp-4')?.textContent).toBe('乾为天，纯阳之卦。')
+  })
+
+  it('omits the paragraph entirely when the text is empty, leaving no orphan node', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <DailyHero
+          mainHexagram={{ ...mockQian, modernInterpretation: '' }}
+          changedHexagram={mockKun}
+          movingLine={4}
+        />
+      </MemoryRouter>
+    )
+    expect(container.querySelector('.line-clamp-4')).toBeNull()
+  })
+})
