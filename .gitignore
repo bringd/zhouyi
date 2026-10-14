@@ -59,3 +59,20 @@ node_modules/.tmp/
 # Temp
 tmp/
 temp/
+
+# Cloudflare wrangler local D1 + Workers state (do not commit)
+.wrangler/
+
+# External tool output (opc-doc is a runtime artifact, not source)
+opc-doc/
+
+# Visual test artifacts: 100+ PNGs produced by scripts/shot-*.mjs and
+# scripts/check-*.mjs. They are regeneratable from the committed scripts;
+# the curated HTML mockups live under docs/mockups/ instead.
+screenshots/
+
+# .opencode/ is a per-machine agent installation. Only its agents/*.md
+# definitions are tracked (used by docs/opencode-token-plan-setup.md).
+.opencode/node_modules/
+.opencode/bun.lock
+.opencode/package-lock.json

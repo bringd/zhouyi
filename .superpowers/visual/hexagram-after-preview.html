@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>卦象改后效果预览 · 优化方案 A</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Serif SC', 'Songti SC', serif;
+    background: #f5f0e1;
+    color: #1a1a1a;
+    padding: 40px 20px 80px;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  h1 {
+    font-size: 26px; text-align: center; letter-spacing: 0.25em; margin-bottom: 6px; color: #1a1a1a;
+  }
+  .sub {
+    text-align: center; color: #6a5a3a; font-size: 13px; margin-bottom: 40px;
+  }
+  h2 {
+    font-size: 18px; letter-spacing: 0.2em; color: #9b2c2c; margin: 36px 0 4px;
+    border-bottom: 1px solid #d4b88a; padding-bottom: 6px;
+  }
+  h2 .num { color: #8b6914; margin-right: 8px; }
+  .note { font-size: 12px; color: #6a5a3a; margin-bottom: 18px; }
+  .panel {
+    background: #faf6ec; border: 1px solid #d4b88a; border-radius: 6px;
+    padding: 28px; margin-bottom: 24px;
+  }
+  .panel-title {
+    font-size: 13px; color: #8b6914; letter-spacing: 0.2em; margin-bottom: 16px;
+  }
+  .panel-title .tag {
+    display: inline-block; background: #9b2c2c; color: #fff; font-size: 10px;
+    padding: 2px 6px; border-radius: 2px; margin-left: 8px; letter-spacing: 0.1em;
+  }
+
+  /* ============ 1. Hero card (新 Seal + 去 shadow) ============ */
+  .hero {
+    background: #faf6ec; border: 1.5px solid #8b6914; border-radius: 4px;
+    padding: 22px; width: 280px; margin: 0 auto; position: relative;
+  }
+  .hero .seal-tr {
+    position: absolute; top: 12px; right: 12px;
+  }
+  .hero .num-tag {
+    position: absolute; top: 14px; left: 16px; color: #8b6914; font-size: 12px; letter-spacing: 0.3em;
+  }
+  .hero .hex-stack {
+    margin: 28px auto 12px; width: 200px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .hero .hex-name {
+    text-align: center; font-size: 22px; font-weight: 600; letter-spacing: 0.2em; color: #1a1a1a;
+    margin-top: 6px;
+  }
+  .hero .hex-keywords {
+    text-align: center; font-size: 11px; color: #8b6914; opacity: 0.85; margin-top: 4px;
+  }
+
+  /* ============ 2. Codex sm 卡片 (新 Seal) ============ */
+  .codex-row {
+    display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; margin-top: 12px;
+  }
+  @media (max-width: 720px) { .codex-row { grid-template-columns: repeat(4, 1fr); } }
+  .codex-card {
+    background: #faf6ec; border: 1.5px solid #8b6914; border-radius: 3px;
+    padding: 8px 4px; display: flex; flex-direction: column; align-items: center;
+  }
+  .codex-card .mini { margin: 2px 0 4px; }
+  .codex-card .name { font-size: 10px; color: #1a1a1a; font-weight: 500; }
+
+  /* ============ 3. Twin spread (新 Seal) ============ */
+  .twin {
+    display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: stretch;
+    max-width: 700px; margin: 0 auto;
+  }
+  .twin .page {
+    background: #faf6ec; border: 1.5px solid #8b6914; border-radius: 4px;
+    padding: 18px 14px 14px; position: relative; text-align: center;
+  }
+  .twin .page-label {
+    position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+    background: #8b6914; color: #faf6ec; font-size: 10px; padding: 2px 8px; border-radius: 2px; letter-spacing: 0.2em;
+  }
+  .twin .page.right .page-label { background: #9b2c2c; }
+  .twin .seal-wrap { display: flex; justify-content: center; margin: 4px 0 8px; }
+  .twin .name { font-size: 16px; font-weight: 600; letter-spacing: 0.2em; }
+  .twin .arrow { display: flex; align-items: center; justify-content: center; color: #8b6914; font-size: 22px; }
+
+  /* ============ 4. Yao line section (mini stack) ============ */
+  .yao-card {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: rgba(250,246,236,0.7); border: 1px solid rgba(139,105,20,0.2);
+    border-radius: 4px; padding: 12px 14px; margin-bottom: 10px;
+  }
+  .yao-card .mini-stack {
+    background: rgba(250,246,236,0.6); border: 1px solid rgba(139,105,20,0.3);
+    border-radius: 3px; padding: 6px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .yao-card .mini-stack .row {
+    display: flex; align-items: center; justify-content: center; border-radius: 2px;
+    padding: 2px 4px;
+  }
+  .yao-card .mini-stack .row.current {
+    background: rgba(155,44,44,0.2); box-shadow: 0 0 0 2px #9b2c2c;
+  }
+  .yao-card .badge {
+    display: inline-block; background: #9b2c2c; color: #faf6ec; font-size: 11px; font-weight: bold;
+    padding: 1px 6px; border-radius: 2px; margin-right: 6px; letter-spacing: 0.1em;
+  }
+  .yao-card .yao-text { font-size: 14px; color: #1a1a1a; font-weight: 500; }
+
+  /* ============ 5. Detail page rhythm ============ */
+  .detail-mock {
+    background: #faf6ec; border: 1px solid #d4b88a; border-radius: 6px; padding: 24px;
+    max-width: 720px; margin: 0 auto;
+  }
+  .section-block { padding: 18px 0; position: relative; }
+  .section-block + .section-block { border-top: 1px solid rgba(155,44,44,0.2); }
+  .section-block .label { font-size: 11px; color: #8b6914; letter-spacing: 0.3em; margin-bottom: 6px; }
+  .section-block .body { font-size: 13px; color: #1a1a1a; line-height: 1.7; }
+  .section-block.muted .label { color: #9b2c2c; }
+
+  /* Seal SVG component reuse */
+  .seal-svg { display: inline-block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>卦 象 改 后 效 果 预 览</h1>
+  <p class="sub">方案 A 实施完毕后，5 个核心位置的最终样子</p>
+
+  <!-- ========== 1. Hero Card ========== -->
+  <h2><span class="num">①</span> 详情页 Hero 卡 · 去双层 shadow + 新 Seal</h2>
+  <p class="note">改动：删除 `shadow-lg`（BreathEffect 自带光晕），保留双线边框 + 右上新 Seal + 左上"第 N 卦"标号（不再有右下大字卦名）。</p>
+  <div class="panel">
+    <div class="panel-title">详情页 Hero · 改后 <span class="tag">V5 + V6 + V4</span></div>
+    <div class="hero">
+      <span class="num-tag">第 29 卦</span>
+      <span class="seal-tr">
+        <svg class="seal-svg" width="38" height="38" viewBox="0 0 100 100" style="transform:rotate(-3deg);">
+          <rect x="3" y="3" width="94" height="94" fill="#9b2c2c"/>
+          <rect x="9" y="9" width="82" height="82" fill="none" stroke="#faf6ec" stroke-width="1" opacity="0.5"/>
+          <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="44" fill="#faf6ec" font-family="'Noto Serif SC','Songti SC',serif" font-weight="500">坎</text>
+        </svg>
+      </span>
+      <div class="hex-stack">
+        <div style="display:flex;gap:6px;width:200px;height:6px;"><div style="width:97px;height:6px;background:#1a1a1a;"></div><div style="width:97px;height:6px;background:#1a1a1a;"></div></div>
+        <div style="width:200px;height:6px;background:#1a1a1a;"></div>
+        <div style="display:flex;gap:6px;width:200px;height:6px;"><div style="width:97px;height:6px;background:#1a1a1a;"></div><div style="width:97px;height:6px;background:#1a1a1a;"></div></div>
+        <div style="width:200px;height:6px;background:#1a1a1a;"></div>
+        <div style="display:flex;gap:6px;width:200px;height:6px;"><div style="width:97px;height:6px;background:#1a1a1a;"></div><div style="width:97px;height:6px;background:#1a1a1a;"></div></div>
+        <div style="width:200px;height:6px;background:#1a1a1a;"></div>
+      </div>
+      <div class="hex-name">坎 为 水</div>
+      <div class="hex-keywords">习坎 · 重险 · 守正</div>
+    </div>
+  </div>
+
+  <!-- ========== 2. Codex sm Card ========== -->
+  <h2><span class="num">②</span> 64 卦图鉴 sm 卡 · 新 Seal 替代 div Stamp</h2>
+  <p class="note">改动：sm 卡（80px 宽）原来用 div Stamp 不显示（showKeywords=false），现在统一不挂 stamp；中/大卡才挂。看 8 张混合示例：</p>
+  <div class="panel">
+    <div class="panel-title">Codex sm · 改后 <span class="tag">V4</span></div>
+    <div class="codex-row">
+      <div class="codex-card">
+        <div class="mini" style="display:flex;flex-direction:column;gap:4px;width:60px;">
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+        </div>
+        <div class="name">乾为天</div>
+      </div>
+      <div class="codex-card">
+        <div class="mini" style="display:flex;flex-direction:column;gap:4px;width:60px;">
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+        </div>
+        <div class="name">坤为地</div>
+      </div>
+      <div class="codex-card">
+        <div class="mini" style="display:flex;flex-direction:column;gap:4px;width:60px;">
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+        </div>
+        <div class="name">地天泰</div>
+      </div>
+      <div class="codex-card">
+        <div class="mini" style="display:flex;flex-direction:column;gap:4px;width:60px;">
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+        </div>
+        <div class="name">天地否</div>
+      </div>
+      <div class="codex-card">
+        <div class="mini" style="display:flex;flex-direction:column;gap:4px;width:60px;">
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+        </div>
+        <div class="name">地山谦</div>
+      </div>
+      <div class="codex-card">
+        <div class="mini" style="display:flex;flex-direction:column;gap:4px;width:60px;">
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+        </div>
+        <div class="name">雷地豫</div>
+      </div>
+      <div class="codex-card">
+        <div class="mini" style="display:flex;flex-direction:column;gap:4px;width:60px;">
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+        </div>
+        <div class="name">泽雷随</div>
+      </div>
+      <div class="codex-card">
+        <div class="mini" style="display:flex;flex-direction:column;gap:4px;width:60px;">
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="width:60px;height:6px;background:#1a1a1a;"></div>
+          <div style="display:flex;gap:6px;width:60px;height:6px;"><div style="width:27px;height:6px;background:#1a1a1a;"></div><div style="width:27px;height:6px;background:#1a1a1a;"></div></div>
+        </div>
+        <div class="name">山风蛊</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 3. Twin Spread ========== -->
+  <h2><span class="num">③</span> Twin Spread 本/变对开页 · 新 Seal</h2>
+  <p class="note">改动：本/变两枚 Stamp 改为新 Seal（红色稍浅的 + 旋转 ±3°），与 hero 视觉一致。</p>
+  <div class="panel">
+    <div class="panel-title">起卦结果 · Twin Spread 改后 <span class="tag">V4</span></div>
+    <div class="twin">
+      <div class="page">
+        <div class="page-label">本 卦</div>
+        <div class="seal-wrap">
+          <svg class="seal-svg" width="44" height="44" viewBox="0 0 100 100" style="transform:rotate(-3deg);">
+            <rect x="3" y="3" width="94" height="94" fill="#8b6914"/>
+            <rect x="9" y="9" width="82" height="82" fill="none" stroke="#faf6ec" stroke-width="1" opacity="0.5"/>
+            <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="44" fill="#faf6ec" font-family="'Noto Serif SC',serif" font-weight="500">讼</text>
+          </svg>
+        </div>
+        <div class="name">天 水 讼</div>
+        <div style="display:flex;flex-direction:column;gap:6px;width:140px;margin:10px auto 6px;">
+          <div style="width:140px;height:6px;background:#1a1a1a;"></div>
+          <div style="display:flex;gap:6px;width:140px;height:6px;"><div style="width:67px;height:6px;background:#1a1a1a;"></div><div style="width:67px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:140px;height:6px;"><div style="width:67px;height:6px;background:#1a1a1a;"></div><div style="width:67px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:140px;height:6px;"><div style="width:67px;height:6px;background:#1a1a1a;"></div><div style="width:67px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:140px;height:6px;"><div style="width:67px;height:6px;background:#1a1a1a;"></div><div style="width:67px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:140px;height:6px;"><div style="width:67px;height:6px;background:#1a1a1a;"></div><div style="width:67px;height:6px;background:#1a1a1a;"></div></div>
+        </div>
+        <p style="font-size:11px;color:#4a371c;font-family:KaiTi,serif;line-height:1.7;margin-top:4px;">讼：有孚，窒惕，中吉，终凶。</p>
+      </div>
+      <div class="arrow">⟶</div>
+      <div class="page right">
+        <div class="page-label">变 卦</div>
+        <div class="seal-wrap">
+          <svg class="seal-svg" width="44" height="44" viewBox="0 0 100 100" style="transform:rotate(3deg);">
+            <rect x="3" y="3" width="94" height="94" fill="#9b2c2c"/>
+            <rect x="9" y="9" width="82" height="82" fill="none" stroke="#faf6ec" stroke-width="1" opacity="0.5"/>
+            <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="44" fill="#faf6ec" font-family="'Noto Serif SC',serif" font-weight="500">涣</text>
+          </svg>
+        </div>
+        <div class="name">风 水 涣</div>
+        <div style="display:flex;flex-direction:column;gap:6px;width:140px;margin:10px auto 6px;">
+          <div style="width:140px;height:6px;background:#1a1a1a;"></div>
+          <div style="display:flex;gap:6px;width:140px;height:6px;"><div style="width:67px;height:6px;background:#1a1a1a;"></div><div style="width:67px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="width:140px;height:6px;background:#1a1a1a;"></div>
+          <div style="width:140px;height:6px;background:#1a1a1a;"></div>
+          <div style="display:flex;gap:6px;width:140px;height:6px;"><div style="width:67px;height:6px;background:#1a1a1a;"></div><div style="width:67px;height:6px;background:#1a1a1a;"></div></div>
+          <div style="display:flex;gap:6px;width:140px;height:6px;"><div style="width:67px;height:6px;background:#1a1a1a;"></div><div style="width:67px;height:6px;background:#1a1a1a;"></div></div>
+        </div>
+        <p style="font-size:11px;color:#4a371c;font-family:KaiTi,serif;line-height:1.7;margin-top:4px;">涣：亨。王假有庙，利涉大川，利贞。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 4. Yao Line Section (mini stack + scroll) ========== -->
+  <h2><span class="num">④</span> 六爻爻辞卡 · 新 MiniYaoStack + 节制感</h2>
+  <p class="note">改动：MiniYaoStack 从 YaoLineScroll 抽出成独立组件，可复用；视觉与现在一致（红环红底高亮当前爻）。</p>
+  <div class="panel">
+    <div class="panel-title">六爻爻辞 · 改后 <span class="tag">B7</span></div>
+    <div class="yao-card">
+      <div class="mini-stack" aria-label="位置指示器，当前在第 6 爻">
+        <div class="row" data-position="6" data-current="false" style="opacity:0.6;"><div style="display:flex;width:32px;height:6px;background:rgba(26,26,26,0.18);border-radius:1px;"></div></div>
+        <div class="row" data-position="5" data-current="false" style="opacity:0.6;"><div style="display:flex;width:32px;height:6px;background:rgba(26,26,26,0.18);border-radius:1px;"></div></div>
+        <div class="row" data-position="4" data-current="false" style="opacity:0.6;"><div style="display:flex;width:32px;height:6px;background:rgba(26,26,26,0.18);border-radius:1px;"></div></div>
+        <div class="row" data-position="3" data-current="false" style="opacity:0.6;"><div style="display:flex;gap:4px;width:32px;height:6px;"><div style="width:14px;height:6px;background:rgba(26,26,26,0.18);border-radius:1px;"></div><div style="width:14px;height:6px;background:rgba(26,26,26,0.18);border-radius:1px;"></div></div></div>
+        <div class="row" data-position="2" data-current="false" style="opacity:0.6;"><div style="display:flex;width:32px;height:6px;background:rgba(26,26,26,0.18);border-radius:1px;"></div></div>
+        <div class="row current" data-position="1" data-current="true"><div style="display:flex;gap:4px;width:32px;height:6px;"><div style="width:14px;height:6px;background:#9b2c2c;border-radius:1px;"></div><div style="width:14px;height:6px;background:#9b2c2c;border-radius:1px;"></div></div></div>
+      </div>
+      <div>
+        <div style="margin-bottom:4px;">
+          <span class="badge">初 六</span>
+          <span class="yao-text">习坎，入于坎窞，凶。</span>
+        </div>
+        <div style="font-size:12px;color:#4a371c;">▎释：重险之始，陷入深阱。</div>
+        <div style="font-size:12px;color:#4a371c;line-height:1.6;">▎今：项目或生活的初始阶段就遇到连环阻碍，需停下来重新审视根基。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 5. Detail page rhythm ========== -->
+  <h2><span class="num">⑤</span> 详情页节奏 · 段间朱砂细线分隔</h2>
+  <p class="note">改动：6 段（hero/卦辞/彖/象/六爻/现代/关系/CTA）之间用朱砂细线 1px 分隔，配以 18px 上下 padding。每段首行加 11px tracking-widest 小标。视觉节奏更清晰。</p>
+  <div class="panel">
+    <div class="panel-title">HexagramDetail 改后 · D1 节奏 <span class="tag">D1</span></div>
+    <div class="detail-mock">
+      <div class="section-block">
+        <div class="label">卦 象</div>
+        <div class="body">[Hero 卡片 · 新 Seal 减负版]</div>
+      </div>
+      <div class="section-block">
+        <div class="label">卦 辞</div>
+        <div class="body">习坎，有孚，维心亨，行有尚。</div>
+      </div>
+      <div class="section-block">
+        <div class="label">彖 传</div>
+        <div class="body">习坎，重险也。水流而不盈，行险而不失其信。……</div>
+      </div>
+      <div class="section-block">
+        <div class="label">象 传</div>
+        <div class="body">水洊至，习坎。君子以常德行，习教事。</div>
+      </div>
+      <div class="section-block muted">
+        <div class="label">六 爻 爻 辞</div>
+        <div class="body">[6 张卡 · 改后使用新 MiniYaoStack]</div>
+      </div>
+      <div class="section-block">
+        <div class="label">现 代 解 读</div>
+        <div class="body">坎卦主"险中守正"，提示处于困境时要保持诚信与德行……</div>
+      </div>
+      <div class="section-block">
+        <div class="label">卦 象 关 系</div>
+        <div class="body">[错/综/互 tab · 错卦：离为火]</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 6. Notes (非视觉) ========== -->
+  <h2><span class="num">⑥</span> 附：非视觉改动说明</h2>
+  <div class="panel">
+    <div class="panel-title">功能与数据修复</div>
+    <ul style="padding-left:24px;font-size:13px;line-height:1.9;color:#1a1a1a;">
+      <li><b>B1 NumberBox</b> · 修删末位清空：原 useEffect([value]) 会在 111→11 时把 text 重置为 ''。改用 useRef 跟踪前次 value，typing 过程中不回写。回归测试加 `expect(input).toHaveValue('11')`。</li>
+      <li><b>B2 关系计算</b> · `getOpposite/...` 抛错时降级：在 HexagramDetail 用 try/catch 包住关系区，失败时整个关系 section 隐藏 + 一行 hint "本卦关系数据缺失"，不再崩页。</li>
+      <li><b>B8 region/timezone</b> · `region` 字段注释改为 "时区 (IANA)"；`DivinationForm` saveRecord 加 `version: 1`；`storage.ts` 加 `migrateRecord()` 为老数据打标。</li>
+    </ul>
+  </div>
+
+  <div class="panel" style="text-align:center;color:#8b6914;font-size:13px;background:#fbf6e6;">
+    如果以上 5 个位置的样子你都接受，回复"OK 进 spec"；<br>
+    如果某个位置还想调，告诉我改哪里。
+  </div>
+</div>
+</body>
+</html>

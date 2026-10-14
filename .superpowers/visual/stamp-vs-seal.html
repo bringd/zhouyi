@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>印章视觉对比 · Stamp vs Seal</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Serif SC', 'Songti SC', serif;
+    background: #f5f0e1;
+    color: #1a1a1a;
+    padding: 40px 24px 80px;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  h1 {
+    font-size: 28px;
+    color: #1a1a1a;
+    letter-spacing: 0.25em;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .sub {
+    text-align: center;
+    color: #6a5a3a;
+    font-size: 14px;
+    margin-bottom: 36px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: #fff;
+    border: 1px solid #d4b88a;
+    border-radius: 6px;
+    padding: 24px;
+  }
+  .card h2 {
+    font-size: 18px;
+    color: #9b2c2c;
+    letter-spacing: 0.15em;
+    margin-bottom: 4px;
+  }
+  .card .tag {
+    display: inline-block;
+    font-size: 11px;
+    color: #fff;
+    background: #9b2c2c;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-bottom: 16px;
+    letter-spacing: 0.1em;
+  }
+  .canvas {
+    background: #faf6ec;
+    border: 1px dashed #d4b88a;
+    border-radius: 4px;
+    padding: 24px 12px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 16px;
+    min-height: 140px;
+  }
+  .meta {
+    font-size: 13px;
+    color: #4a371c;
+    line-height: 1.7;
+  }
+  .meta b { color: #9b2c2c; }
+  .meta code {
+    background: #f5e8c8;
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-family: 'Cascadia Code', monospace;
+    font-size: 12px;
+  }
+  .note {
+    margin-top: 32px;
+    padding: 18px 22px;
+    background: #fbf6e6;
+    border-left: 3px solid #9b2c2c;
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    color: #4a371c;
+    line-height: 1.8;
+  }
+  .note h3 { color: #9b2c2c; margin-bottom: 8px; font-size: 14px; letter-spacing: 0.2em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>印 章 视 觉 对 比</h1>
+  <p class="sub">Stamp（旧 div）vs Seal（新 SVG）· 38px / 56px / 80px 三尺寸</p>
+
+  <div class="grid">
+    <!-- A -->
+    <div class="card">
+      <h2>A · 当前 div Stamp</h2>
+      <span class="tag">现状</span>
+      <div class="canvas">
+        <div style="display:flex; align-items:center; justify-content:center; width:40px; height:40px; background:#9b2c2c; color:#faf6ec; font-family:KaiTi,STKaiti,serif; font-size:14px; font-weight:bold; line-height:1; transform:rotate(-3deg);">讼</div>
+        <div style="display:flex; align-items:center; justify-content:center; width:56px; height:56px; background:#9b2c2c; color:#faf6ec; font-family:KaiTi,STKaiti,serif; font-size:20px; font-weight:bold; line-height:1; transform:rotate(-3deg);">讼</div>
+        <div style="display:flex; align-items:center; justify-content:center; width:80px; height:80px; background:#9b2c2c; color:#faf6ec; font-family:KaiTi,STKaiti,serif; font-size:28px; font-weight:bold; line-height:1; transform:rotate(-3deg);">讼</div>
+      </div>
+      <div class="meta">
+        <b>单层红底 + 米色字。</b>简洁但"扁平"——缺乏印章的层次感和"印泥厚薄"。<br>
+        影响 5 处：<code>HexagramCard</code> · <code>TwinSpread</code> · <code>DailyHero</code> · <code>ResultDisplay</code> · <code>HexagramDetail</code>
+      </div>
+    </div>
+
+    <!-- B -->
+    <div class="card">
+      <h2>B · 当前 SVG Seal</h2>
+      <span class="tag">已在 Header</span>
+      <div class="canvas">
+        <svg width="40" height="40" viewBox="0 0 100 100" style="transform:rotate(-3deg);">
+          <rect x="2" y="2" width="96" height="96" fill="#9b2c2c" stroke="#1a1a1a" stroke-width="3"/>
+          <rect x="9" y="9" width="82" height="82" fill="none" stroke="#faf6ec" stroke-width="0.8" opacity="0.6"/>
+          <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="37" fill="#faf6ec" font-family="'Noto Serif SC','Songti SC',serif" font-weight="500" style="letter-spacing:0.05em;">讼</text>
+        </svg>
+        <svg width="56" height="56" viewBox="0 0 100 100" style="transform:rotate(-3deg);">
+          <rect x="2" y="2" width="96" height="96" fill="#9b2c2c" stroke="#1a1a1a" stroke-width="3"/>
+          <rect x="9" y="9" width="82" height="82" fill="none" stroke="#faf6ec" stroke-width="0.8" opacity="0.6"/>
+          <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="37" fill="#faf6ec" font-family="'Noto Serif SC','Songti SC',serif" font-weight="500" style="letter-spacing:0.05em;">讼</text>
+        </svg>
+        <svg width="80" height="80" viewBox="0 0 100 100" style="transform:rotate(-3deg);">
+          <rect x="2" y="2" width="96" height="96" fill="#9b2c2c" stroke="#1a1a1a" stroke-width="3"/>
+          <rect x="9" y="9" width="82" height="82" fill="none" stroke="#faf6ec" stroke-width="0.8" opacity="0.6"/>
+          <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="37" fill="#faf6ec" font-family="'Noto Serif SC','Songti SC',serif" font-weight="500" style="letter-spacing:0.05em;">讼</text>
+        </svg>
+      </div>
+      <div class="meta">
+        <b>外黑 3px + 内米色 0.8px 双线 + 朱砂底。</b>工笔感足，但 sm 下外黑边过重、字偏小。
+      </div>
+    </div>
+
+    <!-- C -->
+    <div class="card">
+      <h2>C · Seal 减负版</h2>
+      <span class="tag">推荐</span>
+      <div class="canvas">
+        <svg width="40" height="40" viewBox="0 0 100 100" style="transform:rotate(-3deg);">
+          <rect x="3" y="3" width="94" height="94" fill="#9b2c2c"/>
+          <rect x="9" y="9" width="82" height="82" fill="none" stroke="#faf6ec" stroke-width="1" opacity="0.5"/>
+          <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="44" fill="#faf6ec" font-family="'Noto Serif SC','Songti SC',serif" font-weight="500">讼</text>
+        </svg>
+        <svg width="56" height="56" viewBox="0 0 100 100" style="transform:rotate(-3deg);">
+          <rect x="3" y="3" width="94" height="94" fill="#9b2c2c"/>
+          <rect x="9" y="9" width="82" height="82" fill="none" stroke="#faf6ec" stroke-width="1" opacity="0.5"/>
+          <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="44" fill="#faf6ec" font-family="'Noto Serif SC','Songti SC',serif" font-weight="500">讼</text>
+        </svg>
+        <svg width="80" height="80" viewBox="0 0 100 100" style="transform:rotate(-3deg);">
+          <rect x="3" y="3" width="94" height="94" fill="#9b2c2c"/>
+          <rect x="9" y="9" width="82" height="82" fill="none" stroke="#faf6ec" stroke-width="1" opacity="0.5"/>
+          <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="44" fill="#faf6ec" font-family="'Noto Serif SC','Songti SC',serif" font-weight="500">讼</text>
+        </svg>
+      </div>
+      <div class="meta">
+        <b>去除外黑边，加宽字（44 vs 37），保留内米色细线。</b>sm 也清晰，仪式感不减。
+      </div>
+    </div>
+
+    <!-- D -->
+    <div class="card">
+      <h2>D · 印泥厚薄版</h2>
+      <span class="tag">高古意</span>
+      <div class="canvas">
+        <svg width="40" height="40" viewBox="0 0 100 100" style="transform:rotate(-3deg);">
+          <rect x="3" y="3" width="94" height="94" fill="#9b2c2c"/>
+          <rect x="7" y="7" width="86" height="86" fill="none" stroke="#faf6ec" stroke-width="0.6" opacity="0.4"/>
+          <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="44" fill="#f5e0c0" font-family="'Noto Serif SC',serif" font-weight="600" style="letter-spacing:0.05em; filter:blur(0.4px);">讼</text>
+        </svg>
+        <svg width="56" height="56" viewBox="0 0 100 100" style="transform:rotate(-3deg);">
+          <rect x="3" y="3" width="94" height="94" fill="#9b2c2c"/>
+          <rect x="7" y="7" width="86" height="86" fill="none" stroke="#faf6ec" stroke-width="0.6" opacity="0.4"/>
+          <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="44" fill="#f5e0c0" font-family="'Noto Serif SC',serif" font-weight="600" style="letter-spacing:0.05em;">讼</text>
+        </svg>
+        <svg width="80" height="80" viewBox="0 0 100 100" style="transform:rotate(-3deg);">
+          <rect x="3" y="3" width="94" height="94" fill="#9b2c2c"/>
+          <rect x="7" y="7" width="86" height="86" fill="none" stroke="#faf6ec" stroke-width="0.6" opacity="0.4"/>
+          <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="44" fill="#f5e0c0" font-family="'Noto Serif SC',serif" font-weight="600" style="letter-spacing:0.05em;">讼</text>
+        </svg>
+      </div>
+      <div class="meta">
+        <b>字色改 #f5e0c0 (旧米色) + 微高斯模糊，模拟"印泥不均"。</b>最有古意，但 sm 下模糊难辨。
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <h3>· 回 复 模 板 ·</h3>
+    告诉我你倾向 A / B / C / D 哪一个，或想要混合（如 lg=B / sm=C），我直接定下来进入方案设计环节。
+  </div>
+</div>
+</body>
+</html>
