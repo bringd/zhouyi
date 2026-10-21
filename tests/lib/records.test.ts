@@ -113,6 +113,31 @@ describe('listCloudRecords', () => {
     expect(await listCloudRecords()).toEqual([])
   })
 
+  it('upgrades legacy second-precision timestamps to ms', async () => {
+    stubFetchOnce(
+      mockResponse({
+        body: {
+          records: [
+            {
+              id: 'legacy',
+              type: 'three-number',
+              mainHexagramId: 1,
+              movingLine: 1,
+              changedHexagramId: 2,
+              // Written by an older path as `Date.now() / 1000`.
+              createdAt: 1_781_872_481,
+              updatedAt: 1_781_872_481,
+            },
+          ],
+        },
+      }),
+    )
+    const [record] = await listCloudRecords()
+    expect(record.createdAt).toBe(1_781_872_481_000)
+    expect(record.updatedAt).toBe(1_781_872_481_000)
+    expect(new Date(record.createdAt).getFullYear()).toBe(2026)
+  })
+
   it('throws on a non-2xx response', async () => {
     stubFetchOnce(mockResponse({ ok: false, status: 500 }))
     await expect(listCloudRecords()).rejects.toThrow(/500/)

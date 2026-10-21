@@ -125,13 +125,27 @@ async function readJson<T>(res: Response): Promise<T> {
 
 // ---- Normalisation helpers --------------------------------------------------
 
+/**
+ * Any epoch-ms timestamp the app can produce is far above 1e12
+ * (2001-09-09). Legacy local rows written with `Math.floor(Date.now()/1000)`
+ * are ~1000x smaller and would otherwise render as 1970.
+ */
+const SECONDS_THRESHOLD = 1e12
+
+function normaliseEpochNumber(value: number): number {
+  if (value > 0 && value < SECONDS_THRESHOLD) return value * 1000
+  return value
+}
+
 function toEpochMs(value: unknown): number {
-  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return normaliseEpochNumber(value)
+  }
   if (typeof value === 'string' && value !== '') {
     const parsed = Date.parse(value)
     if (!Number.isNaN(parsed)) return parsed
     const asNumber = Number(value)
-    if (Number.isFinite(asNumber)) return asNumber
+    if (Number.isFinite(asNumber)) return normaliseEpochNumber(asNumber)
   }
   return 0
 }
