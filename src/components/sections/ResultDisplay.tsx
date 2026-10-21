@@ -11,6 +11,7 @@ import { generateInterpretation, AIError } from '@/lib/ai'
 import { InterpretationRenderer } from '@/components/sections/InterpretationRenderer'
 import { downloadCardPng, cardDataFromIds } from '@/lib/imageGen'
 import { publishPost } from '@/lib/feed'
+import { saveCloudRecord } from '@/lib/records'
 import { cn } from '@/utils/cn'
 import type { UserRecord, HexagramId } from '@/types'
 
@@ -26,6 +27,8 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
   const [downloadBusy, setDownloadBusy] = useState(false)
   const [publishBusy, setPublishBusy] = useState(false)
   const [publishedId, setPublishedId] = useState<string | null>(null)
+  const [savedCloudId, setSavedCloudId] = useState<string | null>(null)
+  const [saveRecordBusy, setSaveRecordBusy] = useState(false)
   const [aiText, setAiText] = useState<string | null>(record?.aiInterpretation ?? null)
   const [aiStatus, setAiStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [aiError, setAiError] = useState<string | null>(null)
@@ -168,6 +171,39 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
     }
   }
 
+  /**
+   * Explicit "save to the cloud 卦册" action.
+   *
+   * localStorage already holds this record (DivinationForm wrote it at
+   * divination time), so this button only mirrors it to the Worker. A
+   * failure therefore degrades to "local only" rather than losing data.
+   */
+  const handleSaveToRecords = async () => {
+    if (savedCloudId || saveRecordBusy) return
+    setSaveRecordBusy(true)
+    try {
+      const saved = await saveCloudRecord({
+        type: record.type,
+        question: record.question,
+        numbers: record.numbers,
+        region: record.region,
+        timezone: record.timezone,
+        mainHexagramId: record.mainHexagramId,
+        movingLine: record.movingLine,
+        changedHexagramId: record.changedHexagramId,
+        aiInterpretation: record.aiInterpretation,
+        userNote: record.userNote,
+      })
+      setSavedCloudId(saved.id)
+      showToast('已收藏到云端卦册')
+    } catch (err) {
+      console.error('[ResultDisplay] save to records failed:', err)
+      showToast('云端暂不可用，记录已存本地')
+    } finally {
+      setSaveRecordBusy(false)
+    }
+  }
+
   const hasCache = Boolean(record.aiInterpretation)
   const isLoading = aiStatus === 'loading'
   const isError = aiStatus === 'error'
@@ -301,6 +337,20 @@ export function ResultDisplay({ recordId, className }: ResultDisplayProps) {
       </div>
 
       <div className="flex flex-wrap justify-center items-center gap-3 pt-6 mt-2 border-t border-june-bronze/30">
+        {savedCloudId ? (
+          <Button variant="secondary" size="md" disabled>
+            ✓ 已收藏
+          </Button>
+        ) : (
+          <Button
+            onClick={handleSaveToRecords}
+            variant="secondary"
+            loading={saveRecordBusy}
+            disabled={saveRecordBusy}
+          >
+            📜 收藏到卦册
+          </Button>
+        )}
         <button
           type="button"
           onClick={handleDownload}

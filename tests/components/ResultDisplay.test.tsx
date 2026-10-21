@@ -17,6 +17,15 @@ vi.mock("@/lib/ai", async () => {
 import { generateInterpretation } from "@/lib/ai";
 const mockedGenerate = generateInterpretation as unknown as ReturnType<typeof vi.fn>;
 
+// The "收藏到卦册" button talks to the Worker; mock it so tests stay
+// offline and can assert the mapped payload.
+vi.mock("@/lib/records", () => ({
+  saveCloudRecord: vi.fn(),
+}));
+
+import { saveCloudRecord } from "@/lib/records";
+const mockedSaveCloud = saveCloudRecord as unknown as ReturnType<typeof vi.fn>;
+
 const baseRecord: UserRecord = {
   id: "test-record-1",
   type: "three-number",
@@ -41,6 +50,7 @@ describe("ResultDisplay", () => {
   beforeEach(() => {
     clearAllRecords();
     mockedGenerate.mockReset();
+    mockedSaveCloud.mockReset();
   });
 
   it("renders not-found message when record does not exist", () => {
@@ -238,5 +248,59 @@ describe("ResultDisplay", () => {
     expect(screen.getByRole("button", { name: /收藏本卦/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /发布到社区/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /再起一卦/ })).toBeInTheDocument();
+  });
+
+  it("renders the 收藏到卦册 button", () => {
+    saveRecord(baseRecord);
+    render(
+      <MemoryRouter>
+        <ResultDisplay recordId="test-record-1" />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("button", { name: /收藏到卦册/ })).toBeInTheDocument();
+  });
+
+  it("saves the record to the cloud with the mapped payload, then locks the button", async () => {
+    saveRecord(baseRecord);
+    mockedSaveCloud.mockResolvedValue({ id: "cloud-9", createdAt: 1 });
+
+    render(
+      <MemoryRouter>
+        <ResultDisplay recordId="test-record-1" />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /收藏到卦册/ }));
+
+    await waitFor(() => expect(mockedSaveCloud).toHaveBeenCalledTimes(1));
+    const payload = mockedSaveCloud.mock.calls[0][0] as Record<string, unknown>;
+    expect(payload.type).toBe("three-number");
+    expect(payload.numbers).toEqual([123, 456, 789]);
+    expect(payload.mainHexagramId).toBe(1);
+    expect(payload.changedHexagramId).toBe(2);
+    expect(payload.movingLine).toBe(1);
+    expect(payload.question).toBe(baseRecord.question);
+
+    expect(await screen.findByRole("button", { name: /已收藏/ })).toBeDisabled();
+    expect(await screen.findByText("已收藏到云端卦册")).toBeInTheDocument();
+  });
+
+  it("falls back to a local-only toast when the cloud save fails", async () => {
+    saveRecord(baseRecord);
+    mockedSaveCloud.mockRejectedValue(new Error("HTTP 500 Internal Server Error"));
+
+    render(
+      <MemoryRouter>
+        <ResultDisplay recordId="test-record-1" />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /收藏到卦册/ }));
+
+    expect(
+      await screen.findByText("云端暂不可用，记录已存本地"),
+    ).toBeInTheDocument();
+    // Still retryable.
+    expect(screen.getByRole("button", { name: /收藏到卦册/ })).toBeInTheDocument();
   });
 });
