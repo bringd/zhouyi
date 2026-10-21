@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
@@ -7,6 +7,14 @@ import Codex from '@/pages/Codex'
 import Divination from '@/pages/Divination'
 import NotFound from '@/pages/NotFound'
 import Records from '@/pages/Records'
+
+// Records fetches `/api/records` on mount. Keep smoke renders offline and
+// deterministic — the page itself is covered by tests/pages/Records.test.tsx.
+vi.mock('@/lib/records', () => ({
+  listCloudRecords: vi.fn().mockResolvedValue([]),
+  updateCloudRecordNote: vi.fn(),
+  deleteCloudRecord: vi.fn(),
+}))
 
 // Helper: wrap a page with the same providers that `main.tsx` provides in prod.
 // Pages now render <SEO /> internally, which requires a HelmetProvider context.
@@ -41,11 +49,14 @@ describe('Page smoke tests', () => {
     expect(screen.getByText(/此路不通/)).toBeInTheDocument()
   })
 
-  it('Records renders without error', () => {
+  it('Records renders without error', async () => {
     render(withProviders(<Records />))
     // "我的卦册" appears in the page <h1> as well as in the Header and Footer nav.
     // The page-level h1 is the heading we want to verify.
     const headings = screen.getAllByText(/我的卦册/)
     expect(headings.length).toBeGreaterThan(0)
+    // Wait for the mocked cloud fetch to settle inside act(), so no state
+    // update leaks past the test (React warns about that otherwise).
+    expect(await screen.findByText('卦册尚无记录。')).toBeInTheDocument()
   })
 })
