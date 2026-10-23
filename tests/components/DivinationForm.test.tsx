@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { DivinationForm } from "@/components/sections/DivinationForm";
 import { getAllRecords, clearAllRecords } from "@/lib/storage";
+import { QUESTION_POOL } from "@/lib/sampleQuestions";
 
 // Mock react-router-dom's useNavigate to avoid actual navigation
 const mockNavigate = vi.fn();
@@ -208,4 +209,67 @@ describe("DivinationForm", () => {
     );
     expect(screen.queryByText(/请填写/)).not.toBeInTheDocument();
   });
+
+  it('uses a suggested question and saves it with the chosen numbers', () => {
+    render(
+      <MemoryRouter>
+        <DivinationForm initialNumbers={[123, 456, 789]} onResult={vi.fn()} />
+      </MemoryRouter>
+    )
+    fireEvent.click(screen.getByRole('button', { name: '事业方向' }))
+    const question = screen.getByRole('textbox', { name: '所问之事' })
+    // 预置问句来自站点自己的问询池，不是演示假数据；这里断言「来自池子」而不是逐字硬编码
+    const filled = (question as HTMLTextAreaElement).value
+    expect(QUESTION_POOL).toContain(filled)
+    expect(filled.length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: '事业方向' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: '启 卦' }))
+    expect(getAllRecords()[0].question).toBe(filled)
+  })
+
+  it('labels the number inputs and updates progress when typing or clearing', () => {
+    render(<MemoryRouter><DivinationForm /></MemoryRouter>)
+    fireEvent.change(screen.getByLabelText('第一灵数'), { target: { value: '123' } })
+    fireEvent.change(screen.getByLabelText('第二灵数'), { target: { value: '456' } })
+    expect(screen.getByRole('status')).toHaveTextContent('已选定 2 / 3 个灵数')
+    fireEvent.change(screen.getByLabelText('第三灵数'), { target: { value: '789' } })
+    expect(screen.getByRole('button', { name: '启 卦' })).toBeEnabled()
+    fireEvent.change(screen.getByLabelText('第二灵数'), { target: { value: '4' } })
+    expect(screen.getByLabelText('第二灵数')).toHaveValue('4')
+    expect(screen.getByRole('button', { name: '启 卦' })).toBeDisabled()
+    expect(screen.getByRole('status')).toHaveTextContent('已选定 2 / 3 个灵数')
+  })
+
+  it('prevents submitting existing numbers while a new number is rolling', () => {
+    const onResult = vi.fn()
+    render(<MemoryRouter><DivinationForm initialNumbers={[123, 456, 789]} onResult={onResult} /></MemoryRouter>)
+    fireEvent.click(screen.getByRole('button', { name: '随机生成第一灵数' }))
+    expect(screen.getByLabelText('第一灵数')).toBeDisabled()
+    expect(screen.getByRole('button', { name: '启 卦' })).toBeDisabled()
+    fireEvent.submit(screen.getByRole('form', { name: '三数起卦' }))
+    expect(onResult).not.toHaveBeenCalled()
+    expect(getAllRecords()).toHaveLength(0)
+    expect(screen.getByRole('alert')).toHaveTextContent('请先停止取数，再启卦。')
+    fireEvent.click(screen.getByRole('button', { name: '停止生成第一灵数' }))
+    expect(screen.getByLabelText('第一灵数')).toBeEnabled()
+    expect(screen.getByRole('button', { name: '启 卦' })).toBeEnabled()
+  })
+
+  it('keeps all three selections when randomizers are used together', () => {
+    render(<MemoryRouter><DivinationForm onResult={vi.fn()} /></MemoryRouter>)
+    for (const label of ['第一灵数', '第二灵数', '第三灵数']) {
+      fireEvent.click(screen.getByRole('button', { name: `随机生成${label}` }))
+    }
+    for (const label of ['第一灵数', '第二灵数', '第三灵数']) {
+      fireEvent.click(screen.getByRole('button', { name: `停止生成${label}` }))
+    }
+    expect(screen.getByRole('status')).toHaveTextContent('已选定 3 / 3 个灵数')
+    fireEvent.click(screen.getByRole('button', { name: '启 卦' }))
+    expect(getAllRecords()).toHaveLength(1)
+    expect(getAllRecords()[0].numbers).toHaveLength(3)
+    for (const number of getAllRecords()[0].numbers ?? []) {
+      expect(number).toBeGreaterThanOrEqual(100)
+      expect(number).toBeLessThanOrEqual(999)
+    }
+  })
 });

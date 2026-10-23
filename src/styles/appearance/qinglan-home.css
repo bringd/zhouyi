@@ -1,0 +1,831 @@
+/* =====================================================================
+ * 青岚书院（qinglan）—— 首页
+ *
+ * 版式依据设计稿 `src/pages/DesignGallery.tsx` 的 `direction === "a"` 分支，
+ * 配 `src/styles/design-gallery.css` 里 `.dg-site`（A 主题）那一组规则：
+ *
+ *   1. 浅纸青绿：底色用 --color-bg-page，标题用宋体，正文用无衬线；
+ *   2. Hero 左右分区：左文右画，插画是「拱形 + 青绿山水」，不是通栏横幅；
+ *   3. 今日卦境：一条细分隔线 + 眉题 + 真实日期，下方标题 / 解读 / 卦象三块；
+ *   4. 探索易象阁：浅绿面板（--color-bg-soft）+ 两个入口卡 + 一卦一境卦象条；
+ *   5. 收尾题记：一行引文 + 一行小字。
+ *
+ * 规则：
+ *   - 颜色只从语义令牌取（--color-bg-* / --color-text-* / --color-accent* /
+ *     --color-border* / --color-control-border / --color-on-accent），
+ *     插画色阶同样由这些令牌叠出来，页面里不写死页面级色值；
+ *   - class 一律用 `ql-` 前缀，不依赖 `src/styles/home.css` 里的 .home-* 规则；
+ *   - 断点沿用仓库其它外观的口径：1150 / 900 / 650 / 359；
+ *   - 减少动态效果时关掉入场动画与悬停位移。
+ * ===================================================================== */
+
+/* ---------------------------- 基础骨架 ---------------------------- */
+
+.ql-home {
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  line-height: 1.7;
+  padding-bottom: 48px;
+}
+
+.ql-home h1,
+.ql-home h2,
+.ql-home h3,
+.ql-home h4 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--color-text-primary);
+}
+
+.ql-home p {
+  margin: 0;
+}
+
+.ql-home a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ql-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+/* 眉题：小号宽字距的标签 */
+.ql-overline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-muted);
+  font-size: var(--text-caption);
+  letter-spacing: 0.11em;
+}
+
+/* kicker 前的那一小段主色横线 */
+.ql-rule {
+  display: inline-block;
+  width: 23px;
+  height: 1px;
+  background: var(--color-accent);
+}
+
+/* 主按钮：平涂主色的小方块 */
+.ql-primary,
+.ql-home a.ql-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 26px;
+  min-height: 49px;
+  padding: 11px 22px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border: 1px solid var(--color-accent);
+  border-radius: 2px;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  transition:
+    filter 0.2s ease,
+    transform 0.2s ease;
+}
+
+.ql-primary:hover,
+.ql-home a.ql-primary:hover {
+  color: var(--color-on-accent);
+  filter: brightness(1.12);
+  transform: translateY(-2px);
+}
+
+/* 文字动作：次级链接 */
+.ql-text-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 24px;
+  padding: 6px 0;
+  font-size: var(--text-small);
+  color: var(--color-text-primary);
+}
+
+.ql-text-action:hover {
+  color: var(--color-accent);
+}
+
+/* ---------------------------- Hero ---------------------------- */
+
+.ql-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: center;
+  min-height: 590px;
+  padding-top: 24px;
+  padding-bottom: 52px;
+}
+
+.ql-hero__copy {
+  position: relative;
+  z-index: 1;
+  padding: 20px 10px 20px 0;
+  animation: ql-rise 0.7s ease both;
+}
+
+.ql-hero__kicker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--text-caption);
+  color: var(--color-text-muted);
+  letter-spacing: 0.13em;
+}
+
+.ql-hero__title {
+  font-size: clamp(38px, 4.5vw, 62px);
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  margin: 26px 0 22px;
+}
+
+.ql-hero__title em {
+  font-style: normal;
+  color: var(--color-accent);
+}
+
+.ql-hero__lede {
+  max-width: 355px;
+  font-size: 14px;
+  line-height: 2.1;
+  color: var(--color-text-secondary);
+}
+
+.ql-hero__actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-top: 31px;
+}
+
+.ql-hero__meta {
+  display: flex;
+  gap: 21px;
+  flex-wrap: wrap;
+  font-size: var(--text-caption);
+  color: var(--color-text-muted);
+  margin-top: 38px;
+  letter-spacing: 0.12em;
+}
+
+.ql-hero__meta span + span::before {
+  content: '/';
+  margin-right: 21px;
+  opacity: 0.5;
+}
+
+@keyframes ql-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ql-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------------------------- 拱形山水插画 ---------------------------- */
+
+.ql-scene {
+  position: relative;
+  min-width: 0;
+  height: 500px;
+  margin: 0 0 0 20px;
+  overflow: hidden;
+  /* 顶部大圆角、底部近似平直的拱形画框 */
+  border-radius: 48% 48% 4px 4px;
+  background: var(--color-bg-soft);
+  animation: ql-fade 0.9s ease both;
+}
+
+.ql-scene svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 画面色阶：全部由语义令牌叠出来（远山浅、中山半透、近山浓） */
+.ql-scene__sky-top {
+  stop-color: var(--color-bg-soft);
+}
+
+.ql-scene__sky-bottom {
+  stop-color: var(--color-bg-hero);
+}
+
+.ql-scene__mist-top {
+  stop-color: var(--color-bg-hero);
+  stop-opacity: 0;
+}
+
+.ql-scene__mist-bottom {
+  stop-color: var(--color-bg-hero);
+  stop-opacity: 1;
+}
+
+.ql-scene__sun {
+  /* 暖日是画面里唯一的暖色，用 A 主题自带的赭金令牌（--color-june-gold
+     在 A 下就是「淡赭金」），叠在浅色天空上呈暖调日轮 */
+  fill: var(--color-june-gold);
+  fill-opacity: 0.5;
+}
+
+.ql-scene__ridge-far {
+  fill: var(--color-border-strong);
+  fill-opacity: 0.85;
+}
+
+.ql-scene__ridge-mid {
+  fill: var(--color-accent);
+  fill-opacity: 0.45;
+}
+
+.ql-scene__ridge-snow {
+  fill: var(--color-bg-card);
+  fill-opacity: 0.6;
+}
+
+.ql-scene__ridge-near {
+  fill: var(--color-accent);
+  fill-opacity: 0.88;
+}
+
+.ql-scene__water {
+  fill: none;
+  stroke: var(--color-bg-card);
+  stroke-opacity: 0.8;
+}
+
+.ql-scene__birds {
+  fill: none;
+  stroke: var(--color-text-secondary);
+  stroke-opacity: 0.6;
+}
+
+/* 画上题刻：竖排小字（装饰，已在 aria-hidden 的画框里） */
+.ql-scene__poem {
+  position: absolute;
+  top: 90px;
+  left: 90px;
+  color: var(--color-accent);
+  writing-mode: vertical-rl;
+  font-family: var(--font-display);
+  font-size: 15px;
+  line-height: 2;
+  letter-spacing: 0.3em;
+}
+
+.ql-scene__index {
+  position: absolute;
+  bottom: 23px;
+  right: 26px;
+  font-family: var(--font-display);
+  font-size: var(--text-caption);
+  letter-spacing: 0.13em;
+  color: var(--color-accent-strong);
+}
+
+/* ---------------------------- 今日卦境 ---------------------------- */
+
+.ql-home-lower {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 46px;
+  padding-top: 10px;
+  padding-bottom: 55px;
+}
+
+.ql-today {
+  border-top: 1px solid var(--color-border);
+  padding-top: 21px;
+  scroll-margin-top: 20px;
+}
+
+.ql-section-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: var(--text-caption);
+  color: var(--color-text-muted);
+}
+
+.ql-today__layout {
+  display: grid;
+  grid-template-columns: 1fr 113px;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.ql-today__heading {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+.ql-today__heading h2 {
+  font-size: 24px;
+}
+
+.ql-today__heading p {
+  color: var(--color-text-muted);
+  font-size: var(--text-caption);
+}
+
+.ql-today__reading {
+  min-width: 0;
+}
+
+.ql-today__reading h3 {
+  font-size: 32px;
+  margin: 6px 0 9px;
+}
+
+.ql-today__summary {
+  color: var(--color-text-secondary);
+  max-width: 430px;
+  font-size: 13px;
+  line-height: 1.9;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ql-today__change {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  font-size: var(--text-caption);
+  color: var(--color-text-muted);
+}
+
+.ql-today__change a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  color: var(--color-accent);
+}
+
+.ql-today__reading .ql-text-action {
+  margin-top: 12px;
+}
+
+.ql-today__art {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  align-items: center;
+  color: var(--color-text-muted);
+  /* 卦线：常态用淡墨、动爻用深主色（另有文字说明动爻位置，不只靠颜色） */
+  --color-ink: var(--color-text-secondary);
+  --color-june-red: var(--color-accent-strong);
+}
+
+.ql-today__art > span {
+  font-family: var(--font-display);
+  font-size: var(--text-caption);
+}
+
+/* ---------------------------- 探索易象阁 ---------------------------- */
+
+.ql-explore {
+  padding: 23px 27px 20px;
+  background: var(--color-bg-soft);
+}
+
+.ql-explore h2 {
+  font-size: 25px;
+  line-height: 1.6;
+  margin: 14px 0 22px;
+}
+
+.ql-explore__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 24px;
+  padding: 15px 0;
+  font-size: var(--text-caption);
+  border-top: 1px solid var(--color-border);
+}
+
+.ql-explore__link span {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ql-explore__link:hover {
+  color: var(--color-accent);
+}
+
+/* 一卦一境：主题切换 + 当前主题的卦象条 */
+.ql-reading {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-border);
+}
+
+.ql-reading h3 {
+  font-size: 17px;
+}
+
+.ql-themes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 14px 0 16px;
+}
+
+.ql-themes button {
+  min-height: 32px;
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-control-border);
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: var(--text-caption);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.ql-themes button:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.ql-themes button[aria-pressed='true'] {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.ql-reading__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.ql-reading__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 10px;
+  background: var(--color-bg-paper);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  font-size: var(--text-small);
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.ql-reading__item:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.ql-reading__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ql-reading__links {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.ql-reading__links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+  font-size: var(--text-caption);
+  color: var(--color-accent);
+}
+
+.ql-reading__links a:hover {
+  color: var(--color-accent-strong);
+}
+
+/* ---------------------------- 题记 ---------------------------- */
+
+.ql-home-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+  padding-top: 25px;
+  padding-bottom: 42px;
+  border-top: 1px solid var(--color-border);
+}
+
+.ql-home-note > span {
+  font-family: var(--font-display);
+  font-size: 21px;
+}
+
+.ql-home-note p {
+  font-size: var(--text-caption);
+  color: var(--color-text-muted);
+}
+
+/* ---------------------------- 焦点态 ---------------------------- */
+
+.ql-home a:focus-visible,
+.ql-home button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+/* ---------------------------- 断点适配 ---------------------------- */
+
+@media (max-width: 1150px) {
+  .ql-container {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .ql-hero {
+    min-height: 540px;
+  }
+
+  .ql-scene {
+    height: 435px;
+    margin-left: 0;
+  }
+
+  .ql-hero__title {
+    font-size: 46px;
+  }
+
+  .ql-hero__actions {
+    gap: 18px;
+  }
+
+  .ql-home-lower {
+    grid-template-columns: 1fr 280px;
+    gap: 30px;
+  }
+
+  .ql-explore {
+    padding: 21px;
+  }
+}
+
+@media (max-width: 900px) {
+  .ql-container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .ql-hero {
+    grid-template-columns: 1fr;
+    gap: 0;
+    min-height: auto;
+    padding-top: 12px;
+    padding-bottom: 35px;
+  }
+
+  .ql-hero__copy {
+    padding: 30px 0 26px;
+  }
+
+  .ql-hero__title {
+    font-size: clamp(34px, 8vw, 46px);
+    margin: 20px 0 16px;
+  }
+
+  .ql-hero__lede {
+    font-size: 14px;
+    max-width: 420px;
+    line-height: 1.95;
+  }
+
+  .ql-hero__actions {
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .ql-hero__meta {
+    margin-top: 23px;
+    gap: 16px;
+  }
+
+  .ql-hero__meta span + span::before {
+    margin-right: 16px;
+  }
+
+  .ql-scene {
+    height: 380px;
+    margin: 0;
+    border-radius: 46% 46% 4px 4px;
+  }
+
+  .ql-scene__poem {
+    top: 64px;
+    left: 64px;
+  }
+
+  /* 下半部改成单列：今日卦境在上，探索易象阁在下 */
+  .ql-home-lower {
+    grid-template-columns: 1fr;
+    gap: 26px;
+    padding-top: 12px;
+    padding-bottom: 34px;
+  }
+
+  .ql-today__heading {
+    display: block;
+  }
+
+  .ql-today__heading p {
+    margin-top: 5px;
+  }
+
+  .ql-today h2 {
+    font-size: 23px;
+  }
+
+  .ql-explore {
+    padding: 23px;
+  }
+
+  .ql-explore h2 {
+    font-size: 25px;
+  }
+}
+
+@media (max-width: 650px) {
+  .ql-home {
+    padding-bottom: 30px;
+  }
+
+  .ql-container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .ql-hero__title {
+    font-size: clamp(30px, 8.6vw, 40px);
+  }
+
+  .ql-primary {
+    min-height: 47px;
+    padding: 10px 16px;
+    gap: 16px;
+  }
+
+  .ql-scene {
+    height: 285px;
+    border-radius: 46% 46% 4px 4px;
+  }
+
+  .ql-scene__poem {
+    top: 52px;
+    left: 58px;
+    font-size: 12px;
+  }
+
+  .ql-scene__index {
+    bottom: 19px;
+    right: 18px;
+  }
+
+  /* 今日卦境单列：卦象图移到解读文字下方 */
+  .ql-today__layout {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin-top: 17px;
+  }
+
+  .ql-today__reading h3 {
+    font-size: 29px;
+  }
+
+  .ql-today__summary {
+    font-size: 13px;
+    -webkit-line-clamp: 4;
+  }
+
+  .ql-today__art {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+  }
+
+  .ql-explore {
+    padding: 20px 18px;
+  }
+
+  .ql-explore h2 {
+    font-size: 22px;
+  }
+
+  .ql-explore h2 br {
+    display: none;
+  }
+
+  .ql-reading__list {
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  }
+
+  .ql-home-note {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding-top: 23px;
+    padding-bottom: 25px;
+  }
+
+  .ql-home-note > span {
+    font-size: 19px;
+  }
+}
+
+@media (max-width: 359px) {
+  .ql-container {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+
+  .ql-hero__title {
+    font-size: 28px;
+  }
+
+  .ql-hero__meta {
+    gap: 12px;
+  }
+
+  .ql-hero__meta span + span::before {
+    margin-right: 12px;
+  }
+
+  .ql-scene {
+    height: 250px;
+  }
+
+  .ql-reading__list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --------------------------- 减少动态效果 --------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .ql-home *,
+  .ql-home *::before,
+  .ql-home *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .ql-primary:hover {
+    transform: none;
+  }
+}

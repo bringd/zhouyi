@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { YaoLineStack } from '@/components/hexagram/YaoLineStack'
+import { getHexagramById } from '@/lib/divination'
+import { hexagramLineTypes } from '@/lib/hexagramLines'
 
 const allYang: ['yang', 'yang', 'yang', 'yang', 'yang', 'yang'] = ['yang', 'yang', 'yang', 'yang', 'yang', 'yang']
 
@@ -35,5 +37,33 @@ describe('YaoLineStack', () => {
     const stack = screen.getByTestId('stack')
     expect(stack.style.width).toBe('100px')
     expect(stack.style.gap).toBe('8px')
+  })
+
+  it('is hidden from assistive tech when no label is given (decorative glyph)', () => {
+    render(<YaoLineStack lines={allYang} data-testid="stack" />)
+    const stack = screen.getByTestId('stack')
+    expect(stack).toHaveAttribute('aria-hidden', 'true')
+    expect(stack).not.toHaveAttribute('role', 'img')
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+  })
+
+  it('exposes a Chinese accessible name when a label is given', () => {
+    render(<YaoLineStack lines={allYang} label="乾为天卦象图" data-testid="stack" />)
+    expect(screen.getByRole('img', { name: '乾为天卦象图' })).toBeInTheDocument()
+    expect(screen.getByTestId('stack')).not.toHaveAttribute('aria-hidden')
+  })
+
+  it('阴阳混合时按「上爻在上、下爻在下」渲染（不把顺序反过来）', () => {
+    // 地天泰：上坤下乾，阴阳混合，用真实卦数据避免测试与数据脱节
+    const tai = getHexagramById(11)
+    const lines = hexagramLineTypes(tai)
+    expect(new Set(lines)).toEqual(new Set(['yin', 'yang'])) // 确实是混合卦
+
+    render(<YaoLineStack lines={lines} data-testid="stack" />)
+    const labels = Array.from(screen.getByTestId('stack').children).map((child) =>
+      child.getAttribute('aria-label')
+    )
+    // DOM 从上到下 = 第 6 爻 → 第 1 爻，与「lines 自下而上」正好相反
+    expect(labels).toEqual([...lines].reverse().map((type) => `${type} line, normal`))
   })
 })

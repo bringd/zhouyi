@@ -34,8 +34,8 @@ export function Seal({
   text,
   size = 38,
   rotation = 0,
-  textColor = '#FAF6EC',
-  bgColor = '#9b2c2c',
+  textColor = 'var(--color-on-accent)',
+  bgColor = 'var(--color-accent)',
   compact: _compact = false,
   onClick,
   className,
@@ -72,7 +72,7 @@ export function Seal({
         y="2"
         width="96"
         height="96"
-        fill={bgColor}
+        style={{ fill: bgColor }}
         stroke="#1A1A1A"
         strokeWidth="3"
       />
@@ -83,7 +83,7 @@ export function Seal({
         width="82"
         height="82"
         fill="none"
-        stroke={textColor}
+        style={{ stroke: textColor }}
         strokeWidth="0.8"
         opacity="0.6"
       />
@@ -96,10 +96,9 @@ export function Seal({
         textAnchor="middle"
         dominantBaseline="central"
         fontSize={viewBoxFontSize}
-        fill={textColor}
+        style={{ fill: textColor, letterSpacing: '0.05em' }}
         fontFamily="'Noto Serif SC', 'Songti SC', serif"
         fontWeight="500"
-        style={{ letterSpacing: '0.05em' }}
       >
         {text}
       </text>

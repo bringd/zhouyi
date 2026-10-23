@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { QuestionInput } from '@/components/ui/QuestionInput'
-import { NumberBox } from '@/components/ui/NumberBox'
 import { RelationTabs } from '@/components/ui/RelationTabs'
+import { NumberBoxHarness } from '../helpers/numberBoxHarness'
 
 describe('QuestionInput', () => {
   it('renders with value', () => {
@@ -30,73 +30,94 @@ describe('QuestionInput', () => {
 
 describe('NumberBox', () => {
   it('renders the label and value', () => {
-    render(<NumberBox value={427} onChange={() => {}} label="第一灵数" description="下卦" />)
+    render(
+      <NumberBoxHarness initial="427" label="第一灵数" description="下卦" />
+    )
     expect(screen.getByText('第一灵数')).toBeInTheDocument()
     expect(screen.getByDisplayValue('427')).toBeInTheDocument()
     expect(screen.getByText('下卦')).toBeInTheDocument()
   })
 
-  it('renders empty when value is null', () => {
-    render(<NumberBox value={null} onChange={() => {}} label="第一灵数" />)
+  it('renders empty when there is no text', () => {
+    render(<NumberBoxHarness initial="" label="第一灵数" />)
     const input = screen.getByRole('textbox')
     expect((input as HTMLInputElement).value).toBe('')
   })
 
-  it('calls onChange with number when valid', () => {
+  it('reports the sanitized text on change', () => {
     const handler = vi.fn()
-    render(<NumberBox value={null} onChange={handler} label="test" />)
+    render(<NumberBoxHarness initial="" label="test" onTextChange={handler} />)
     fireEvent.change(screen.getByRole('textbox'), { target: { value: '427' } })
-    expect(handler).toHaveBeenCalledWith(427)
+    expect(handler).toHaveBeenCalledWith('427')
   })
 
-  it('calls onChange with null when value is empty', () => {
+  it('reports empty text when the user clears the field', () => {
     const handler = vi.fn()
-    render(<NumberBox value={427} onChange={handler} label="test" />)
+    render(
+      <NumberBoxHarness initial="427" label="test" onTextChange={handler} />
+    )
     fireEvent.change(screen.getByRole('textbox'), { target: { value: '' } })
-    expect(handler).toHaveBeenCalledWith(null)
+    expect(handler).toHaveBeenCalledWith('')
   })
 
-  // Regression: bug where digit-by-digit typing cleared the input on each
-  // keystroke because the parent's null state overrode the visible value.
-  // The fix uses local state to keep partial input visible.
+  // Regression: 逐位输入时不能把已敲下的字符清掉。
+  // 文本由上层（稳定层）持有，组件只负责回传，所以这里能直接验证。
   it('keeps partial input visible while user types digit-by-digit', () => {
     const handler = vi.fn()
-    const { rerender } = render(<NumberBox value={null} onChange={handler} label="test" />)
+    render(<NumberBoxHarness initial="" label="test" onTextChange={handler} />)
     const input = screen.getByRole('textbox') as HTMLInputElement
 
-    // Type "1" — not yet valid (1 < 100)
     fireEvent.change(input, { target: { value: '1' } })
     expect(input.value).toBe('1')
-    expect(handler).toHaveBeenLastCalledWith(null)
+    expect(handler).toHaveBeenLastCalledWith('1')
 
-    // Type "2" — parent re-renders with null (from previous onChange)
-    rerender(<NumberBox value={null} onChange={handler} label="test" />)
     fireEvent.change(input, { target: { value: '12' } })
     expect(input.value).toBe('12')
-    expect(handler).toHaveBeenLastCalledWith(null)
+    expect(handler).toHaveBeenLastCalledWith('12')
 
-    // Type "3" — now valid (123 in range)
-    rerender(<NumberBox value={null} onChange={handler} label="test" />)
     fireEvent.change(input, { target: { value: '123' } })
     expect(input.value).toBe('123')
-    expect(handler).toHaveBeenLastCalledWith(123)
+    expect(handler).toHaveBeenLastCalledWith('123')
   })
 
   it('strips non-digit characters from input', () => {
     const handler = vi.fn()
-    render(<NumberBox value={null} onChange={handler} label="test" />)
+    render(<NumberBoxHarness initial="" label="test" onTextChange={handler} />)
     const input = screen.getByRole('textbox') as HTMLInputElement
     fireEvent.change(input, { target: { value: 'a1b2c3' } })
     expect(input.value).toBe('123')
-    expect(handler).toHaveBeenLastCalledWith(123)
+    expect(handler).toHaveBeenCalledWith('123')
   })
 
-  it('syncs local text when parent resets the value (e.g., form reset)', () => {
+  it('preserves partial text when deleting digits from a previously valid number', () => {
     const handler = vi.fn()
-    const { rerender } = render(<NumberBox value={427} onChange={handler} label="test" />)
+    render(
+      <NumberBoxHarness initial="427" label="test" onTextChange={handler} />
+    )
+    const input = screen.getByRole('textbox') as HTMLInputElement
+    fireEvent.change(input, { target: { value: '42' } })
+    expect(handler).toHaveBeenLastCalledWith('42')
+    expect(input.value).toBe('42')
+    fireEvent.change(input, { target: { value: '4' } })
+    expect(handler).toHaveBeenLastCalledWith('4')
+    expect(input.value).toBe('4')
+  })
+
+  it('syncs the text when the parent resets it', () => {
+    const { rerender } = render(<NumberBoxHarness text="427" label="test" />)
     expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('427')
-    rerender(<NumberBox value={null} onChange={handler} label="test" />)
+    rerender(<NumberBoxHarness text="" label="test" />)
     expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('')
+  })
+
+  it('marks a three-digit but out-of-range value as invalid', () => {
+    render(<NumberBoxHarness initial="099" label="test" />)
+    expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('does not mark a valid value as invalid', () => {
+    render(<NumberBoxHarness initial="123" label="test" />)
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('aria-invalid')
   })
 })
 

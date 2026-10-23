@@ -26,15 +26,22 @@ describe('Header', () => {
         <Header />
       </MemoryRouter>
     )
-    // The "64 卦图鉴" link should have the active background class
-    const codexLink = screen.getAllByText('64 卦图鉴')[0]
-    expect(codexLink.className).toContain('bg-june-red')
+    // 激活态由 aria-current 表达（CSS 只针对这一状态），桌面与移动导航都应标记
+    const codexLinks = screen.getAllByText('64 卦图鉴')
+    expect(codexLinks[0]).toHaveAttribute('aria-current', 'page')
+    expect(codexLinks[1]).toHaveAttribute('aria-current', 'page')
   })
 
   it('renders settings link', () => {
     render(<MemoryRouter><Header /></MemoryRouter>)
     // Desktop + mobile both render a settings link (one is hidden via CSS)
     expect(screen.getAllByLabelText('设置').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('keeps the divination navigation active while reading a result', () => {
+    render(<MemoryRouter initialEntries={['/result/example']}><Header /></MemoryRouter>)
+    expect(screen.getAllByText('三数起卦')[0]).toHaveAttribute('aria-current', 'page')
+    expect(screen.getAllByText('三数起卦')[1]).toHaveAttribute('aria-current', 'page')
   })
 })
 

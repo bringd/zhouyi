@@ -137,7 +137,7 @@ export default function Records() {
                 className="mb-4 p-4 bg-june-red/5 border border-june-red/30 rounded-sm text-june-red text-sm font-body"
               >
                 云端卦册加载失败：{cloudError}
-                <span className="block mt-1 text-[11px] text-ink-light/70">
+                <span className="block mt-1 text-[12px] text-ink-light/70">
                   本地卦册不受影响，仍可在下方查看。
                 </span>
               </div>
@@ -182,7 +182,7 @@ export default function Records() {
               <div className="text-center mt-10">
                 <Link
                   to="/divination"
-                  className="text-xs text-june-bronze font-display tracking-widest hover:text-june-red"
+                  className="text-xs text-june-bronze font-display tracking-widest hover:text-june-red min-h-6 inline-flex items-center justify-center"
                 >
                   再起一卦 →
                 </Link>
@@ -222,11 +222,11 @@ function RecordSection({
         <h2 className="font-display text-base text-ink tracking-[0.3em]">
           {title}
         </h2>
-        <span className="text-[11px] text-june-bronze font-body">
+        <span className="text-[12px] text-june-bronze font-body">
           {items.length} 条
         </span>
       </div>
-      <p className="text-[11px] text-ink-light/70 font-body mb-3">{hint}</p>
+      <p className="text-[12px] text-ink-light/70 font-body mb-3">{hint}</p>
 
       {items.length === 0 ? (
         <p className="p-4 bg-rice-dark border border-dashed border-june-bronze/30 rounded-sm text-xs text-ink-light/70 font-body">
@@ -265,10 +265,10 @@ function RecordRow({
     >
       <div className="flex items-start gap-3">
         <div className="shrink-0 w-12 text-center">
-          <div className="text-[10px] text-june-bronze font-display tracking-widest">
+          <div className="text-[12px] text-june-bronze font-display tracking-widest">
             {main?.shortName ?? '卦'}
           </div>
-          <div className="text-[10px] text-june-bronze/60 mt-0.5">
+          <div className="text-[12px] text-june-bronze/60 mt-0.5">
             动 {item.movingLine}
           </div>
         </div>
@@ -292,7 +292,7 @@ function RecordRow({
               {item.userNote}
             </p>
           )}
-          <div className="flex items-center gap-2 text-[11px] text-ink-light/70 font-body">
+          <div className="flex items-center gap-2 text-[12px] text-ink-light/70 font-body">
             <span
               className={cn(
                 'px-1.5 py-0.5 rounded-sm',
@@ -379,7 +379,7 @@ function RecordDetail({
         </button>
         <span
           className={cn(
-            'px-2 py-0.5 rounded-sm text-[11px] font-body',
+            'px-2 py-0.5 rounded-sm text-[12px] font-body',
             item.source === 'cloud'
               ? 'bg-june-gold/20 text-june-bronze'
               : 'bg-june-bronze/10 text-june-bronze',
@@ -438,7 +438,7 @@ function RecordDetail({
           className="w-full min-h-[80px] p-3 font-body text-sm bg-rice border border-june-bronze/30 rounded-sm resize-y focus:outline-none focus:border-june-red"
         />
         <div className="flex items-center justify-between mt-2">
-          <span className="text-[10px] text-ink-light/60 font-body">
+          <span className="text-[12px] text-ink-light/60 font-body">
             {noteDraft.length}/2000
           </span>
           <Button

@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { ResultDisplay } from "@/components/sections/ResultDisplay";
-import { saveRecord, clearAllRecords } from "@/lib/storage";
+import { saveRecord, getRecord, clearAllRecords } from "@/lib/storage";
 import type { UserRecord } from "@/types";
 
 // Mock the AI module to avoid actual network calls
@@ -25,6 +25,16 @@ vi.mock("@/lib/records", () => ({
 
 import { saveCloudRecord } from "@/lib/records";
 const mockedSaveCloud = saveCloudRecord as unknown as ReturnType<typeof vi.fn>;
+
+vi.mock('@/lib/feed', () => ({ publishPost: vi.fn() }))
+vi.mock('@/lib/imageGen', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/imageGen')>('@/lib/imageGen')
+  return { ...actual, downloadCardPng: vi.fn() }
+})
+import { publishPost } from '@/lib/feed'
+import { downloadCardPng } from '@/lib/imageGen'
+const mockedPublish = vi.mocked(publishPost)
+const mockedDownload = vi.mocked(downloadCardPng)
 
 const baseRecord: UserRecord = {
   id: "test-record-1",
@@ -51,6 +61,8 @@ describe("ResultDisplay", () => {
     clearAllRecords();
     mockedGenerate.mockReset();
     mockedSaveCloud.mockReset();
+    mockedPublish.mockReset()
+    mockedDownload.mockReset()
   });
 
   it("renders not-found message when record does not exist", () => {
@@ -245,7 +257,7 @@ describe("ResultDisplay", () => {
         <ResultDisplay recordId="test-record-1" />
       </MemoryRouter>,
     );
-    expect(screen.getByRole("button", { name: /收藏本卦/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /下载卦象卡/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /发布到社区/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /再起一卦/ })).toBeInTheDocument();
   });
@@ -303,4 +315,62 @@ describe("ResultDisplay", () => {
     // Still retryable.
     expect(screen.getByRole("button", { name: /收藏到卦册/ })).toBeInTheDocument();
   });
+
+  it('only requests interpretation after a click and persists the completed stream', async () => {
+    saveRecord(baseRecord)
+    let finish: (() => void) | undefined
+    mockedGenerate.mockImplementation((_input, _apiKey, onChunk?: (chunk: string) => void) => new Promise((resolve) => {
+      onChunk?.('## 卦象概要\n正在展开的第一段')
+      finish = () => resolve({ text: '## 卦象概要\n完整的解读', chunks: ['完整的解读'] })
+    }))
+    render(<MemoryRouter><ResultDisplay recordId={baseRecord.id} /></MemoryRouter>)
+    expect(mockedGenerate).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: '卦象详解' }))
+    expect(await screen.findByText('正在展开的第一段')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '解读中…' })).toBeDisabled()
+    await act(async () => { finish?.() })
+    expect(await screen.findByText('完整的解读')).toBeInTheDocument()
+    expect(getRecord(baseRecord.id)?.aiInterpretation).toBe('## 卦象概要\n完整的解读')
+    expect(screen.getByText('已保存的解读')).toBeInTheDocument()
+    expect(mockedGenerate).toHaveBeenCalledTimes(1)
+  })
+
+  it('treats a whitespace-only cached reading as empty', () => {
+    saveRecord({ ...baseRecord, aiInterpretation: '   ' })
+    render(<MemoryRouter><ResultDisplay recordId={baseRecord.id} /></MemoryRouter>)
+    expect(screen.getByRole('button', { name: '卦象详解' })).toBeInTheDocument()
+    expect(mockedGenerate).not.toHaveBeenCalled()
+  })
+
+  it('downloads the paired hexagram card with the saved interpretation', async () => {
+    saveRecord(cachedRecord)
+    mockedDownload.mockResolvedValue(undefined)
+    render(<MemoryRouter><ResultDisplay recordId={baseRecord.id} /></MemoryRouter>)
+    fireEvent.click(screen.getByRole('button', { name: '下载卦象卡' }))
+    await waitFor(() => expect(mockedDownload).toHaveBeenCalledTimes(1))
+    expect(mockedDownload).toHaveBeenCalledWith(expect.objectContaining({
+      main: expect.objectContaining({ id: 1 }),
+      changed: expect.objectContaining({ id: 2 }),
+      movingLine: 1,
+      aiSummary: cachedRecord.aiInterpretation,
+    }), '易象阁-起卦-乾为天.png')
+    expect(await screen.findByText('已下载卦象卡')).toBeInTheDocument()
+  })
+
+  it('publishes the current question and summary and links to the community', async () => {
+    saveRecord(cachedRecord)
+    mockedPublish.mockResolvedValue({ id: 'post-test', createdAt: '2026-10-22T00:00:00Z' })
+    render(<MemoryRouter><ResultDisplay recordId={baseRecord.id} /></MemoryRouter>)
+    fireEvent.click(screen.getByRole('button', { name: '发布到社区' }))
+    await waitFor(() => expect(mockedPublish).toHaveBeenCalledTimes(1))
+    expect(mockedPublish).toHaveBeenCalledWith(expect.objectContaining({
+      mainHexagramId: 1,
+      changedHexagramId: 2,
+      movingLine: 1,
+      question: baseRecord.question,
+      aiSummary: cachedRecord.aiInterpretation,
+    }))
+    expect(await screen.findByRole('link', { name: '已发布 · 查看' })).toHaveAttribute('href', '/feed')
+    expect(screen.queryByRole('button', { name: '发布到社区' })).not.toBeInTheDocument()
+  })
 });

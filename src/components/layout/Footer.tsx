@@ -1,15 +1,22 @@
 import { Link } from 'react-router-dom'
 
+/** 全站页脚。外观由 `src/styles/studio.css` 的 `.site-footer__*` 负责。 */
 export function Footer() {
   return (
-    <footer className="bg-rice-dark border-t border-june-bronze/30 py-6 mt-12">
-      <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-ink-light font-body">
-        <div>© 2026 易象阁 · 周易文化研究</div>
-        <div className="flex items-center gap-4">
-          <Link to="/academy" className="hover:text-june-red">易学书院</Link>
-          <Link to="/records" className="hover:text-june-red">我的卦册</Link>
-          <a href="https://github.com" target="_blank" rel="noopener" className="hover:text-june-red">关于</a>
-        </div>
+    <footer className="site-footer">
+      <div className="site-footer__inner">
+        <p className="site-footer__copyright">© 2026 易象阁 · 周易文化研究</p>
+        <nav className="site-footer__nav" aria-label="页脚导航">
+          <Link to="/codex" className="site-footer__link">
+            易学书院
+          </Link>
+          <Link to="/records" className="site-footer__link">
+            我的卦册
+          </Link>
+          <Link to="/settings" className="site-footer__link">
+            偏好设置
+          </Link>
+        </nav>
       </div>
     </footer>
   )

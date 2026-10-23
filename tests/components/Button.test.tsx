@@ -9,12 +9,13 @@ describe('Button', () => {
     expect(btn).toBeInTheDocument()
   })
 
-  it('applies primary variant classes (gradient + gold border)', () => {
+  it('applies primary variant hook (颜色由外观令牌层决定)', () => {
     render(<Button variant="primary">Primary</Button>)
     const btn = screen.getByRole('button', { name: /primary/i })
-    // P0 UI: primary uses 朱砂渐变 + 金线边, not flat bg-june-red
-    expect(btn.className).toContain('bg-gradient-to-b')
-    expect(btn.className).toContain('border-june-gold')
+    // 外观可切换后，主按钮颜色改由 `src/styles/appearance.css` 按外观决定，
+    // 组件只保留稳定的样式钩子（不再写死朱砂渐变的 Tailwind 任意值）。
+    expect(btn.className).toContain('ui-button--primary')
+    expect(btn.className).toContain('ui-button')
   })
 
   it('applies secondary variant classes', () => {

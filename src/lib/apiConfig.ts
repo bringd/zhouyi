@@ -25,28 +25,29 @@ const STORAGE_KEY = 'zhouyi:api-config:v1'
  *  https://orix-studio.pages.dev). */
 const UPSTREAM_BASE_URL = 'https://api.minimaxi.com/anthropic'
 
-/** Dev-mode proxy path. Vite forwards this to UPSTREAM_BASE_URL's
- *  origin so the browser sees a same-origin request and skips the
- *  CORS preflight. */
-const DEV_PROXY_PATH = '/api-proxy/anthropic'
+/** Path to the Cloudflare Pages Function that reverse-proxies the
+ *  Anthropic-compatible endpoint. Same origin in dev and production:
+ *  - In production the Function is served at
+ *    https://orix-studio.pages.dev/api/proxy/anthropic/v1/messages.
+ *  - In dev Vite forwards the same path to the local
+ *    `wrangler pages dev` server on :8788, which serves the same
+ *    Function. Going through the Function is what makes the request
+ *    same-origin (no browser CORS) and what gives the server a chance
+ *    to inject the demo AI_DEMO_KEY when the user has no x-api-key.
+ *
+ *  An older, dev-only path `/api-proxy/anthropic` used to forward
+ *  *directly* to the upstream — that path bypasses the Function and
+ *  therefore can't supply a demo key, so any request without the
+ *  user's own key gets 401 from upstream. The read() migration below
+ *  rewrites that legacy URL back to this one. */
+const PROXY_PATH = '/api/proxy/anthropic'
 
-/** Production proxy path. The Cloudflare Pages Function at
- *  `functions/api/proxy/[...path].ts` forwards to UPSTREAM_BASE_URL.
- *  Same-origin → no browser CORS check. */
-const PROD_PROXY_PATH = '/api/proxy/anthropic'
-
-/** Resolved at call time so we can pick the right URL based on
- *  whether the page is being served by `vite dev` (DEV=true) or by
- *  the production build (DEV=false). In SSR or test environments
- *  where `window` isn't available, fall back to the upstream URL. */
+/** Resolved at call time so callers always see the right URL. In SSR
+ *  or test environments where `window` isn't available, fall back to
+ *  the bare upstream URL. */
 function getDefaultBaseUrl(): string {
   if (typeof window === 'undefined') return UPSTREAM_BASE_URL + '/v1/messages'
-  if (import.meta.env?.DEV) {
-    return window.location.origin + DEV_PROXY_PATH + '/v1/messages'
-  }
-  // Production: hit our own Pages Function so the browser sees a
-  // same-origin request. The Function handles the upstream hop.
-  return window.location.origin + PROD_PROXY_PATH + '/v1/messages'
+  return window.location.origin + PROXY_PATH + '/v1/messages'
 }
 
 const DEFAULT_MODEL = 'minimax-m3'
@@ -119,7 +120,18 @@ export function getApiConfig(): ApiConfig {
   // upstream hostname so users who typed a custom endpoint or
   // a different Anthropic-compatible service are not silently
   // redirected through the proxy.
-  if (!baseUrl || baseUrl === UPSTREAM_BASE_URL) {
+  //
+  // Also rewrite the old dev-only `/api-proxy/anthropic` path —
+  // it forwarded requests directly to the upstream and therefore
+  // couldn't supply a demo key, so any call without the user's own
+  // key got 401. Accept any host (the user may be on localhost:5173
+  // or 127.0.0.1:5173 or a custom dev port), match the path tail
+  // only.
+  if (
+    !baseUrl ||
+    baseUrl === UPSTREAM_BASE_URL ||
+    /\/api-proxy\/anthropic(\/|$)/.test(baseUrl)
+  ) {
     baseUrl = getDefaultBaseUrl()
   }
   return {
@@ -198,8 +210,10 @@ export const API_CONFIG_DEFAULTS = {
   // during local dev. Production deploys hit the Pages Function at
   // /api/proxy/anthropic/* which forwards to the upstream. We
   // expose the proxy path here so Settings shows a useful placeholder.
+  // The same path works in dev because Vite forwards it to the local
+  // `wrangler pages dev` server.
   baseUrl: typeof window !== 'undefined'
-    ? window.location.origin + (import.meta.env?.DEV ? DEV_PROXY_PATH : PROD_PROXY_PATH) + '/v1/messages'
+    ? window.location.origin + PROXY_PATH + '/v1/messages'
     : UPSTREAM_BASE_URL + '/v1/messages',
   model: DEFAULT_MODEL,
 } as const

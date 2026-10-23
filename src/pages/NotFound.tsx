@@ -11,7 +11,7 @@ export default function NotFound() {
         <div className="text-6xl font-display text-june-bronze mb-4">四〇四</div>
         <h1 className="text-2xl font-display text-ink mb-4 tracking-widest">此路不通</h1>
         <p className="text-ink-light font-body mb-8">所寻之页面，似已不在易象之中。</p>
-        <Link to="/">
+        <Link to="/" className="inline-flex">
           <Button>返回首页</Button>
         </Link>
       </div>

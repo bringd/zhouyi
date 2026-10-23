@@ -14,6 +14,11 @@
  */
 
 import type { UserRecord, UserSettings } from '@/types'
+import {
+  DEFAULT_APPEARANCE,
+  normalizeAppearance,
+  type AppearanceId,
+} from '@/lib/appearance'
 
 const RECORDS_KEY = 'zhouyi:records'
 const SETTINGS_KEY = 'zhouyi:settings'
@@ -25,6 +30,7 @@ export const MAX_RECORDS = 200
 export const DEFAULT_SETTINGS: UserSettings = {
   preferredLocale: 'zh-CN',
   theme: 'light',
+  appearance: DEFAULT_APPEARANCE,
 }
 
 /** Return true if localStorage is reachable, false otherwise. */
@@ -154,13 +160,17 @@ export function updateRecordNote(id: string, note: string): boolean {
  * Get user settings.
  * Returns default settings merged with any stored settings, so newly added
  * settings fields automatically pick up their defaults.
+ *
+ * `appearance` 额外做白名单校验：旧版本没有该字段、或存储被写坏成非法值时，
+ * 一律回落到默认外观，不把脏值带进界面。
  */
 export function getSettings(): UserSettings {
   const parsed = readJson(SETTINGS_KEY)
   if (!parsed || typeof parsed !== 'object') {
     return { ...DEFAULT_SETTINGS }
   }
-  return { ...DEFAULT_SETTINGS, ...(parsed as Partial<UserSettings>) }
+  const merged = { ...DEFAULT_SETTINGS, ...(parsed as Partial<UserSettings>) }
+  return { ...merged, appearance: normalizeAppearance(merged.appearance) }
 }
 
 /**
@@ -170,7 +180,24 @@ export function getSettings(): UserSettings {
 export function saveSettings(settings: Partial<UserSettings>): boolean {
   const current = getSettings()
   const merged = { ...current, ...settings }
+  if (settings.appearance !== undefined) {
+    merged.appearance = normalizeAppearance(settings.appearance)
+  }
   return writeJson(SETTINGS_KEY, merged)
+}
+
+/**
+ * 读取当前外观（非法值回落到默认外观）。
+ */
+export function getAppearance(): AppearanceId {
+  return normalizeAppearance(getSettings().appearance)
+}
+
+/**
+ * 保存外观偏好。返回 true 表示已写入存储。
+ */
+export function saveAppearance(appearance: AppearanceId): boolean {
+  return saveSettings({ appearance })
 }
 
 /**

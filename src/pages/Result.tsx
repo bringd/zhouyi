@@ -3,15 +3,19 @@ import { ResultDisplay } from '@/components/sections/ResultDisplay'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Button } from '@/components/ui/Button'
 import { SEO } from '@/lib/seo'
+import '@/styles/result.css'
 
 export default function Result() {
   const { id } = useParams<{ id: string }>()
   if (!id) {
     return (
-      <PageLayout>
+      <PageLayout
+        rootClassName="studio-page result-page"
+        className="studio-content"
+      >
         <SEO title="起卦结果" description="查看你的起卦结果与卦象详解。" />
-        <div className="text-center py-12">
-          <p className="text-ink-light font-body mb-4">无效的起卦记录</p>
+        <div className="result-empty">
+          <h1>无效的起卦记录</h1>
           <Link to="/divination">
             <Button>前往起卦</Button>
           </Link>
@@ -20,9 +24,12 @@ export default function Result() {
     )
   }
   return (
-    <PageLayout>
+    <PageLayout
+      rootClassName="studio-page result-page"
+      className="studio-content"
+    >
       <SEO title="起卦结果" description="查看你的起卦结果与卦象详解。" />
-      <ResultDisplay recordId={id} />
+      <ResultDisplay key={id} recordId={id} />
     </PageLayout>
   )
 }

@@ -1,4 +1,5 @@
 import type { HexagramId } from './hexagram'
+import type { AppearanceId } from '@/lib/appearance'
 
 /**
  * User records — divination history and saved items.
@@ -57,4 +58,10 @@ export interface UserSettings {
 
   /** 主题 (MVP 仅 light) */
   theme: 'light'
+
+  /**
+   * 站点外观：三套视觉风格之一。
+   * 与 theme 分开存放——theme 仍是「明/暗」的老字段，扩展它会混装两种语义。
+   */
+  appearance?: AppearanceId
 }

@@ -15,6 +15,14 @@ export interface YaoLineStackProps {
   /** Gap between lines in pixels */
   lineGap?: number
   className?: string
+  /**
+   * Accessible name of the glyph, e.g. "地山谦卦象图".
+   *
+   * 不传时按装饰性图形处理（aria-hidden）：读屏用户会跳过它。
+   * 只有当卦图本身是「独立表达信息」的元素时（例如今日卦境的主卦图，
+   * 旁边没有等价文字）才传中文名称，否则请传空。
+   */
+  label?: string
   /** Allow test runners to attach data-* attributes */
   'data-testid'?: string
 }
@@ -35,6 +43,7 @@ export function YaoLineStack({
   thickness = 6,
   lineGap = 4,
   className,
+  label,
   'data-testid': testId,
 }: YaoLineStackProps) {
   // Build effective states: if highlightLine is provided, override that line's state to 'highlight'
@@ -46,8 +55,10 @@ export function YaoLineStack({
     <div
       className={cn('flex flex-col', className)}
       style={{ gap: `${lineGap}px`, width: `${width}px` }}
-      role="img"
-      aria-label="hexagram"
+      // 有中文名称时作为图片呈现；没有名称时按装饰性图形隐藏，避免读屏重复朗读
+      role={label ? 'img' : undefined}
+      aria-label={label}
+      aria-hidden={label ? undefined : true}
       data-testid={testId}
     >
       {/* Render top-to-bottom: position 6 first, position 1 last */}

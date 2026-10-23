@@ -27,8 +27,7 @@ export interface Xiangzhuan {
 }
 
 /** 单条爻 (a single line of a hexagram) */
-export interface YaoLine {
-  /** 爻位, 1-6 (1 = bottom) */
+export interface YaoLine {  /** 爻位, 1-6 (1 = bottom) */
   position: 1 | 2 | 3 | 4 | 5 | 6
 
   /** 阴爻/阳爻 */
@@ -135,3 +134,9 @@ export interface Hexagram {
 
 /** Type alias for hexagram IDs */
 export type HexagramId = Hexagram['id']
+
+/** 爻的阴阳（渲染层与 lib 层共用的基础类型） */
+export type LineType = 'yin' | 'yang'
+
+/** 爻的显示状态：常态 / 动爻高亮 / 已变 */
+export type LineState = 'normal' | 'highlight' | 'changed'

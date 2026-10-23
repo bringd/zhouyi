@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { PageTitle } from '@/components/ui/PageTitle'
+import { AppearancePicker } from '@/components/layout/AppearancePicker'
 import { SEO } from '@/lib/seo'
 import { Button } from '@/components/ui/Button'
 import {
@@ -106,6 +107,8 @@ export default function Settings() {
       <PageTitle title="设置" />
 
       <div className="max-w-2xl mx-auto space-y-6">
+        {/* 外观：与顶栏快捷入口共用同一状态，点击即生效 */}
+        <AppearancePicker />
         {/* AI 解读 (BYOK) — Phase 1 hidden. Restore by removing {false && …} wrapper. */}
         {false && (
         <section className="p-6 bg-rice border-2 border-june-bronze rounded-md">
@@ -172,7 +175,7 @@ export default function Settings() {
                   placeholder={API_CONFIG_DEFAULTS.baseUrl}
                   className="mt-2 w-full px-3 py-2 font-mono text-xs bg-white border border-june-bronze/40 rounded-sm focus:outline-none focus:border-june-red"
                 />
-                <span className="block mt-1 text-[11px] text-ink-light/70 font-body">
+                <span className="block mt-1 text-[12px] text-ink-light/70 font-body">
                   Anthropic 兼容端点。用 Anthropic 官方时留空；
                   用 3rd-party（如 MiniMax、自建代理）时填那个端点 URL。
                 </span>
@@ -191,7 +194,7 @@ export default function Settings() {
                   placeholder={API_CONFIG_DEFAULTS.model}
                   className="mt-2 w-full px-3 py-2 font-mono text-xs bg-white border border-june-bronze/40 rounded-sm focus:outline-none focus:border-june-red"
                 />
-                <span className="block mt-1 text-[11px] text-ink-light/70 font-body">
+                <span className="block mt-1 text-[12px] text-ink-light/70 font-body">
                   端点支持的模型名。默认 minimax-m3。
                 </span>
               </label>
@@ -262,7 +265,7 @@ export default function Settings() {
               本网站的 JS 都能读到它们——这与本站其他第三方脚本的可见性
               相同。共享设备或公开场合请使用后清除。Anthropic 官方要求
               加上{' '}
-              <code className="px-1 mx-1 bg-rice-dark rounded text-[11px] font-mono">
+              <code className="px-1 mx-1 bg-rice-dark rounded text-[12px] font-mono">
                 anthropic-dangerous-direct-browser-access
               </code>{' '}
               头以启用浏览器 CORS；这意味着你的 Key 对端点来说与
@@ -324,7 +327,7 @@ export default function Settings() {
                   placeholder={NICKNAME_DEFAULTS.default}
                   className="mt-2 w-full px-3 py-2 font-body text-sm bg-white border border-june-bronze/40 rounded-sm focus:outline-none focus:border-june-red"
                 />
-                <span className="block mt-1 text-[11px] text-ink-light/70 font-body">
+                <span className="block mt-1 text-[12px] text-ink-light/70 font-body">
                   最多 {NICKNAME_DEFAULTS.maxLength} 字。空着 = 显示"{NICKNAME_DEFAULTS.default}"。
                 </span>
               </label>

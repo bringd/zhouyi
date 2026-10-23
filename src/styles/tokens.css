@@ -11,19 +11,23 @@
  * bundle in public/fonts/, add @font-face declarations here.
  */
 :root {
-  /* 矿物质色 - Mineral pigments (per design spec 4.2) */
-  --color-june-red:    #9B2C2C;  /* 朱砂 - Vermillion - Primary */
-  --color-june-gold:   #C89E3A;  /* 藤黄 - Gamboge - Accent */
-  --color-june-bronze: #8B6914;  /* 赭石 - Ochre - Border */
-  --color-june-jade:   #4A5A4A;  /* 石绿 - Malachite - Auxiliary */
-  --color-june-clay:   #6B4A2A;  /* 赭褐 - Umber - Shadow */
+  /* 矿物质色 - Mineral pigments (per design spec 4.2)
+   * 青岚书院的外观按 A 提案（浅纸色 + 青绿山水）落地，
+   * 这一组「矿物质色」在 A 下重映射为同族的青绿/赭石色：
+   * 朱砂红 → 石绿主色，藤黄 → 淡赭金，赭石 → 青灰，
+   * 其余两套外观（朱砂档案 / 夜航观象）在 appearance.css 里各自覆盖。 */
+  --color-june-red:    #355E4B;  /* 石绿 - Malachite - 主色（青岚青绿） */
+  --color-june-gold:   #8A7A3F;  /* 藤黄 - Gamboge - Accent */
+  --color-june-bronze: #4A5F4F;  /* 赭石 - Ochre - Border（在 --color-rice-dark 上 5.4:1） */
+  --color-june-jade:   #5A7355;  /* 石绿 - Malachite - Auxiliary */
+  --color-june-clay:   #5A4A35;  /* 赭褐 - Umber - Shadow */
 
   /* 墨色与纸色 - Ink and paper */
-  --color-ink:         #1A1A1A;  /* 浓墨 - Concentrated ink - Body text */
-  --color-ink-light:   #4A371C;  /* 淡墨 - Light ink - Secondary text */
-  --color-rice:        #FAF6EC;  /* 宣纸 - Rice paper - Page background */
-  --color-rice-dark:   #EDE2D0;  /* 旧纸 - Aged paper - Card background */
-  --color-shadow:      #4A371C;  /* 投影 - Shadow color */
+  --color-ink:         #263E34;  /* 浓墨 - Concentrated ink - Body text */
+  --color-ink-light:   #4A5C51;  /* 淡墨 - Light ink - Secondary text */
+  --color-rice:        #F5F4EC;  /* 宣纸 - Rice paper - Page background */
+  --color-rice-dark:   #ECEEE3;  /* 旧纸 - Aged paper - Card background */
+  --color-shadow:      #2C3A31;  /* 投影 - Shadow color */
 
   /* 字体系统 - Typography (per design spec 4.3)
    * System font stack — no @font-face / no web font downloads.
@@ -32,4 +36,71 @@
   --font-display: '思源宋体', 'Source Han Serif SC', 'Noto Serif SC', '宋体', serif;
   --font-body:    '霞鹜文楷', 'LXGW WenKai', 'KaiTi', 'STKaiti', '楷体', serif;
   --font-num:     'JetBrains Mono', 'Cascadia Code', 'Courier New', monospace;
+  /* UI 字体 — 2026-10 改版的新视觉用无衬线正文（标题仍用 --font-display）。
+   * 尚未改造的页面（图鉴/卦册/社区/卦象详情）继续用 --font-body（楷体），
+   * 待逐页改造时再切换，避免一次性重排所有业务内容。 */
+  --font-ui: 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC', 'Hiragino Sans GB', sans-serif;
+
+  /* ---------------------------------------------------------------
+   * 语义令牌（2026-10 改版：新视觉）
+   *
+   * 与上面的“矿物质色”旧配色并存，职责不同：
+   * - --color-june-* / --color-rice / --color-ink：未改造页面仍在用，
+   *   本轮不改其数值。
+   * - --color-bg-* / --color-text-* / --color-accent：全站框架
+   *   （Header/Footer/页面容器）与已改造页面（首页/三数起卦/结果页）使用，
+   *   Tailwind 主题里已有同名映射（bg-page / text-muted / …）。
+   *
+   * 注意：不要把语义令牌“映射回”旧色值，否则新视觉会被一起退回。
+   * 对比度按实际背景复算（括号内为最低背景上的值）。
+   * --------------------------------------------------------------- */
+  --color-bg-page:    #f5f4ec;
+  --color-bg-paper:   #fcfbf5;  /* 顶栏/底栏 */
+  --color-bg-card:    #fdfcf7;
+  --color-bg-panel:   #eef1e8;  /* 次级面板（卦象卡/引导块） */
+  --color-bg-soft:    #e9ede2;  /* 浅绿小块（标签/步骤号/占位） */
+  --color-bg-sunken:  #f0f2e9;  /* 下沉块 / 输入内嵌 */
+  --color-bg-raised:  #e6ece0;  /* 选中/已填 */
+  --color-bg-field:   #f8f9f2;  /* 输入区底 */
+  --color-bg-hero:    #f1f2e9;  /* 首页纸面 */
+  --color-bg-warm:    #f3f2e8;  /* 暖纸（变卦） */
+  --color-bg-footer:  #edefe6;
+  --color-bg-error:   #f4eae3;  /* 错误提示底 */
+  --color-bg-disabled:         #e4e8da;
+  --color-bg-disabled-sage:    #9da98c;
+  --color-bg-toast:   #3f5344;  /* 轻提示条底 */
+
+  /* 带透明度的表面（alpha 变体） */
+  --color-bg-page-rgb:  245 244 236;
+  --color-bg-panel-rgb: 238 241 232;
+  --color-bg-warm-rgb:  243 242 232;
+
+  --color-text-primary:   #263e34;  /* 10.2:1 */
+  --color-text-secondary: #45594c;  /* 6.7:1 */
+  --color-text-muted:     #56675c;  /* 5.5:1；在禁用底色 --color-bg-disabled 上仍有 4.8:1 */
+  --color-accent:         #355e4b;  /* 6.6:1（青绿主色） */
+  --color-accent-strong:  #284636;
+  --color-accent-soft:    #e2e9dd;
+  --color-on-accent:      #fffdf4;  /* 主色上的文字色（按钮/印章） */
+  --color-accent-bright:  #3d6a55;
+  --color-accent-bright-hover: #2f5544;
+  --color-green:          #3f5f4a;  /* 数字/成功态 6.5:1 */
+  --color-green-strong:   #2f4a3a;
+  --color-border:         #d3dbcf;  /* 装饰性分隔线 */
+  --color-border-strong:  #b3c0b0;  /* 弱分隔线 */
+  --color-control-border: #6d7f6d;  /* 控件边界（输入框/按钮），对背景 3.8:1 */
+
+  /* ---------------------------------------------------------------
+   * 过渡别名（改版期间）
+   *
+   * 页面 CSS（home/divination/result）已全部迁到语义名，这段别名
+   * 只剩自己引用，保留会误导后来者以为还有页面在用 --studio-*，
+   * 因此删除（迁移已完成，见 review 文档第十节）。
+   * --------------------------------------------------------------- */
+
+  /* 字号规范（项目约定，非 WCAG 字号要求）：
+   * 正文 15px / 辅助信息 13px / 最小 12px；不要出现 12px 以下的中文正文。 */
+  --text-body:    15px;
+  --text-small:   13px;
+  --text-caption: 12px;
 }

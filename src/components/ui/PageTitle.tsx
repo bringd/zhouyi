@@ -48,7 +48,7 @@ export function PageTitle({
         </div>
       )}
 
-      <div className="relative inline-block">
+      <div className="relative mx-auto w-full max-w-[440px]">
         <PlaqueFrame size={size} title={title} />
         <h1
           id={id}
@@ -90,10 +90,10 @@ function PlaqueFrame({ size, title }: { size: 'md' | 'lg'; title: string }) {
   const w = baseW + extraChars * (size === 'lg' ? 56 : 40)
   return (
     <svg
-      width={w}
-      height={h}
       viewBox={`0 0 ${w} ${h}`}
-      className="block mx-auto"
+      // 窄屏（320/390）下按容器等比缩放，避免固定宽度把页面撑出横向滚动
+      className="block mx-auto h-auto w-full"
+      preserveAspectRatio="xMidYMid meet"
       aria-hidden
     >
       {/* Outer bronze border */}
@@ -102,8 +102,7 @@ function PlaqueFrame({ size, title }: { size: 'md' | 'lg'; title: string }) {
         y="2"
         width={w - 4}
         height={h - 4}
-        fill="#FAF6EC"
-        stroke="#8B6914"
+        style={{ fill: 'var(--color-bg-paper)', stroke: 'var(--color-june-bronze)' }}
         strokeWidth="2"
       />
       {/* Inner gold thin border */}
@@ -113,7 +112,7 @@ function PlaqueFrame({ size, title }: { size: 'md' | 'lg'; title: string }) {
         width={w - 16}
         height={h - 16}
         fill="none"
-        stroke="#C89E3A"
+        style={{ stroke: 'var(--color-june-gold)' }}
         strokeWidth="0.5"
         opacity="0.8"
       />
@@ -123,7 +122,7 @@ function PlaqueFrame({ size, title }: { size: 'md' | 'lg'; title: string }) {
         y1={h / 2}
         x2="2"
         y2={h / 2}
-        stroke="#1A1A1A"
+        style={{ stroke: 'var(--color-ink)' }}
         strokeWidth="2"
         strokeLinecap="round"
       />
@@ -132,7 +131,7 @@ function PlaqueFrame({ size, title }: { size: 'md' | 'lg'; title: string }) {
         y1={h / 2}
         x2={w}
         y2={h / 2}
-        stroke="#1A1A1A"
+        style={{ stroke: 'var(--color-ink)' }}
         strokeWidth="2"
         strokeLinecap="round"
       />

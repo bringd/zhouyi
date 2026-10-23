@@ -1,0 +1,1881 @@
+/* =====================================================================
+ * 夜航观象（外观 C）—— 星图 · 观测面板 · 仪式感
+ * ---------------------------------------------------------------------
+ * 颜色一律取自 `src/styles/appearance.css` 的语义令牌：
+ * 夜航观象下 --color-bg-* 是深色系、--color-text-* 是浅色系、
+ * --color-accent 是淡金。本文件不写死任何深色十六进制。
+ *
+ * 约定：
+ * - 本文件自带的 class 一律 `yh-` 前缀；
+ * - 复用共享组件（NumberBox / ResultHexagram / Button 等）时，
+ *   用 `.yh-page` 作用域下的后代选择器覆写它们的外观，
+ *   避免污染其它外观，也避免依赖样式表加载顺序。
+ * ===================================================================== */
+
+/* ---------------------------- 基础容器 ---------------------------- */
+
+.yh-page {
+  --yh-radius: 7px;
+  --yh-radius-lg: 12px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 34px 40px 72px;
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  color: var(--color-text-primary);
+}
+
+.yh-page h1,
+.yh-page h2,
+.yh-page h3,
+.yh-page h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--color-text-primary);
+}
+
+.yh-page p {
+  margin: 0;
+}
+
+.yh-page a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.yh-page button {
+  font: inherit;
+}
+
+/* 装饰性小标签：拉丁文/栏目名的疏排小字 */
+.yh-overline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+}
+
+.yh-kicker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+}
+
+.yh-kicker > span {
+  display: inline-block;
+  width: 23px;
+  height: 1px;
+  background: var(--color-accent);
+}
+
+/* 仪表读数（观测面板里的“刻度”式小标签） */
+.yh-readout {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-bg-sunken);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+.yh-readout b {
+  color: var(--color-accent);
+  font-family: var(--font-num);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}
+
+/* ------------------------------ 按钮 ------------------------------ */
+/* 仪式感：主按钮是「星盘」一样的圆角；次按钮只有描边。 */
+
+.yh-btn,
+.yh-page a.yh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 46px;
+  padding: 11px 26px;
+  border-radius: 999px;
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.yh-btn:hover,
+.yh-page a.yh-btn:hover {
+  background: var(--color-accent-strong);
+  border-color: var(--color-accent-strong);
+  color: var(--color-on-accent);
+}
+
+.yh-btn--outline,
+.yh-page a.yh-btn--outline {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-color: var(--color-control-border);
+}
+
+.yh-btn--outline:hover,
+.yh-page a.yh-btn--outline:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background: transparent;
+}
+
+.yh-btn--text,
+.yh-page a.yh-btn--text {
+  min-height: 44px;
+  padding: 8px 0;
+  background: transparent;
+  border: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+}
+
+.yh-btn--text:hover,
+.yh-page a.yh-btn--text:hover {
+  color: var(--color-accent);
+  background: transparent;
+}
+
+/* 独立文字链接：点击区不小于 24×24 */
+.yh-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 24px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.yh-link:hover {
+  color: var(--color-accent);
+}
+
+/* ----------------------------- 面包屑 ----------------------------- */
+
+.yh-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0 26px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.yh-breadcrumb a {
+  min-height: 24px;
+  /* WCAG 2.5.8：面包屑「首页」两字本身只有 21px 宽，撑到 24px 最小目标 */
+  min-width: 24px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-muted);
+}
+
+.yh-breadcrumb a:hover {
+  color: var(--color-accent);
+}
+
+.yh-breadcrumb [aria-current='page'] {
+  color: var(--color-text-secondary);
+}
+
+/* ------------------------------ 星图 ------------------------------ */
+/* 装饰层：纯静态，没有任何持续动画。 */
+
+.yh-atlas {
+  position: relative;
+  width: 100%;
+  color: var(--color-green);
+}
+
+.yh-atlas svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.yh-atlas__rings {
+  color: var(--color-green);
+}
+
+.yh-atlas__marks {
+  color: var(--color-accent);
+}
+
+.yh-atlas text {
+  font-family: var(--font-display);
+  fill: currentColor;
+}
+
+.yh-atlas__glow-start {
+  stop-color: var(--color-green);
+  stop-opacity: 0.18;
+}
+
+.yh-atlas__glow-end {
+  stop-color: var(--color-green);
+  stop-opacity: 0;
+}
+
+.yh-atlas__star {
+  fill: var(--color-accent);
+}
+
+.yh-atlas__star-ring {
+  stroke: var(--color-accent);
+}
+
+.yh-atlas__center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+  pointer-events: none;
+}
+
+.yh-atlas__center > span {
+  font-family: var(--font-display);
+  font-size: 74px;
+  line-height: 1;
+  color: var(--color-accent);
+}
+
+.yh-atlas__center small {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  letter-spacing: 0.3em;
+}
+
+.yh-atlas__caption {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+}
+
+/* 星图的尺寸档位 */
+.yh-atlas--hero {
+  height: 555px;
+}
+
+.yh-atlas--compact {
+  height: 285px;
+}
+
+.yh-atlas--compact .yh-atlas__center > span {
+  font-size: 43px;
+}
+
+.yh-atlas--compact .yh-atlas__center {
+  gap: 5px;
+}
+
+/* ------------------------------ 首页 ------------------------------ */
+
+.yh-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+  min-height: 590px;
+  padding: 10px 0 34px;
+}
+
+.yh-hero__copy {
+  max-width: 560px;
+}
+
+.yh-hero__title {
+  margin: 26px 0 22px;
+  font-size: clamp(38px, 4.4vw, 61px);
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+}
+
+.yh-hero__title span {
+  color: var(--color-accent);
+}
+
+.yh-hero__lead {
+  max-width: 360px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 2.1;
+  letter-spacing: 0.05em;
+}
+
+.yh-hero__actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 31px;
+}
+
+.yh-hero__meta {
+  display: flex;
+  gap: 21px;
+  margin-top: 32px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+
+.yh-hero__meta span + span::before {
+  content: '/';
+  margin-right: 21px;
+  opacity: 0.5;
+}
+
+/* 日期与时区：真实值，来自页面层 */
+.yh-hero__stamp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+.yh-hero__stamp i {
+  width: 4px;
+  height: 4px;
+  background: var(--color-accent);
+  transform: rotate(45deg);
+}
+
+/* 下半区：观测面板 + 探索面板 */
+.yh-lower {
+  display: grid;
+  grid-template-columns: 1fr 310px;
+  gap: 20px;
+  padding-bottom: 40px;
+}
+
+.yh-today {
+  padding: 25px 30px 29px;
+  background: var(--color-bg-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--yh-radius);
+}
+
+.yh-today__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.yh-today__heading {
+  display: flex;
+  align-items: baseline;
+  gap: 22px;
+  margin-top: 20px;
+}
+
+.yh-today__heading h2 {
+  font-size: 24px;
+}
+
+.yh-today__heading p {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.yh-today__body {
+  display: grid;
+  grid-template-columns: 1fr 113px;
+  gap: 20px;
+  margin-top: 18px;
+}
+
+.yh-today__reading h3 {
+  margin: 6px 0 9px;
+  font-size: 32px;
+  color: var(--color-accent);
+}
+
+.yh-today__reading > p {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 430px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+/* 观测面板：动爻与变卦的读数 */
+.yh-today__readouts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.yh-today__more {
+  margin-top: 18px;
+}
+
+.yh-today__art {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 113px;
+  height: 113px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-bg-sunken);
+}
+
+.yh-today__art .yh-glyph {
+  width: 56px;
+}
+
+/* 卦图（共享 YaoLineStack 的外框着色） */
+.yh-glyph {
+  color: var(--color-accent);
+}
+
+.yh-glyph .bg-ink {
+  background-color: var(--color-accent);
+}
+
+.yh-glyph .bg-june-red {
+  background-color: var(--color-green);
+}
+
+.yh-glyph .bg-june-gold {
+  background-color: var(--color-green);
+}
+
+.yh-explore {
+  display: flex;
+  flex-direction: column;
+  padding: 25px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--yh-radius);
+  background: transparent;
+}
+
+.yh-explore h2 {
+  margin: 14px 0 22px;
+  font-size: 25px;
+  line-height: 1.6;
+}
+
+.yh-explore__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 0;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.yh-explore__link span {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.yh-explore__link:hover {
+  color: var(--color-accent);
+}
+
+/* 今日卦境之外的「一卦一境」阅读主题 */
+.yh-reading {
+  padding-bottom: 40px;
+}
+
+.yh-reading__heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.yh-reading__heading h2 {
+  margin-top: 10px;
+  font-size: 26px;
+}
+
+.yh-reading__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 0 4px;
+}
+
+.yh-reading__toolbar button {
+  min-height: 40px;
+  padding: 8px 18px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.yh-reading__toolbar button:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.yh-reading__toolbar button[aria-pressed='true'] {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.yh-reading__toolbar > span {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.yh-reading__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.yh-reading__card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  padding: 20px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--yh-radius);
+  color: var(--color-text-secondary);
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.yh-reading__card:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+}
+
+.yh-reading__card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.yh-reading__card-symbol {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 0;
+}
+
+.yh-reading__card-symbol > span {
+  font-family: var(--font-display);
+  font-size: 26px;
+  color: var(--color-accent);
+}
+
+.yh-reading__card h3 {
+  font-size: 19px;
+}
+
+.yh-reading__card p {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.yh-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+  padding-top: 26px;
+  padding-bottom: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.yh-note > span {
+  font-family: var(--font-display);
+  font-size: 21px;
+  color: var(--color-accent);
+}
+
+.yh-note p {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+/* ----------------------------- 起卦页 ----------------------------- */
+
+.yh-cast__layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: start;
+}
+
+.yh-cast__intro {
+  padding-top: 5px;
+}
+
+.yh-cast__intro h1 {
+  margin: 20px 0 24px;
+  font-size: 44px;
+  line-height: 1.55;
+}
+
+.yh-cast__intro h1 span {
+  color: var(--color-accent);
+}
+
+.yh-cast__intro > p {
+  max-width: 330px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 2.1;
+}
+
+.yh-cast__atlas {
+  margin: 30px 30px 0 0;
+}
+
+.yh-cast__caption {
+  display: flex;
+  justify-content: space-between;
+  margin: 22px 30px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+/* 表单面板：观测台 */
+.yh-form {
+  padding: 35px 36px 27px;
+  background: var(--color-bg-paper);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--yh-radius-lg);
+}
+
+.yh-form__title {
+  padding-bottom: 24px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.yh-form__title h2 {
+  margin: 8px 0 5px;
+  font-size: 30px;
+  letter-spacing: 0.12em;
+}
+
+.yh-form__title > p {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.yh-field {
+  margin-top: 25px;
+}
+
+.yh-field__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.yh-field__title label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  /* WCAG 2.5.8：字段标题整体也是可点目标（下拉/聚焦输入框），高度撑到 24px */
+  min-height: 24px;
+  color: var(--color-text-primary);
+}
+
+.yh-field__title-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-primary);
+}
+
+.yh-field__index {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--color-accent);
+}
+
+.yh-field__title small {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* 共享 QuestionInput 的深色皮肤：
+   共享组件的 placeholder 用 ink-light/40，在夜航观象下只有 2.4:1，
+   这里换成 --color-text-muted（约 7.6:1）。 */
+.yh-page .yh-question > label {
+  display: none;
+}
+
+.yh-page .yh-question textarea {
+  width: 100%;
+  min-height: 116px;
+  padding: 15px;
+  resize: vertical;
+  color: var(--color-text-primary);
+  background: var(--color-bg-field);
+  border: 1px solid var(--color-control-border);
+  border-radius: 4px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.yh-page .yh-question textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+.yh-page .yh-question textarea:focus {
+  border-color: var(--color-accent);
+}
+
+.yh-page .yh-question > div {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+/* 示例问题按钮 */
+.yh-examples {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.yh-examples button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 5px 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.yh-examples button:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.yh-examples button[aria-pressed='true'] {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+/* 三个灵数 */
+.yh-numbers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+  margin-top: 16px;
+}
+
+.yh-numbers .number-randomizer {
+  min-width: 0;
+  gap: 10px;
+}
+
+.yh-numbers .number-randomizer > div,
+.yh-numbers .number-box {
+  width: 100%;
+  min-width: 0;
+}
+
+.yh-page .yh-numbers .number-box-surface {
+  width: 100%;
+  min-width: 0;
+  padding: 16px 10px 12px;
+  background: var(--color-bg-sunken);
+  /* 控件边界：--color-control-border 对输入区底色 4.2:1（≥3:1）。
+     弱边框 --color-border 在深色底上只有 1.7:1，看不出这是一个输入框。 */
+  border: 1px solid var(--color-control-border);
+  border-radius: 4px;
+  box-shadow: none;
+  text-align: center;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.yh-page .yh-numbers .number-box[data-filled='true'] .number-box-surface {
+  border-color: var(--color-accent);
+  background: var(--color-bg-raised);
+}
+
+.yh-page .yh-numbers .number-box-surface:focus-within {
+  border-color: var(--color-accent);
+}
+
+.yh-page .yh-numbers .number-box-label {
+  font-family: inherit;
+  margin: 0 0 10px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  /* WCAG 2.5.8：label 可点（聚焦输入框），高度撑到 24px 最小目标 */
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.yh-page .yh-numbers .number-box-input {
+  display: block;
+  width: 100%;
+  padding: 3px 0 7px;
+  background: transparent;
+  color: var(--color-accent);
+  border: 0;
+  border-bottom: 1px solid var(--color-control-border);
+  border-radius: 0;
+  font-family: var(--font-num);
+  font-size: 34px;
+  line-height: 1.35;
+  letter-spacing: 0.14em;
+  text-indent: 0.14em;
+  box-shadow: none;
+  caret-color: var(--color-text-primary);
+}
+
+.yh-page .yh-numbers .number-box-input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+  font-family: var(--font-display);
+  font-size: 28px;
+}
+
+.yh-page .yh-numbers .number-box-input:focus {
+  outline: 0;
+  border-bottom-color: var(--color-accent);
+}
+
+.yh-page .yh-numbers .number-box-input[aria-invalid='true'] {
+  color: var(--color-accent-strong);
+}
+
+.yh-page .yh-numbers .number-box-description {
+  display: inline-block;
+  margin: 8px auto 0;
+  padding: 6px 0 0;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+}
+
+.yh-page .yh-numbers .number-randomizer-reel {
+  top: 41px;
+  bottom: 40px;
+  left: 8px;
+  right: 8px;
+  background: var(--color-bg-soft);
+  border-radius: 3px;
+  color: var(--color-accent);
+  font-family: var(--font-num);
+  font-size: 34px;
+  letter-spacing: 0.14em;
+  text-indent: 0.14em;
+}
+
+.yh-page .yh-numbers .number-randomizer-button {
+  min-height: 38px;
+  padding: 6px 14px;
+  background: transparent;
+  background-image: none;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-control-border);
+  border-radius: 999px;
+  box-shadow: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.yh-page .yh-numbers .number-randomizer-button:hover {
+  background: var(--color-bg-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.yh-page
+  .yh-numbers
+  .number-randomizer[data-state='rolling']
+  .number-randomizer-button {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.yh-page .yh-numbers .number-randomizer-button:disabled {
+  color: var(--color-text-muted);
+  background: transparent;
+  border-color: var(--color-border);
+  cursor: default;
+}
+
+/* 校验错误 */
+.yh-form__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 20px 0 0;
+  padding: 11px 14px;
+  border: 1px solid var(--color-accent);
+  border-radius: 4px;
+  background: var(--color-bg-error);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.yh-form__error svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--color-accent);
+}
+
+/* 状态播报 + 启卦 */
+.yh-form__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid var(--color-border);
+}
+
+.yh-form__status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.yh-form__status svg {
+  flex-shrink: 0;
+  color: var(--color-accent);
+}
+
+.yh-form__status small {
+  display: block;
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.yh-form__status.is-ready {
+  color: var(--color-text-primary);
+}
+
+.yh-form__submit {
+  min-height: 50px;
+  padding: 12px 34px;
+  border-radius: 999px;
+  font-size: 15px;
+  letter-spacing: 0.16em;
+}
+
+.yh-form__note {
+  margin-top: 16px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* ----------------------------- 结果页 ----------------------------- */
+
+.yh-result__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 3px 0 25px;
+}
+
+.yh-result__heading h1 {
+  margin-top: 9px;
+  font-size: 34px;
+  line-height: 1.5;
+  color: var(--color-accent);
+}
+
+.yh-result__tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.yh-result__tag svg {
+  color: var(--color-green);
+}
+
+/* 记录时间：真实时间戳 + 记录类型 */
+.yh-result__stamp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+/* 此刻所问 */
+.yh-question-banner {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  padding: 21px 25px;
+  margin-bottom: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--yh-radius);
+  background: var(--color-bg-panel);
+}
+
+.yh-question-banner > span {
+  padding-right: 25px;
+  border-right: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.yh-question-banner > p {
+  font-family: var(--font-display);
+  font-size: 19px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  color: var(--color-text-primary);
+}
+
+.yh-question-banner > small {
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-family: var(--font-num);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.yh-result__layout {
+  display: grid;
+  grid-template-columns: 1fr 290px;
+  gap: 32px;
+  align-items: start;
+}
+
+.yh-result__main {
+  min-width: 0;
+}
+
+/* 本卦 / 变卦：观测面板 */
+.yh-reading-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* 共享 ResultHexagram 的夜航皮肤（result.css 里是浅色硬编码值，
+   在深色底上会看不见，所以这里逐条换成语义令牌） */
+.yh-page .yh-reading-pair .result-hexagram {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--yh-radius);
+  padding: 20px 24px 22px;
+}
+
+.yh-page .yh-reading-pair .result-hexagram-changed {
+  background: var(--color-bg-card);
+  border-color: var(--color-border);
+}
+
+.yh-page .yh-reading-pair .result-hexagram-label {
+  color: var(--color-text-muted);
+}
+
+.yh-page .yh-reading-pair .result-hexagram-label > span:last-child {
+  color: var(--color-text-secondary);
+  font-family: var(--font-num);
+}
+
+.yh-page .yh-reading-pair .result-hexagram-art {
+  height: 152px;
+}
+
+.yh-page .yh-reading-pair .result-hexagram-ring {
+  width: 134px;
+  height: 134px;
+  background: var(--color-bg-sunken);
+  border-color: var(--color-border-strong);
+}
+
+.yh-page .yh-reading-pair .result-hexagram-ring::before {
+  border-color: var(--color-border);
+}
+
+.yh-page .yh-reading-pair .result-hexagram-watermark {
+  color: var(--color-accent);
+  opacity: 0.12;
+}
+
+.yh-page .yh-reading-pair .result-hexagram .bg-ink {
+  background: var(--color-accent);
+}
+
+.yh-page .yh-reading-pair .result-hexagram .bg-june-red {
+  background: var(--color-green);
+}
+
+.yh-page .yh-reading-pair .result-hexagram .bg-june-gold {
+  background: var(--color-green);
+}
+
+.yh-page .yh-reading-pair .result-hexagram h3 {
+  color: var(--color-text-primary);
+}
+
+.yh-page .yh-reading-pair .result-hexagram-changed h3 {
+  color: var(--color-text-secondary);
+}
+
+.yh-page .yh-reading-pair .result-hexagram-keywords {
+  color: var(--color-text-muted);
+}
+
+.yh-page .yh-reading-pair .result-hexagram-judgement {
+  color: var(--color-text-secondary);
+}
+
+.yh-page .yh-reading-pair .result-hexagram-changed .result-hexagram-judgement {
+  color: var(--color-text-secondary);
+}
+
+.yh-page .yh-reading-pair .result-original-link {
+  color: var(--color-text-secondary);
+  border-top-color: var(--color-border);
+}
+
+.yh-page .yh-reading-pair .result-original-link:hover {
+  color: var(--color-accent);
+}
+
+/* 动爻 */
+.yh-moving {
+  margin-top: 25px;
+  padding: 25px 27px;
+  border-left: 2px solid var(--color-accent);
+  border-radius: 0 var(--yh-radius) var(--yh-radius) 0;
+  background: var(--color-bg-panel);
+}
+
+.yh-moving__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.yh-moving__title h2 {
+  margin: 12px 0 0;
+  font-size: 24px;
+  line-height: 1.6;
+}
+
+.yh-moving__type {
+  margin-left: auto;
+  padding: 3px 9px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.yh-moving > p {
+  margin-top: 12px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 2;
+}
+
+/* AI 解读：四态 */
+.yh-interpretation {
+  margin-top: 28px;
+  padding: 28px 0 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.yh-interpretation__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.yh-interpretation__head h2 {
+  margin: 10px 0 12px;
+  font-size: 26px;
+}
+
+.yh-interpretation__lede {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.yh-interpretation__state {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 22px;
+  padding: 22px 24px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--yh-radius);
+  background: var(--color-bg-card);
+}
+
+.yh-interpretation__state h3 {
+  font-size: 19px;
+}
+
+.yh-interpretation__state p {
+  margin-top: 8px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+.yh-interpretation__state--error {
+  border-color: var(--color-accent);
+  background: var(--color-bg-error);
+}
+
+.yh-interpretation__state--error p {
+  color: var(--color-text-primary);
+}
+
+.yh-interpretation__state--loading {
+  border-style: dashed;
+}
+
+.yh-interpretation__state--loading p {
+  color: var(--color-text-secondary);
+}
+
+.yh-interpretation__action {
+  margin-top: 16px;
+}
+
+.yh-interpret-button {
+  min-height: 44px;
+  padding: 9px 20px;
+  border-radius: 999px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+
+.yh-interpretation__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-bg-sunken);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.yh-interpretation__badge svg {
+  color: var(--color-green);
+}
+
+.yh-interpretation__content {
+  margin-top: 22px;
+  padding: 24px 26px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--yh-radius);
+  background: var(--color-bg-card);
+}
+
+/* 共享 InterpretationRenderer 的深色皮肤：
+   它用的是 text-ink / text-june-bronze，在夜航观象下已经是浅色，
+   这里只调整字距与标题颜色，保持 ≥4.5:1。 */
+.yh-page .yh-interpretation__content h3 {
+  color: var(--color-accent);
+  letter-spacing: 0.18em;
+}
+
+.yh-page .yh-interpretation__content h3::before {
+  background-color: var(--color-accent);
+}
+
+.yh-page .yh-interpretation__content p {
+  color: var(--color-text-primary);
+  line-height: 2;
+}
+
+.yh-interpretation__saved {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.yh-interpretation__saved svg {
+  color: var(--color-green);
+}
+
+/* 侧栏：操作与说明 */
+.yh-result__sidebar {
+  padding: 29px 26px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--yh-radius);
+  background: transparent;
+}
+
+.yh-result__sidebar > svg {
+  color: var(--color-accent);
+  display: block;
+  margin-bottom: 20px;
+}
+
+.yh-result__sidebar h2 {
+  margin: 15px 0;
+  font-size: 24px;
+  line-height: 1.65;
+}
+
+.yh-result__sidebar > p {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 2;
+}
+
+.yh-local-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 11px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-bg-sunken);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.yh-local-status svg {
+  color: var(--color-green);
+}
+
+.yh-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.yh-actions .ui-button {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 999px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+
+.yh-actions .ui-button--secondary {
+  border-width: 1px;
+  border-color: var(--color-control-border);
+}
+
+.yh-action-button {
+  letter-spacing: 0.08em;
+}
+
+/* 已发布到社区：可点回社区卦册 */
+.yh-published-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 46px;
+  padding: 10px 18px;
+  border: 1px solid var(--color-accent);
+  border-radius: 999px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+
+.yh-published-link:hover {
+  border-color: var(--color-accent-strong);
+}
+
+.yh-reflection-note {
+  margin-top: 22px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.yh-result__sidebar .yh-share-note {
+  margin-top: 14px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.9;
+}
+
+.yh-restart {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 15px;
+  padding: 12px 0;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.yh-restart:hover {
+  color: var(--color-accent);
+}
+
+.yh-seal {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  margin-top: 26px;
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 42px;
+  line-height: 1;
+}
+
+.yh-seal > span {
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  line-height: 1.8;
+  letter-spacing: 0.15em;
+}
+
+/* 轻提示 */
+.yh-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%);
+  z-index: 40;
+  max-width: min(88vw, 420px);
+  padding: 12px 20px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: var(--color-bg-toast);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  text-align: center;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32);
+}
+
+/* --------------------------- 断点适配 --------------------------- */
+
+@media (max-width: 1150px) {
+  .yh-page {
+    padding: 28px 30px 60px;
+  }
+
+  .yh-hero {
+    min-height: 0;
+  }
+
+  .yh-atlas--hero {
+    height: 470px;
+  }
+
+  .yh-lower {
+    grid-template-columns: 1fr 270px;
+  }
+
+  .yh-cast__layout {
+    gap: 40px;
+  }
+
+  .yh-result__layout {
+    grid-template-columns: 1fr 270px;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 900px) {
+  .yh-reading__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .yh-cast__layout {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .yh-result__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .yh-result__sidebar {
+    order: -1;
+  }
+}
+
+@media (max-width: 767px) {
+  .yh-page {
+    padding: 22px 20px 44px;
+  }
+
+  .yh-hero {
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding-top: 0;
+  }
+
+  .yh-hero__copy {
+    padding: 26px 0 20px;
+  }
+
+  .yh-hero__title {
+    margin: 20px 0 16px;
+    font-size: clamp(32px, 8.6vw, 42px);
+  }
+
+  .yh-hero__lead {
+    max-width: 100%;
+    font-size: 13px;
+    line-height: 1.95;
+  }
+
+  .yh-hero__actions {
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .yh-hero__meta {
+    margin-top: 23px;
+    gap: 16px;
+    font-size: 12px;
+  }
+
+  .yh-hero__meta span + span::before {
+    margin-right: 16px;
+  }
+
+  .yh-atlas--hero {
+    height: 350px;
+    margin-top: 10px;
+  }
+
+  .yh-atlas--hero .yh-atlas__center > span {
+    font-size: 60px;
+  }
+
+  .yh-lower {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    padding-bottom: 30px;
+  }
+
+  .yh-today {
+    padding: 20px;
+  }
+
+  .yh-today__body {
+    grid-template-columns: 1fr 72px;
+    gap: 14px;
+  }
+
+  .yh-today__art {
+    width: 72px;
+    height: 72px;
+  }
+
+  .yh-today__art .yh-glyph {
+    width: 40px;
+  }
+
+  .yh-today__reading h3 {
+    font-size: 27px;
+  }
+
+  .yh-explore {
+    padding: 20px;
+  }
+
+  .yh-reading__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .yh-reading__heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .yh-note {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .yh-cast__intro h1 {
+    margin: 15px 0 14px;
+    font-size: 33px;
+  }
+
+  .yh-cast__intro > p {
+    max-width: none;
+    font-size: 12px;
+  }
+
+  .yh-cast__atlas {
+    display: none;
+  }
+
+  .yh-cast__caption {
+    display: none;
+  }
+
+  .yh-form {
+    padding: 24px 20px;
+  }
+
+  .yh-form__title h2 {
+    font-size: 26px;
+  }
+
+  .yh-field__title {
+    font-size: 13px;
+  }
+
+  .yh-page .yh-question textarea {
+    font-size: 13px;
+    padding: 12px;
+  }
+
+  .yh-numbers {
+    gap: 9px;
+  }
+
+  .yh-page .yh-numbers .number-randomizer-button {
+    min-height: 44px;
+  }
+
+  .yh-examples button {
+    min-height: 44px;
+  }
+
+  /* 手机上「阅读主题」也是主要操作，点击区抬到 44px */
+  .yh-reading__toolbar button {
+    min-height: 44px;
+  }
+
+  .yh-page .yh-numbers .number-box-surface {
+    padding: 12px 5px;
+  }
+
+  .yh-page .yh-numbers .number-box-input {
+    font-size: 29px;
+  }
+
+  .yh-form__footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* 手机主要按钮不小于 44px 高 */
+  .yh-form__submit {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .yh-result__heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .yh-result__heading h1 {
+    font-size: 27px;
+  }
+
+  .yh-question-banner {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px;
+    margin-bottom: 22px;
+  }
+
+  .yh-question-banner > span {
+    width: 100%;
+    padding: 0;
+    border: 0;
+  }
+
+  .yh-question-banner > p {
+    font-size: 17px;
+  }
+
+  .yh-question-banner > small {
+    margin-left: 0;
+  }
+
+  .yh-reading-pair {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .yh-moving {
+    padding: 20px;
+  }
+
+  .yh-moving__title h2 {
+    font-size: 20px;
+  }
+
+  .yh-moving__type {
+    margin-left: 0;
+  }
+
+  .yh-interpretation__state,
+  .yh-interpretation__content {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 360px) {
+  .yh-page {
+    padding: 18px 14px 36px;
+  }
+
+  .yh-numbers {
+    grid-template-columns: 1fr;
+  }
+
+  .yh-page .yh-numbers .number-box-input {
+    font-size: 26px;
+  }
+
+  .yh-hero__actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ------------------------- 减少动态效果 ------------------------- */
+/* 星图等装饰本身没有任何持续动画，这里只是把过渡也停掉。 */
+
+@media (prefers-reduced-motion: reduce) {
+  .yh-page *,
+  .yh-page *::before,
+  .yh-page *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

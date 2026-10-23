@@ -6,6 +6,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="易象阁 — 64 卦周易研究网站,工笔重彩视觉风格,今日卦境、三数起卦、卦象详解。" />
     <title>易象阁 — 64 卦周易研究</title>
+    <!--
+      外观预绘制：在首帧之前把已保存的外观写到 <html data-appearance>，
+      避免选了「夜航观象」时先闪一下浅色。取值必须与 src/lib/appearance.ts
+      的白名单一致，非法值一律回落到默认外观。
+    -->
+    <script>
+      (function () {
+        try {
+          var raw = window.localStorage.getItem('zhouyi:settings')
+          var id = 'qinglan'
+          if (raw) {
+            var parsed = JSON.parse(raw)
+            if (
+              parsed &&
+              (parsed.appearance === 'qinglan' ||
+                parsed.appearance === 'zhusha' ||
+                parsed.appearance === 'yehang')
+            ) {
+              id = parsed.appearance
+            }
+          }
+          document.documentElement.setAttribute('data-appearance', id)
+          // 同时先把页面底色定住：样式表还没加载完（开发模式是 JS 注入 CSS）时，
+          // 也不会先闪一下别的颜色的底。取值需与 tokens.css / appearance.css 一致。
+          var bg =
+            id === 'yehang' ? '#101f23' : id === 'zhusha' ? '#f3ecdd' : '#f5f4ec'
+          document.documentElement.style.backgroundColor = bg
+        } catch (e) {
+          document.documentElement.setAttribute('data-appearance', 'qinglan')
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

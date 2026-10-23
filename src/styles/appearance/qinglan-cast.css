@@ -1,0 +1,695 @@
+/* =====================================================================
+ * 青岚书院（外观 A）—— 三数起卦页
+ * ---------------------------------------------------------------------
+ * 版式对应 A 提案的起卦页（design-gallery.css 的 .dg-cast-* 一族）：
+ * 左栏是引导 + 拱形山水 + 三枚步骤，右栏是表单（问事 / 取数 / 启卦）。
+ *
+ * 约定：
+ * - 本文件自带的 class 一律 `ql-cast-` 前缀，不与 `.divination-*`
+ *   （旧起卦页样式，在 src/styles/divination.css）互相依赖；
+ * - 颜色一律取自语义令牌（--color-bg-* / --color-text-* / --color-accent …），
+ *   本文件不写死任何色值；
+ * - 复用共享组件（QuestionInput / NumberBoxWithRandomizer / Button）时，
+ *   用 `.ql-cast` 作用域下的后代选择器覆写它们的外观，
+ *   避免污染其它外观，也避免依赖样式表加载顺序。
+ * ===================================================================== */
+
+/* ---------------------------- 页面容器 ---------------------------- */
+
+.ql-cast {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 26px 40px 72px;
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  line-height: 1.8;
+  color: var(--color-text-primary);
+}
+
+.ql-cast h1,
+.ql-cast h2,
+.ql-cast h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--color-text-primary);
+}
+
+.ql-cast p {
+  margin: 0;
+}
+
+.ql-cast a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ql-cast button {
+  font: inherit;
+}
+
+/* 拉丁小字栏目名 */
+.ql-cast__overline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+
+/* ---------------------------- 面包屑 ---------------------------- */
+
+.ql-cast__breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0 26px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.ql-cast__breadcrumb a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 0;
+  color: var(--color-text-secondary);
+  transition: color 0.2s ease;
+}
+
+.ql-cast__breadcrumb a:hover {
+  color: var(--color-accent);
+}
+
+/* ---------------------------- 两栏布局 ---------------------------- */
+
+.ql-cast__layout {
+  display: grid;
+  grid-template-columns: 0.9fr 1fr;
+  gap: 72px;
+  max-width: 1110px;
+  margin: 0 auto;
+}
+
+/* ------------------------- 左栏：引导与插画 ------------------------- */
+
+.ql-cast__intro {
+  min-width: 0;
+  padding-top: 4px;
+}
+
+.ql-cast__intro h1 {
+  margin: 18px 0 20px;
+  font-size: 42px;
+  line-height: 1.55;
+  letter-spacing: 0.04em;
+}
+
+.ql-cast__intro h1 em {
+  font-style: normal;
+  color: var(--color-accent);
+}
+
+.ql-cast__intro > p {
+  max-width: 330px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 2.1;
+}
+
+/* 拱形山水 */
+.ql-cast__scene {
+  position: relative;
+  height: 250px;
+  margin: 30px 24px 0 0;
+  overflow: hidden;
+  border-radius: 50% 50% 0 0 / 42% 42% 0 0;
+  background: var(--color-bg-soft);
+}
+
+.ql-cast__scene img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 46%;
+}
+
+.ql-cast__poem {
+  position: absolute;
+  top: 40px;
+  left: 52px;
+  writing-mode: vertical-rl;
+  font-family: var(--font-display);
+  font-size: 14px;
+  line-height: 2;
+  letter-spacing: 0.26em;
+  color: var(--color-text-primary);
+}
+
+/* 三枚步骤 */
+.ql-cast__caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 22px 24px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+/* --------------------------- 右栏：表单卡片 --------------------------- */
+
+.ql-cast__form {
+  min-width: 0;
+  padding: 34px 36px 28px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.ql-cast__form-title {
+  padding-bottom: 22px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ql-cast__form-title h2 {
+  margin: 8px 0 6px;
+  font-size: 28px;
+  letter-spacing: 0.14em;
+}
+
+.ql-cast__form-title > p {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
+/* 字段标题 */
+.ql-cast__field {
+  margin-top: 26px;
+}
+
+.ql-cast__field-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+.ql-cast__field-title b {
+  margin-right: 8px;
+  font-family: Georgia, serif;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--color-accent);
+}
+
+.ql-cast__field-title small {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+/* ---------------------- 问题输入（复用 QuestionInput） ---------------------- */
+
+.ql-cast .ql-cast__question > label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.ql-cast .ql-cast__question textarea {
+  display: block;
+  width: 100%;
+  min-height: 116px;
+  padding: 14px 15px;
+  background: var(--color-bg-field);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.9;
+  resize: vertical;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.ql-cast .ql-cast__question textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+.ql-cast .ql-cast__question textarea:hover {
+  border-color: var(--color-border-strong);
+}
+
+.ql-cast .ql-cast__question textarea:focus {
+  border-color: var(--color-accent);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* 字数计数（QuestionInput 自带） */
+.ql-cast .ql-cast__question > div {
+  justify-content: flex-end;
+  margin-top: 6px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* 示例问题 chip */
+.ql-cast__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.ql-cast__chips button {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 30px;
+  padding: 5px 11px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.ql-cast__chips button:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.ql-cast__chips button[aria-pressed='true'] {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+/* 字段说明 */
+.ql-cast__note {
+  margin-top: 10px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.9;
+}
+
+/* --------------------- 三个灵数（复用 NumberBoxWithRandomizer） --------------------- */
+
+.ql-cast__numbers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.ql-cast__number {
+  min-width: 0;
+}
+
+.ql-cast .ql-cast__numbers .number-randomizer {
+  width: 100%;
+  min-width: 0;
+  gap: 8px;
+}
+
+.ql-cast .ql-cast__numbers .number-box,
+.ql-cast .ql-cast__numbers .number-randomizer > div {
+  width: 100%;
+  min-width: 0;
+}
+
+.ql-cast .ql-cast__numbers .number-box-surface {
+  width: 100%;
+  min-width: 0;
+  padding: 14px 10px 12px;
+  background: var(--color-bg-field);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  text-align: center;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.ql-cast .ql-cast__numbers .number-box[data-filled='true'] .number-box-surface {
+  border-color: var(--color-control-border);
+  background: var(--color-bg-raised);
+}
+
+.ql-cast .ql-cast__numbers .number-box-surface:focus-within {
+  border-color: var(--color-accent);
+}
+
+.ql-cast .ql-cast__numbers .number-box-label {
+  margin: 0 0 8px;
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  /* WCAG 2.5.8：label 可点（聚焦输入框），高度撑到 24px 最小目标 */
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.ql-cast .ql-cast__numbers .number-box-input {
+  display: block;
+  width: 100%;
+  padding: 2px 0 6px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-text-muted);
+  border-radius: 0;
+  color: var(--color-accent);
+  font-family: var(--font-num);
+  font-size: 30px;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-indent: 0.08em;
+  caret-color: var(--color-accent);
+}
+
+.ql-cast .ql-cast__numbers .number-box-input::placeholder {
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: 26px;
+  opacity: 0.8;
+}
+
+.ql-cast .ql-cast__numbers .number-box-input:focus {
+  background: transparent;
+  border-bottom-color: var(--color-accent);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.ql-cast .ql-cast__numbers .number-box-input[aria-invalid='true'] {
+  color: var(--color-accent-strong);
+}
+
+.ql-cast .ql-cast__numbers .number-box-description {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: 12px;
+}
+
+.ql-cast .ql-cast__numbers .number-randomizer-reel {
+  top: 42px;
+  bottom: 40px;
+  left: 8px;
+  right: 8px;
+  background: var(--color-bg-soft);
+  border-radius: 2px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-num);
+  font-size: 30px;
+  letter-spacing: 0.08em;
+  text-indent: 0.08em;
+}
+
+.ql-cast .ql-cast__numbers .number-randomizer-button {
+  min-height: 34px;
+  padding: 6px 10px;
+  background: transparent;
+  background-image: none;
+  border: 1px solid var(--color-control-border);
+  border-radius: 3px;
+  box-shadow: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.ql-cast .ql-cast__numbers .number-randomizer-button:hover:not(:disabled) {
+  background: var(--color-bg-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.ql-cast .ql-cast__numbers .number-randomizer[data-state='rolling']
+  .number-randomizer-button {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.ql-cast .ql-cast__numbers .number-randomizer-button:disabled {
+  background: transparent;
+  border-color: var(--color-border-strong);
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+/* 取数状态提示 */
+.ql-cast__number-hint {
+  display: block;
+  margin-top: 6px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.ql-cast__number[data-rolling='true'] .ql-cast__number-hint {
+  color: var(--color-accent);
+}
+
+/* ---------------------------- 错误与状态 ---------------------------- */
+
+.ql-cast__error {
+  margin-top: 20px;
+  padding: 11px 14px;
+  background: var(--color-bg-error);
+  border-left: 3px solid var(--color-accent);
+  color: var(--color-accent-strong);
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+.ql-cast__submit-row {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.ql-cast__status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-text-secondary);
+}
+
+.ql-cast__status > svg {
+  flex-shrink: 0;
+  color: var(--color-accent);
+}
+
+.ql-cast__status > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ql-cast__status b {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+.ql-cast__status small {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* 启卦主按钮 */
+.ql-cast .ql-cast__submit {
+  width: 100%;
+  min-height: 51px;
+  padding: 11px 22px;
+  gap: 14px;
+  border-radius: 3px;
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  text-indent: 0.14em;
+}
+
+/* 免责说明 */
+.ql-cast__disclaimer {
+  margin-top: 16px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.9;
+}
+
+/* ---------------------------- 断点适配 ---------------------------- */
+
+@media (max-width: 1100px) {
+  .ql-cast {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  .ql-cast__layout {
+    gap: 44px;
+  }
+
+  .ql-cast__intro h1 {
+    font-size: 34px;
+  }
+
+  .ql-cast__form {
+    padding: 28px 26px 24px;
+  }
+}
+
+@media (max-width: 900px) {
+  /* 窄屏：左右两栏改为上下堆叠 */
+  .ql-cast__layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 34px;
+    max-width: 640px;
+  }
+
+  .ql-cast__intro h1 {
+    font-size: 30px;
+  }
+
+  .ql-cast__intro > p {
+    max-width: none;
+  }
+
+  .ql-cast__scene {
+    height: 220px;
+    margin-right: 0;
+  }
+
+  .ql-cast__caption {
+    margin-right: 0;
+  }
+
+  .ql-cast__form {
+    padding: 26px 22px 22px;
+  }
+}
+
+@media (max-width: 640px) {
+  .ql-cast {
+    padding: 18px 20px 56px;
+  }
+
+  .ql-cast__breadcrumb {
+    padding-bottom: 20px;
+  }
+
+  .ql-cast__intro h1 {
+    font-size: 27px;
+    letter-spacing: 0.02em;
+  }
+
+  .ql-cast__intro > p {
+    font-size: 14px;
+    line-height: 2;
+  }
+
+  .ql-cast__scene {
+    height: 180px;
+    margin-top: 22px;
+  }
+
+  .ql-cast__poem {
+    top: 28px;
+    left: 32px;
+    font-size: 13px;
+  }
+
+  .ql-cast__caption {
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    font-size: 12px;
+  }
+
+  .ql-cast__form {
+    padding: 22px 16px 20px;
+  }
+
+  .ql-cast__form-title h2 {
+    font-size: 24px;
+  }
+
+  .ql-cast__field-title {
+    font-size: 14px;
+  }
+
+  .ql-cast__numbers {
+    gap: 8px;
+  }
+
+  .ql-cast .ql-cast__numbers .number-box-surface {
+    padding: 11px 6px 10px;
+  }
+
+  .ql-cast .ql-cast__numbers .number-box-input {
+    font-size: 22px;
+  }
+
+  .ql-cast .ql-cast__numbers .number-box-description {
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .ql-cast .ql-cast__numbers .number-randomizer-button {
+    padding: 6px 4px;
+    font-size: 12px;
+    letter-spacing: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .ql-cast {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .ql-cast__chips button {
+    padding: 5px 9px;
+  }
+
+  .ql-cast .ql-cast__numbers .number-box-label {
+    font-size: 12px;
+    letter-spacing: 0.02em;
+  }
+}

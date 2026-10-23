@@ -1,0 +1,972 @@
+/* =====================================================================
+ * 青岚书院（qinglan）—— 结果页
+ *
+ * 结构依据设计稿 `src/pages/DesignGallery.tsx` 的 `direction === "a"`
+ * 结果页与 `src/styles/design-gallery.css` 里的 `.dg-result-*` 规则：
+ *
+ *   1. 浅纸底 + 青绿山水：整页只用纸色底，卡片纸白/浅绿两层；
+ *   2. 左右分区：主栏读卦（本卦/变卦对读 → 动爻 → 解读），边栏带走；
+ *   3. 留白与阅读感：大标题、行高 1.7–2、卡片之间用留白而不是重阴影；
+ *   4. 眉题（overline）统一小号宽字距，标题用衬线体。
+ *
+ * 规则：
+ *   - 颜色/字号只取 `src/styles/tokens.css` / `src/styles/appearance.css`
+ *     的语义令牌，不写死任何色值（对比度见令牌注释）；
+ *   - class 一律 `ql-result*` 前缀，不依赖也不覆盖 `.result-*` 旧规则；
+ *   - 断点：1100 / 900 / 767 / 650 / 479 / 359，320px 仍不横向溢出；
+ *   - 焦点态沿用 `.site-shell` 的 2px 主色描边，本文件不复位 outline；
+ *   - 尊重 prefers-reduced-motion（本文件自带的过渡在 reduce 下关闭）。
+ * ===================================================================== */
+
+/* ---------------------------- 基础骨架 ---------------------------- */
+
+.ql-result {
+  /* 结果页自己铺满内容区（`.studio-page .site-main__inner` 已去掉内边距） */
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  line-height: 1.75;
+  padding: 26px 0 72px;
+}
+
+.ql-result__wrap {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 64px;
+}
+
+.ql-result h1,
+.ql-result h2,
+.ql-result h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--color-text-primary);
+}
+
+.ql-result a {
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.ql-result a:hover {
+  color: var(--color-accent);
+}
+
+/* 眉题：小号、宽字距、辅助色 */
+.ql-result__overline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-muted);
+  font-size: var(--text-caption);
+  letter-spacing: 0.11em;
+}
+
+/* 共用按钮：结果页用无衬线标签、方正小圆角，颜色仍交给外观令牌层 */
+.ql-result .ui-button {
+  border-radius: 2px;
+  font-family: var(--font-ui);
+  letter-spacing: 0.04em;
+}
+
+/* ---------------------------- 面包屑 ------------------------------ */
+
+.ql-result__breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  font-size: var(--text-caption);
+  color: var(--color-text-muted);
+}
+
+.ql-result__breadcrumb a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  color: var(--color-text-secondary);
+}
+
+.ql-result__breadcrumb a:hover {
+  color: var(--color-accent);
+}
+
+.ql-result__breadcrumb [aria-current='page'] {
+  color: var(--color-text-muted);
+}
+
+/* ---------------------------- 标题区 ------------------------------ */
+
+.ql-result__heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 16px 0 26px;
+}
+
+.ql-result__heading-copy {
+  min-width: 0;
+}
+
+.ql-result .ql-result__heading h1 {
+  margin-top: 10px;
+  font-size: 34px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+
+.ql-result__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-bottom: 7px;
+  color: var(--color-text-muted);
+  font-size: var(--text-caption);
+  white-space: nowrap;
+}
+
+/* ------------------------- 「此刻所问」横幅 ------------------------ */
+
+.ql-result__banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 25px;
+  padding: 21px 25px;
+  margin-bottom: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  background: var(--color-bg-soft);
+}
+
+.ql-result__banner-label {
+  flex-shrink: 0;
+  padding-right: 25px;
+  border-right: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: var(--text-caption);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.ql-result__banner-question {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: 19px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.ql-result__banner-numbers {
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-family: var(--font-num);
+  font-size: var(--text-caption);
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+/* ---------------------------- 两栏布局 ---------------------------- */
+
+.ql-result__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 32px;
+  align-items: start;
+}
+
+.ql-result__main {
+  min-width: 0;
+}
+
+/* ------------------------ 本卦 / 变卦 对读 ------------------------ */
+
+.ql-result__pair {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+}
+
+.ql-result-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 22px 27px;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  background: var(--color-bg-paper);
+}
+
+.ql-result-card--changed {
+  background: var(--color-bg-soft);
+}
+
+.ql-result-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+}
+
+.ql-result-card__top > span:last-child {
+  color: var(--color-text-muted);
+  font-family: var(--font-num);
+}
+
+.ql-result-card__art {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 145px;
+  margin: 12px 0;
+}
+
+.ql-result-card__watermark {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: -1;
+  transform: translateY(-50%);
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 118px;
+  line-height: 1;
+  opacity: 0.07;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 卦象图的线色跟随青岚配色：常态用主色，动爻/已变用暖强调色
+ * （YaoLineStack/HexagramGlyph 输出的是 bg-ink / bg-june-red / bg-june-gold，
+ *   这里只在本页作用域内换色，不改共享组件）。 */
+.ql-result__glyph .bg-ink {
+  background: var(--color-accent);
+}
+
+.ql-result__glyph .bg-june-red,
+.ql-result__glyph .bg-june-gold {
+  background: var(--color-june-gold);
+}
+
+.ql-result-card .ql-result__overline {
+  margin-top: 4px;
+}
+
+.ql-result .ql-result-card h2 {
+  margin: 6px 0 10px;
+  font-size: 32px;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+}
+
+.ql-result-card__judgement {
+  flex: 1;
+  min-height: 44px;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: 14px;
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+}
+
+.ql-result-card__link {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 10px;
+  min-height: 24px;
+  margin-top: 15px;
+  padding: 6px 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+}
+
+.ql-result-card__link:hover {
+  color: var(--color-accent);
+}
+
+/* 两张卡之间的箭头（纯装饰） */
+.ql-result__pair-arrow {
+  position: absolute;
+  top: 108px;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  transform: translateX(-50%);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-bg-page);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+/* ---------------------------- 动爻 -------------------------------- */
+
+.ql-result__moving {
+  margin-top: 25px;
+  padding: 25px 27px;
+  border-left: 2px solid var(--color-accent);
+  background: var(--color-bg-soft);
+}
+
+.ql-result__moving-quote {
+  margin: 12px 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.ql-result__moving-meaning {
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+  line-height: 2;
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------- AI 解读（真实） ------------------------ */
+
+.ql-result__interpretation {
+  margin-top: 28px;
+  padding-top: 28px;
+  border-top: 1px solid var(--color-border);
+}
+
+.ql-result__interpretation-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px 20px;
+}
+
+.ql-result__interpretation-head > div {
+  min-width: 0;
+}
+
+.ql-result .ql-result__interpretation h2 {
+  margin: 10px 0 12px;
+  font-size: 26px;
+  line-height: 1.5;
+}
+
+.ql-result__ai-button {
+  min-height: 44px;
+}
+
+.ql-result__cache {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: var(--text-caption);
+}
+
+.ql-result__lead {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: 1.9;
+}
+
+.ql-result__ai-intro {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  background: var(--color-bg-paper);
+}
+
+.ql-result__ai-intro b {
+  display: block;
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+.ql-result__ai-intro p {
+  margin-top: 8px;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: 1.9;
+}
+
+.ql-result__ai-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: 1.9;
+}
+
+/* 流式进行中的呼吸点（reduce 下由本文件末尾关闭动画） */
+.ql-result__ai-status::before {
+  content: '';
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  animation: ql-result-breathe 1.6s ease-in-out infinite;
+}
+
+.ql-result__ai-error {
+  margin-top: 20px;
+  padding: 16px 18px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 3px;
+  background: var(--color-bg-error);
+}
+
+.ql-result__ai-error b {
+  display: block;
+  color: var(--color-text-primary);
+  font-size: var(--text-small);
+}
+
+.ql-result__ai-error p {
+  margin-top: 6px;
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+}
+
+.ql-result__ai-content {
+  min-width: 0;
+  margin-top: 22px;
+  overflow-wrap: anywhere;
+}
+
+.ql-result__ai-content h3 {
+  overflow-wrap: anywhere;
+}
+
+.ql-result__ai-content p {
+  overflow-wrap: anywhere;
+}
+
+.ql-result__ai-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: var(--text-caption);
+  line-height: 1.9;
+}
+
+.ql-result__ai-note svg {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+/* ---------------------------- 侧栏 -------------------------------- */
+
+.ql-result__sidebar {
+  min-width: 0;
+  padding: 32px 26px;
+  border-top: 3px solid var(--color-accent);
+  border-radius: 0 0 3px 3px;
+  background: var(--color-bg-soft);
+}
+
+.ql-result__compass {
+  display: block;
+  margin-bottom: 18px;
+  color: var(--color-accent);
+}
+
+.ql-result .ql-result__sidebar h2 {
+  margin: 15px 0;
+  font-size: 24px;
+  line-height: 1.65;
+}
+
+.ql-result__sidebar-lead {
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+  line-height: 2;
+}
+
+.ql-result__status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  color: var(--color-text-muted);
+  font-size: var(--text-caption);
+}
+
+.ql-result__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* 主按钮与次级按钮都撑满边栏，高度 ≥ 44px（手机主要操作尺寸） */
+.ql-result .ql-result__action {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 16px;
+  justify-content: flex-start;
+  gap: 14px;
+  font-size: var(--text-small);
+}
+
+.ql-result .ui-button--secondary.ql-result__action {
+  background: var(--color-bg-paper);
+  background-image: none;
+  border: 1px solid var(--color-control-border);
+  box-shadow: none;
+  color: var(--color-text-primary);
+}
+
+.ql-result .ui-button--secondary.ql-result__action:hover:not(:disabled) {
+  background: var(--color-bg-raised);
+  color: var(--color-text-primary);
+}
+
+.ql-result__published {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--color-control-border);
+  border-radius: 2px;
+  background: var(--color-bg-paper);
+  color: var(--color-accent);
+  font-size: var(--text-small);
+}
+
+.ql-result__published svg:last-child {
+  margin-left: auto;
+}
+
+.ql-result__share-note {
+  margin-top: 14px;
+  color: var(--color-text-muted);
+  font-size: var(--text-caption);
+  line-height: 1.9;
+}
+
+.ql-result__restart {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.ql-result .ql-result__restart-button {
+  min-height: 40px;
+  padding: 8px 10px;
+  color: var(--color-text-primary);
+  font-size: var(--text-small);
+}
+
+.ql-result__restart-caption {
+  padding-left: 10px;
+  color: var(--color-text-muted);
+  font-size: var(--text-caption);
+}
+
+.ql-result__links {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.ql-result__links a {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 5px;
+  min-height: 24px;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+}
+
+.ql-result__links a:hover {
+  color: var(--color-accent);
+}
+
+.ql-result__meta {
+  margin-top: 16px;
+  color: var(--color-text-muted);
+  font-size: var(--text-caption);
+  line-height: 1.9;
+}
+
+.ql-result__seal {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 22px;
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 40px;
+  line-height: 1;
+}
+
+.ql-result__seal > span {
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--text-caption);
+  line-height: 1.8;
+  letter-spacing: 0.15em;
+}
+
+/* ---------------------------- 轻提示 ------------------------------ */
+
+.ql-result__toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  z-index: 40;
+  width: max-content;
+  max-width: min(450px, calc(100vw - 40px));
+  transform: translateX(-50%);
+  padding: 12px 20px;
+  border-radius: 3px;
+  background: var(--color-bg-toast);
+  color: var(--color-on-accent);
+  font-size: var(--text-small);
+  line-height: 1.8;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* ---------------------------- 动效 -------------------------------- */
+
+@keyframes ql-result-breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ---------------------------- 断点适配 ---------------------------- */
+
+@media (max-width: 1100px) {
+  .ql-result__wrap {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+
+  .ql-result__layout {
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 24px;
+  }
+
+  .ql-result-card {
+    padding: 20px;
+  }
+
+  .ql-result__sidebar {
+    padding: 28px 22px;
+  }
+
+  .ql-result .ql-result__sidebar h2 {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 900px) {
+  .ql-result__wrap {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+
+  .ql-result__layout {
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 22px;
+  }
+
+  .ql-result .ql-result__heading h1 {
+    font-size: 30px;
+  }
+
+  .ql-result__banner {
+    padding: 18px 20px;
+    gap: 10px 20px;
+  }
+
+  .ql-result__banner-label {
+    padding-right: 20px;
+  }
+
+  .ql-result__pair {
+    gap: 14px;
+  }
+
+  .ql-result__pair-arrow {
+    top: 96px;
+    width: 30px;
+    height: 30px;
+  }
+
+  .ql-result-card__art {
+    height: 130px;
+  }
+
+  .ql-result-card__watermark {
+    font-size: 100px;
+  }
+
+  .ql-result .ql-result-card h2 {
+    font-size: 27px;
+  }
+}
+
+@media (max-width: 767px) {
+  .ql-result {
+    padding-bottom: 48px;
+  }
+
+  .ql-result__wrap {
+    padding-left: 22px;
+    padding-right: 22px;
+  }
+
+  .ql-result__heading {
+    margin: 14px 0 22px;
+  }
+
+  .ql-result .ql-result__heading h1 {
+    font-size: 28px;
+    line-height: 1.55;
+  }
+
+  .ql-result__banner {
+    margin-bottom: 22px;
+  }
+
+  .ql-result__banner-question {
+    font-size: 18px;
+  }
+
+  .ql-result__banner-numbers {
+    margin-left: 0;
+  }
+
+  .ql-result__layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 26px;
+  }
+
+  .ql-result__moving {
+    margin-top: 20px;
+    padding: 22px;
+  }
+
+  .ql-result__moving-quote {
+    font-size: 22px;
+  }
+
+  .ql-result__interpretation {
+    margin-top: 24px;
+    padding-top: 24px;
+  }
+
+  .ql-result .ql-result__interpretation h2 {
+    font-size: 24px;
+  }
+
+  .ql-result__sidebar {
+    padding: 26px;
+  }
+
+  .ql-result .ql-result__sidebar h2 {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 650px) {
+  /* 与设计稿一致：窄屏收起右上角的状态徽标（面包屑仍显示「卦象已成」） */
+  .ql-result__tag {
+    display: none;
+  }
+
+  .ql-result__heading {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 479px) {
+  .ql-result__wrap {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .ql-result .ql-result__heading h1 {
+    font-size: 26px;
+  }
+
+  .ql-result__banner {
+    padding: 16px 18px;
+  }
+
+  .ql-result__banner-label {
+    width: 100%;
+    padding-right: 0;
+    border-right: 0;
+  }
+
+  .ql-result__banner-question {
+    font-size: 17px;
+  }
+
+  .ql-result__pair {
+    gap: 12px;
+  }
+
+  .ql-result-card {
+    padding: 16px 14px 18px;
+  }
+
+  .ql-result-card__art {
+    height: 120px;
+    margin: 8px 0;
+  }
+
+  .ql-result-card__watermark {
+    font-size: 82px;
+  }
+
+  .ql-result .ql-result-card h2 {
+    font-size: 23px;
+  }
+
+  .ql-result-card__judgement {
+    font-size: 13px;
+  }
+
+  .ql-result__pair-arrow {
+    top: 88px;
+    width: 26px;
+    height: 26px;
+  }
+
+  .ql-result__pair-arrow svg {
+    width: 14px;
+  }
+
+  .ql-result__moving {
+    padding: 20px 18px;
+  }
+
+  .ql-result__moving-quote {
+    font-size: 21px;
+  }
+
+  .ql-result__sidebar {
+    padding: 24px 20px;
+  }
+}
+
+@media (max-width: 359px) {
+  .ql-result__wrap {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .ql-result .ql-result__heading h1 {
+    font-size: 24px;
+  }
+
+  .ql-result__banner {
+    padding: 14px 15px;
+  }
+
+  .ql-result-card {
+    padding: 14px 12px 16px;
+  }
+
+  .ql-result-card__art {
+    height: 108px;
+  }
+
+  /* 极窄屏把 74px 宽的卦象图整体缩小，避免挤出卡片 */
+  .ql-result__glyph {
+    transform: scale(0.88);
+  }
+
+  .ql-result-card__watermark {
+    font-size: 72px;
+  }
+
+  .ql-result .ql-result-card h2 {
+    font-size: 21px;
+  }
+
+  .ql-result-card__judgement {
+    font-size: var(--text-caption);
+  }
+
+  .ql-result__pair-arrow {
+    top: 78px;
+    width: 23px;
+    height: 23px;
+  }
+
+  .ql-result__pair-arrow svg {
+    width: 12px;
+  }
+
+  .ql-result__sidebar {
+    padding: 20px 16px;
+  }
+
+  .ql-result .ql-result__sidebar h2 {
+    font-size: 21px;
+  }
+
+  .ql-result__moving-quote {
+    font-size: 19px;
+  }
+
+  .ql-result .ql-result__action {
+    padding-left: 12px;
+    padding-right: 12px;
+    gap: 10px;
+  }
+}
+
+/* --------------------------- 减少动态效果 --------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .ql-result *,
+  .ql-result *::before,
+  .ql-result *::after {
+    animation: none;
+    transition: none;
+  }
+}

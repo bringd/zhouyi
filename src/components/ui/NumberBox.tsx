@@ -1,12 +1,22 @@
-import { type InputHTMLAttributes, forwardRef, useEffect, useState } from 'react'
+import {
+  type InputHTMLAttributes,
+  forwardRef,
+  useId,
+} from 'react'
+import { parseNumberText, sanitizeNumberText } from '@/lib/numberText'
 import { cn } from '@/utils/cn'
 
-export interface NumberBoxProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'type' | 'maxLength'> {
-  /** The number value (100-999). null = empty. */
-  value: number | null
-  /** Called with the parsed number, or null when input is empty/invalid */
-  onChange: (value: number | null) => void
+export interface NumberBoxProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'onChange' | 'value' | 'type' | 'maxLength'
+> {
+  /**
+   * 原始输入文本（由上层持有）。
+   * 允许是 '1'、'12'、'099' 这类还没输完或不合法的中间态。
+   */
+  text: string
+  /** 文本变化回调（上层收到的已经是过滤过的纯数字、最多三位） */
+  onTextChange: (text: string) => void
   /** Index label, e.g. "第一灵数" */
   label: string
   /** What this number represents, e.g. "下卦" */
@@ -18,67 +28,56 @@ export interface NumberBoxProps
  * A 3-digit number input for divination.
  * Accepts values 100-999 (inclusive).
  *
- * Internal state holds the raw user-typed string so the user can see partial
- * input. The parent only receives a parsed number (or null) once input is
- * complete. This fixes a bug where typing digit-by-digit would clear the
- * input on each keystroke because the parent's null state would override
- * the visible value.
+ * 输入框是完全受控的：原始文本由上层（稳定层）持有。
+ * 之前文本存在组件内部，换外观时整棵输入子树被卸载重建，
+ * 未输完的输入（'12'）与取数滚动状态会一起丢失；
+ * 现在文本上移，切换外观只是换视图，输入原样还在。
  */
-export const NumberBox = forwardRef<HTMLInputElement, NumberBoxProps>(function NumberBox(
-  { value, onChange, label, description, className, ...rest },
-  ref
-) {
-  const [text, setText] = useState(value === null ? '' : String(value))
+export const NumberBox = forwardRef<HTMLInputElement, NumberBoxProps>(
+  function NumberBox(
+    { text, onTextChange, label, description, className, id, ...rest },
+    ref
+  ) {
+    const generatedId = useId()
+    const inputId = id ?? generatedId
+    const value = parseNumberText(text)
 
-  // Sync local text when parent resets the value (e.g., form reset)
-  useEffect(() => {
-    setText(value === null ? '' : String(value))
-  }, [value])
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const next = e.target.value.replace(/\D/g, '').slice(0, 3)
-    setText(next)
-    if (next === '') {
-      onChange(null)
-      return
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      onTextChange(sanitizeNumberText(e.target.value))
     }
-    const num = parseInt(next, 10)
-    // Only emit a number when the value is fully entered and in range.
-    // Partial input (1-2 digits) keeps parent state unchanged, so the
-    // user's typing stays visible locally without falsely enabling the form.
-    if (num >= 100 && num <= 999) {
-      onChange(num)
-    } else {
-      onChange(null)
-    }
-  }
 
-  return (
-    <div className={cn('flex flex-col items-center', className)}>
-      <div className="bg-gradient-to-b from-june-bronze/40 to-june-clay/40 border border-june-bronze rounded-md p-3 w-32 shadow-inner">
-        <div className="text-[11px] text-rice text-center font-display tracking-widest mb-1.5">{label}</div>
-        <input
-          ref={ref}
-          type="text"
-          inputMode="numeric"
-          maxLength={3}
-          value={text}
-          onChange={handleChange}
-          placeholder="···"
-          className={cn(
-            'w-full bg-rice-dark/60 text-center text-3xl font-display font-semibold tracking-widest',
-            'text-ink placeholder:text-ink-light/30 caret-june-red',
-            'rounded-sm py-0.5',
-            'focus:outline-none focus:bg-rice focus:shadow-[inset_0_0_0_2px_rgba(155,44,44,0.55),0_0_8px_rgba(200,158,58,0.35)]',
-            'focus:placeholder:text-ink-light/15',
-            'transition-[background-color,box-shadow] duration-200'
+    return (
+      <div
+        className={cn('number-box flex flex-col items-center', className)}
+        data-filled={value !== null}
+      >
+        <div className="number-box-surface">
+          <label htmlFor={inputId} className="number-box-label">
+            {label}
+          </label>
+          <input
+            id={inputId}
+            ref={ref}
+            type="text"
+            inputMode="numeric"
+            maxLength={3}
+            value={text}
+            onChange={handleChange}
+            placeholder="···"
+            aria-describedby={
+              description ? `${inputId}-description` : undefined
+            }
+            aria-invalid={text.length === 3 && value === null ? true : undefined}
+            className="number-box-input"
+            {...rest}
+          />
+          {description && (
+            <div id={`${inputId}-description`} className="number-box-description">
+              {description}
+            </div>
           )}
-          {...rest}
-        />
-        {description && (
-          <div className="text-[10px] text-rice/85 text-center font-body tracking-wider mt-1.5">{description}</div>
-        )}
+        </div>
       </div>
-    </div>
-  )
-})
+    )
+  }
+)

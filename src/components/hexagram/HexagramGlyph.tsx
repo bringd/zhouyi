@@ -1,7 +1,8 @@
 import { cn } from '@/utils/cn'
+import type { LineState, LineType } from '@/types'
 
-export type LineType = 'yin' | 'yang'
-export type LineState = 'normal' | 'highlight' | 'changed'
+// 基础类型统一放在 src/types，组件层继续从这里 re-export 保持向后兼容
+export type { LineState, LineType }
 
 export interface HexagramGlyphProps {
   type: LineType

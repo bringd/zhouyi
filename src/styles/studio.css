@@ -1,0 +1,337 @@
+/* =====================================================================
+ * 全站框架皮肤 —— Header / Footer / 页面容器
+ *
+ * 这是站点外壳外观的唯一来源：
+ * - Header / Footer 只输出语义 class（site-header__* / site-footer__*），
+ *   不依赖 DOM 层级选择器，也不把中文可访问名当样式钩子。
+ * - 颜色与字号一律取自 `src/styles/tokens.css` 的语义令牌。
+ * - 激活态用 `aria-current="page"` 表达，CSS 只针对这一个状态。
+ * ===================================================================== */
+
+.site-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+
+.site-main {
+  flex: 1;
+}
+
+.site-main__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 30px 40px 56px;
+}
+
+/* ------------------------------ Header ------------------------------ */
+
+.site-header {
+  background: var(--color-bg-paper);
+  border: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.site-header__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  min-height: 84px;
+  padding: 16px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.site-header__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.site-header__titles {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.site-header__wordmark {
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 0.2em;
+  color: var(--color-text-primary);
+}
+
+.site-header__tagline {
+  margin-top: 5px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: var(--text-caption);
+  letter-spacing: 0.2em;
+  color: var(--color-text-muted);
+}
+
+.site-header__nav {
+  display: none;
+  align-items: center;
+  gap: 26px;
+}
+
+.site-header__nav-link {
+  position: relative;
+  padding: 10px 2px;
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  background: transparent;
+  border-radius: 0;
+  transition: color 0.2s ease;
+}
+
+.site-header__nav-link:hover {
+  color: var(--color-accent);
+}
+
+.site-header__nav-link[aria-current='page'] {
+  color: var(--color-accent);
+}
+
+.site-header__nav-link[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 18px;
+  height: 2px;
+  background: var(--color-accent);
+  transform: translateX(-50%);
+}
+
+.site-header__settings {
+  /* 桌面端设置入口；窄屏隐藏（窄屏用下面那个移动端入口） */
+  display: none;
+  align-items: center;
+  justify-content: center;
+  /* 保证点击区不小于 24x24（WCAG 2.2 目标尺寸） */
+  min-width: 24px;
+  min-height: 24px;
+  padding: 3px;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.site-header__settings:hover {
+  color: var(--color-accent);
+}
+
+.site-header__settings--mobile {
+  display: inline-flex;
+}
+
+.site-header__mobile-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 8px 20px 10px;
+  background: var(--color-bg-paper);
+  border-top: 1px solid var(--color-border);
+}
+
+.site-header__mobile-link {
+  flex: 1;
+  text-align: center;
+  padding: 8px 2px;
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-radius: 2px;
+  transition: color 0.2s ease;
+}
+
+.site-header__mobile-link[aria-current='page'] {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* ------------------------------ Footer ------------------------------ */
+
+.site-footer {
+  background: var(--color-bg-footer);
+  border-top: 1px solid var(--color-border);
+  margin-top: 0;
+  padding: 26px 0;
+}
+
+.site-footer__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}
+
+.site-footer__copyright {
+  margin: 0;
+}
+
+.site-footer__nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.site-footer__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.site-footer__link:hover {
+  color: var(--color-accent);
+}
+
+/* ------------------------- 新视觉页面基座 ---------------------------- */
+/* 首页 / 三数起卦 / 结果页：同一套基座，内容自持宽度 */
+
+.studio-page {
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+}
+
+.studio-page h1,
+.studio-page h2,
+.studio-page h3 {
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+/* 新页面自己提供通栏容器，外层不再收窄 */
+.studio-page .site-main__inner {
+  max-width: none;
+  padding: 0;
+}
+
+/* --------------------------- 焦点可见性 ----------------------------- */
+
+.site-shell a:focus-visible,
+.site-shell button:focus-visible,
+.site-shell input:focus-visible,
+.site-shell textarea:focus-visible,
+.site-shell select:focus-visible,
+.site-shell summary:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.site-shell a,
+.site-shell button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* --------------------------- 断点适配 ------------------------------- */
+
+@media (min-width: 768px) {
+  .site-header__nav {
+    display: flex;
+  }
+
+  .site-header__settings {
+    display: inline-flex;
+  }
+
+  .site-header__settings--mobile {
+    display: none;
+  }
+
+  .site-header__mobile-nav {
+    display: none;
+  }
+
+  .site-footer__inner {
+    flex-direction: row;
+  }
+}
+
+@media (max-width: 1100px) {
+  .site-header__nav {
+    gap: 18px;
+  }
+}
+
+@media (max-width: 767px) {
+  .site-header__inner {
+    min-height: 70px;
+    padding: 14px 20px;
+  }
+
+  .site-header__wordmark {
+    font-size: 20px;
+  }
+
+  .site-header__mobile-nav {
+    padding: 8px 14px 9px;
+  }
+
+  .site-main__inner {
+    padding: 20px 20px 40px;
+  }
+
+  .site-footer {
+    padding: 22px 0;
+  }
+
+  .site-footer__inner {
+    padding: 0 20px;
+    gap: 12px;
+  }
+}
+
+/* 极窄屏（≤479px）：收紧顶栏，保证 320px 下不横向溢出 */
+@media (max-width: 479px) {
+  .site-header__inner {
+    gap: 10px;
+    padding: 12px 16px;
+  }
+
+  .site-header__tagline {
+    display: none;
+  }
+
+  .site-header__brand {
+    gap: 8px;
+  }
+}
+
+/* ------------------------ 减少动态效果 ------------------------------ */
+/* CSS 动画/过渡在此停用；Framer Motion 的 JS 动画由组件侧 useReducedMotion 处理 */
+
+@media (prefers-reduced-motion: reduce) {
+  .site-shell *,
+  .site-shell *::before,
+  .site-shell *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

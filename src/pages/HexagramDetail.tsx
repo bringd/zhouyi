@@ -206,7 +206,8 @@ export default function HexagramDetail() {
         {/* Action buttons */}
         <div className="flex flex-wrap justify-center gap-3">
           <Button onClick={handleDownload} variant="primary" loading={downloadBusy}>
-            <span className="text-june-red mr-1">♡</span> 收藏本卦
+            {/* 心形跟随按钮文字色：主按钮底色本身就是朱砂，红字会看不见 */}
+            <span className="mr-1 opacity-80" aria-hidden="true">♡</span> 收藏本卦
           </Button>
           <Link to="/divination">
             <Button variant="secondary">三数起卦</Button>

@@ -123,10 +123,10 @@ function FeedListItem({ post, onClick }: { post: SharedPost; onClick: () => void
     >
       <div className="flex items-start gap-3">
         <div className="shrink-0 w-12 text-center">
-          <div className="text-[10px] text-june-bronze font-display tracking-widest">
+          <div className="text-[12px] text-june-bronze font-display tracking-widest">
             {main?.shortName ?? '?'}
           </div>
-          <div className="text-[10px] text-june-bronze/60 mt-0.5">
+          <div className="text-[12px] text-june-bronze/60 mt-0.5">
             动 {post.movingLine}
           </div>
         </div>
@@ -150,7 +150,7 @@ function FeedListItem({ post, onClick }: { post: SharedPost; onClick: () => void
               {post.aiSummary}
             </p>
           )}
-          <div className="flex items-center gap-3 text-[11px] text-ink-light/70 font-body">
+          <div className="flex items-center gap-3 text-[12px] text-ink-light/70 font-body">
             <span>—— {authorName}</span>
             <span>·</span>
             <span>{formatDate(post.createdAt)}</span>
@@ -246,7 +246,7 @@ function FeedDetail({ postId, onBack }: { postId: string; onBack: () => void }) 
             className="w-full min-h-[70px] p-3 font-body text-sm bg-rice border border-june-bronze/30 rounded-sm resize-y focus:outline-none focus:border-june-red"
           />
           <div className="flex items-center justify-between mt-2">
-            <div className="text-[10px] text-ink-light/60 font-body">
+            <div className="text-[12px] text-ink-light/60 font-body">
               以 <span className="text-june-red font-bold">{getNickname()}</span> 之名发布
               {!isNicknameSet() && (
                 <Link to="/settings" className="ml-2 text-june-bronze underline">
@@ -297,7 +297,8 @@ function PostDetail({
       <div className="p-5 bg-rice-dark border-l-[3px] border-june-bronze rounded-md shadow-sm">
         <div className="flex items-start gap-4">
           {main && (
-            <HexagramCard hexagram={main} size="sm" navigateOnClick={false} showStamp={false} />
+            // 小卡片不重复显示关键词（12px 下会挤成两行），卦名在右侧已有
+            <HexagramCard hexagram={main} size="sm" navigateOnClick={false} showStamp={false} showKeywords={false} />
           )}
           <div className="flex-1 min-w-0">
             <h1 className="font-display text-2xl text-ink tracking-wider mb-1">
@@ -349,7 +350,7 @@ function PostDetail({
             {replies.map((r) => (
               <div key={r.id} className="border-l-2 border-june-bronze/20 pl-3">
                 <p className="font-body text-sm text-ink leading-relaxed">{r.content}</p>
-                <p className="mt-1 text-[11px] text-ink-light/60 font-body">
+                <p className="mt-1 text-[12px] text-ink-light/60 font-body">
                   —— {r.authorNickname?.trim() || '访客'} · {formatDate(r.createdAt)}
                 </p>
               </div>

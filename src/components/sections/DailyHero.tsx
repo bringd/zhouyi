@@ -1,14 +1,11 @@
+import { ArrowRight, CalendarDays, MoveUpRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { HexagramCard } from '@/components/hexagram/HexagramCard'
-import { Button } from '@/components/ui/Button'
-import { Seal } from '@/components/ui/Seal'
-import { FlipEntry } from '@/components/motion/FlipEntry'
-import { BreathEffect } from '@/components/motion/BreathEffect'
+import { YaoLineStack } from '@/components/hexagram/YaoLineStack'
 import { getTodayHexagram } from '@/lib/daily'
+import { getHexagramById } from '@/lib/divination'
+import { hexagramLineTypes } from '@/lib/hexagramLines'
 import { cn } from '@/utils/cn'
 import type { Hexagram } from '@/types'
-import { getHexagramById } from '@/lib/divination'
 
 export interface DailyHeroProps {
   /** Override the auto-generated daily hexagram (for testing) */
@@ -20,11 +17,6 @@ export interface DailyHeroProps {
   className?: string
 }
 
-/**
- * Magazine-style asymmetric hero section (decision I).
- * Left: large red color block with hexagram glyph + stamp
- * Right: title + keywords + interpretation preview + action buttons
- */
 export function DailyHero({
   mainHexagram: providedMain,
   changedHexagram: providedChanged,
@@ -33,104 +25,113 @@ export function DailyHero({
   date,
   className,
 }: DailyHeroProps) {
-  // Use provided values or auto-generate today's
-  const daily =
-    providedMain && providedChanged ? null : getTodayHexagram()
-  const main = providedMain ?? (daily ? getHexagramById(daily.mainHexagramId) : null)
+  const daily = providedMain && providedChanged ? null : getTodayHexagram()
+  const main =
+    providedMain ?? (daily ? getHexagramById(daily.mainHexagramId) : null)
   const changed =
     providedChanged ?? (daily ? getHexagramById(daily.changedHexagramId) : null)
   const moving = providedMoving ?? daily?.movingLine
 
   if (!main || !changed) return null
 
-  const today = date ?? new Date().toLocaleDateString('zh-CN')
-  const regionLabel =
+  const today =
+    date ??
+    new Date().toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      weekday: 'long',
+    })
+
+  // 每日卦象按「日期」计算，而日期取决于本地时区：跨过日界时不同地区会落到不同日期，
+  // 因而可能看到不同卦象——时区不同并不必然意味着卦象不同。
+  const timeZone =
     region ??
     (typeof Intl !== 'undefined'
       ? Intl.DateTimeFormat().resolvedOptions().timeZone
       : '')
 
   return (
-    <section className={cn('w-full', className)}>
-      {/* Date / region strip */}
-      <div className="text-center mb-6">
-        <div className="text-sm text-june-bronze font-display tracking-widest">今 日 卦 境</div>
-        <div className="text-xs text-ink-light font-body mt-1">
-          {regionLabel && `${regionLabel} · `}
+    <section
+      className={cn('daily-section', className)}
+      aria-labelledby="daily-title"
+    >
+      <div className="daily-section-heading">
+        <h2 id="daily-title">
+          <span className="section-mark" />今 日 卦 境
+        </h2>
+        <span className="daily-date">
+          <CalendarDays size={13} aria-hidden="true" />
           {today}
-        </div>
+          {region && ` · ${region}`}
+        </span>
+        <Link to="/codex" className="home-text-link">
+          查看 64 卦<MoveUpRight size={14} aria-hidden="true" />
+        </Link>
       </div>
+      {timeZone && (
+        <p className="daily-timezone">
+          时区 {timeZone} · 每日卦象按本地日期计算，跨过日界时各地区可能看到不同卦象
+        </p>
+      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center max-w-5xl mx-auto">
-        {/* Left: large red color block with hexagram glyph */}
-        <FlipEntry className="w-full">
-          <BreathEffect className="w-full rounded-md" duration={4500}>
-            <div className="aspect-square w-full bg-gradient-to-br from-june-red via-june-clay to-june-red relative flex items-center justify-center p-8 rounded-md shadow-2xl">
-              <div className="absolute top-4 left-4 text-rice/60 font-display text-sm tracking-widest">
-                第 {main.number} 卦
-              </div>
-              <div className="absolute top-4 right-4">
-                <Seal text={main.shortName} size={44} rotation={-3} />
-              </div>
-              {/* Big hexagram glyph */}
-              <div className="w-full max-w-xs">
-                <HexagramCard
-                  hexagram={main}
-                  size="lg"
-                  navigateOnClick={false}
-                  showStamp={false}
-                />
-              </div>
-            </div>
-          </BreathEffect>
-        </FlipEntry>
+      <div className="daily-card">
+        <div className="daily-symbol">
+          <span className="daily-symbol-caption">观 象 · 知 时</span>
+          <div className="daily-symbol-ring">
+            <YaoLineStack
+              lines={hexagramLineTypes(main)}
+              // 主卦图旁边没有等价文字，给出中文名称
+              label={`${main.name}卦象图`}
+              highlightLine={moving}
+              width={76}
+              thickness={6}
+              lineGap={9}
+            />
+          </div>
+          <span className="daily-symbol-number">
+            HEXAGRAM {String(main.number).padStart(2, '0')}
+          </span>
+        </div>
 
-        {/* Right: title + interpretation + buttons */}
-        <motion.div
-          className="flex flex-col gap-4"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          <h1 className="text-display-md font-display text-ink leading-tight">{main.name}</h1>
-          <div className="flex flex-wrap gap-2">
-            {main.keywords.slice(0, 4).map((kw) => (
-              <span
-                key={kw}
-                className="px-3 py-1 bg-june-red/10 text-june-red rounded-pill text-xs font-display"
-              >
-                {kw}
-              </span>
+        <div className="daily-reading">
+          <div className="daily-name-row">
+            <h3>{main.name}</h3>
+            <span className="daily-number">第 {main.number} 卦</span>
+          </div>
+          <div className="daily-keywords">
+            {main.keywords.slice(0, 4).map((keyword) => (
+              <span key={keyword}>{keyword}</span>
             ))}
           </div>
           {main.modernInterpretation && (
-            <p className="font-body text-ink-light text-base leading-relaxed line-clamp-4">
-              {main.modernInterpretation}
-            </p>
+            <p className="daily-interpretation">{main.modernInterpretation}</p>
           )}
-          <div className="text-sm text-ink-light font-body">
-            <span>
-              {`动爻 · 第 ${moving} 爻 → `}
-            </span>
+          <div className="daily-change">
+            <span>{`动爻 · 第 ${moving} 爻`}</span>
+            <ArrowRight size={13} aria-hidden="true" />
             <Link
               to={`/hexagram/${changed.id}`}
-              className="text-june-red font-bold hover:underline"
-            >
-              {`变卦 · ${changed.name}`}
-            </Link>
+            >{`变卦 · ${changed.name}`}</Link>
           </div>
-          <div className="flex flex-wrap gap-3 mt-2">
-            <Link to={`/hexagram/${main.id}`}>
-              <Button variant="primary">展开卦境</Button>
-            </Link>
-            <Link to="/codex">
-              <Button variant="secondary">查看 64 卦</Button>
-            </Link>
-            <Link to="/divination">
-              <Button variant="ghost">三数起卦</Button>
-            </Link>
-          </div>
-        </motion.div>
+        </div>
+
+        <div className="daily-invitation">
+          <span className="home-eyebrow">一日一卦，一期一会</span>
+          <p>
+            借一卦之象，
+            <br />
+            照见当下的自己。
+          </p>
+          <Link to={`/hexagram/${main.id}`} className="daily-open">
+            展开卦境
+            <ArrowRight size={16} aria-hidden="true" />
+          </Link>
+          <Link to="/divination" className="daily-divination">
+            三数起卦
+            <MoveUpRight size={12} aria-hidden="true" />
+          </Link>
+        </div>
       </div>
     </section>
   )

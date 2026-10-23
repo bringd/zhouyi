@@ -42,17 +42,25 @@ describe('DailyHero', () => {
   it('renders the main hexagram name', () => {
     render(
       <MemoryRouter>
-        <DailyHero mainHexagram={mockQian} changedHexagram={mockKun} movingLine={4} />
+        <DailyHero
+          mainHexagram={mockQian}
+          changedHexagram={mockKun}
+          movingLine={4}
+        />
       </MemoryRouter>
     )
-    // The name appears in both the HexagramCard and the right-column h1.
+    // The daily reading identifies the actual generated hexagram.
     expect(screen.getAllByText('乾为天').length).toBeGreaterThan(0)
   })
 
   it('renders the changed hexagram link', () => {
     render(
       <MemoryRouter>
-        <DailyHero mainHexagram={mockQian} changedHexagram={mockKun} movingLine={4} />
+        <DailyHero
+          mainHexagram={mockQian}
+          changedHexagram={mockKun}
+          movingLine={4}
+        />
       </MemoryRouter>
     )
     expect(screen.getByText(/变卦 · 坤为地/)).toBeInTheDocument()
@@ -61,7 +69,11 @@ describe('DailyHero', () => {
   it('shows the moving line', () => {
     render(
       <MemoryRouter>
-        <DailyHero mainHexagram={mockQian} changedHexagram={mockKun} movingLine={4} />
+        <DailyHero
+          mainHexagram={mockQian}
+          changedHexagram={mockKun}
+          movingLine={4}
+        />
       </MemoryRouter>
     )
     expect(screen.getByText(/动爻 · 第 4 爻/)).toBeInTheDocument()
@@ -70,7 +82,11 @@ describe('DailyHero', () => {
   it('renders 今日卦境 header', () => {
     render(
       <MemoryRouter>
-        <DailyHero mainHexagram={mockQian} changedHexagram={mockKun} movingLine={4} />
+        <DailyHero
+          mainHexagram={mockQian}
+          changedHexagram={mockKun}
+          movingLine={4}
+        />
       </MemoryRouter>
     )
     expect(screen.getByText(/今 日 卦 境/)).toBeInTheDocument()
@@ -79,28 +95,67 @@ describe('DailyHero', () => {
   it('renders the action buttons', () => {
     render(
       <MemoryRouter>
-        <DailyHero mainHexagram={mockQian} changedHexagram={mockKun} movingLine={4} />
+        <DailyHero
+          mainHexagram={mockQian}
+          changedHexagram={mockKun}
+          movingLine={4}
+        />
       </MemoryRouter>
     )
     expect(screen.getByText('展开卦境')).toBeInTheDocument()
     expect(screen.getByText('查看 64 卦')).toBeInTheDocument()
     expect(screen.getByText('三数起卦')).toBeInTheDocument()
   })
+
+  it('shows the time zone and explains that the date (not the zone) decides the hexagram', () => {
+    render(
+      <MemoryRouter>
+        <DailyHero
+          mainHexagram={mockQian}
+          changedHexagram={mockKun}
+          movingLine={4}
+        />
+      </MemoryRouter>
+    )
+    const zone = screen.getByText(/时区 .+ · 每日卦象按本地日期计算/)
+    expect(zone).toBeInTheDocument()
+    // 措辞不能暗示「时区不同卦象必不同」
+    expect(zone.textContent).toContain('跨过日界时各地区可能看到不同卦象')
+    expect(zone.textContent).not.toContain('必定')
+  })
+
+  it('labels the main hexagram glyph with its Chinese name', () => {
+    render(
+      <MemoryRouter>
+        <DailyHero
+          mainHexagram={mockQian}
+          changedHexagram={mockKun}
+          movingLine={4}
+        />
+      </MemoryRouter>
+    )
+    expect(screen.getByRole('img', { name: '乾为天卦象图' })).toBeInTheDocument()
+  })
 })
 
 // Regression test for audit finding C1: this is the second render site that
 // hides the copy behind `{main.modernInterpretation && …}`, so the home hero
-// showed nothing for 60 of 64 daily hexagrams. `.line-clamp-4` is unique to
-// this paragraph (verified in DailyHero.tsx), so it identifies the node.
+// showed nothing for 60 of 64 daily hexagrams.
 describe('DailyHero modernInterpretation (C1 regression)', () => {
   it('renders the daily hexagram modernInterpretation', () => {
     const { container } = render(
       <MemoryRouter>
-        <DailyHero mainHexagram={mockQian} changedHexagram={mockKun} movingLine={4} />
+        <DailyHero
+          mainHexagram={mockQian}
+          changedHexagram={mockKun}
+          movingLine={4}
+        />
       </MemoryRouter>
     )
     expect(screen.getByText('乾为天，纯阳之卦。')).toBeInTheDocument()
-    expect(container.querySelector('.line-clamp-4')?.textContent).toBe('乾为天，纯阳之卦。')
+    expect(container.querySelector('.daily-interpretation')?.textContent).toBe(
+      '乾为天，纯阳之卦。'
+    )
   })
 
   it('omits the paragraph entirely when the text is empty, leaving no orphan node', () => {
@@ -113,6 +168,6 @@ describe('DailyHero modernInterpretation (C1 regression)', () => {
         />
       </MemoryRouter>
     )
-    expect(container.querySelector('.line-clamp-4')).toBeNull()
+    expect(container.querySelector('.daily-interpretation')).toBeNull()
   })
 })
