@@ -72,7 +72,7 @@ export function DivinationForm({
         typeof Intl !== 'undefined'
           ? Intl.DateTimeFormat().resolvedOptions().timeZone
           : ''
-      saveRecord({
+      const saved = saveRecord({
         id: recordId,
         type: 'three-number',
         createdAt: Date.now(),
@@ -85,6 +85,10 @@ export function DivinationForm({
         changedHexagramId: result.changedHexagramId,
         version: 1,
       })
+      if (!saved) {
+        setError('本地记录保存失败，请检查浏览器存储空间或隐私设置后重试。')
+        return
+      }
       if (onResult) onResult(recordId)
       else navigate(`/result/${recordId}`)
     } catch (err) {

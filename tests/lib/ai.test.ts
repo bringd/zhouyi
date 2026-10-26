@@ -393,6 +393,54 @@ describe("ai: generateInterpretation (BYOK browser-direct)", () => {
     }
   });
 
+  it('times out a stalled response body after headers have arrived', async () => {
+    vi.useFakeTimers()
+    let bodyController: ReadableStreamDefaultController<Uint8Array> | undefined
+    let signal: AbortSignal | undefined
+    try {
+      globalThis.fetch = vi
+        .fn()
+        .mockImplementation(async (_url, init: RequestInit) => {
+          signal = init.signal ?? undefined
+          const body = new ReadableStream<Uint8Array>({
+            start(controller) {
+              bodyController = controller
+              signal?.addEventListener('abort', () =>
+                controller.error(new DOMException('Aborted', 'AbortError')),
+              )
+            },
+          })
+          return new Response(body, { status: 200 })
+        })
+      const pending = generateInterpretation(sampleInput, null).catch(
+        (error: unknown) => error,
+      )
+      await vi.advanceTimersByTimeAsync(61_000)
+      const aborted = signal?.aborted
+      if (!aborted) bodyController?.close()
+      const result = await pending
+      expect(aborted).toBe(true)
+      expect(result).toBeInstanceOf(AIError)
+      expect((result as AIError).code).toBe('timeout')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('maps a stream connection failure to the stable network error code', async () => {
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.error(new TypeError('Connection lost'))
+      },
+    })
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValue(new Response(body, { status: 200 }))
+    await expect(
+      generateInterpretation(sampleInput, null),
+    ).rejects.toMatchObject({ code: 'network-error' })
+  })
+
   it("ignores the apiKey arg (back-compat: still read from localStorage)", async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,

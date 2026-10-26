@@ -7,6 +7,13 @@ import { hexagramLineTypes } from '@/lib/hexagramLines'
 const allYang: ['yang', 'yang', 'yang', 'yang', 'yang', 'yang'] = ['yang', 'yang', 'yang', 'yang', 'yang', 'yang']
 
 describe('YaoLineStack', () => {
+  it.each([1, 2, 3, 4, 5, 6] as const)('marks position %s without reversing the six lines', (position) => {
+    render(<YaoLineStack lines={allYang} highlightLine={position} data-testid="stack" />)
+    const lines = Array.from(screen.getByTestId('stack').children)
+    expect(lines.map((line) => line.getAttribute('data-yao-position'))).toEqual(['6', '5', '4', '3', '2', '1'])
+    expect(lines.filter((line) => line.classList.contains('yao-line--marked'))).toHaveLength(1)
+    expect(lines[6 - position]).toHaveAttribute('data-line-state', 'highlight')
+  })
   it('renders 6 lines', () => {
     render(<YaoLineStack lines={allYang} data-testid="stack" />)
     const stack = screen.getByTestId('stack')

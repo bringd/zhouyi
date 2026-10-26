@@ -128,6 +128,9 @@ export interface Hexagram {
   /** 现代解读, 200-300字 */
   modernInterpretation: string
 
+  /** 乾坤的用九/用六，独立于六条爻辞，不能作为第七爻参与起卦。 */
+  specialText?: { label: '用九' | '用六'; originalText: string; xiangText: string }
+
   /** 卦象之间的关系 */
   relations: HexagramRelations
 }

@@ -95,6 +95,8 @@ export interface ResultAppearanceProps {
   aiStatus: 'idle' | 'loading' | 'error'
   /** AI 错误文案 */
   aiError: string | null
+  /** 解读成功但浏览器存储失败，正文仍可阅读和导出 */
+  storageWarning?: string | null
   /** 记录里已有缓存解读 */
   hasCache: boolean
   /** 是否正在请求 */

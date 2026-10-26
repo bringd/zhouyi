@@ -40,6 +40,7 @@ export function ResultYehang({
   aiStatus,
   aiError,
   hasCache,
+  storageWarning,
   isLoading,
   isError,
   hasText,
@@ -214,6 +215,7 @@ export function ResultYehang({
               </div>
             ) : null}
 
+            {storageWarning && <p role="alert">{storageWarning}</p>}
             {hasCache ? (
               <p className="yh-interpretation__saved">
                 <Check size={12} aria-hidden="true" />

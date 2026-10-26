@@ -19,6 +19,21 @@ vi.mock("react-router-dom", async () => {
 });
 
 describe("DivinationForm", () => {
+  it('stays on the form when the browser cannot save the result', () => {
+    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('Storage full', 'QuotaExceededError')
+    })
+    try {
+      const onResult = vi.fn()
+      render(<MemoryRouter><DivinationForm initialNumbers={[129, 257, 601]} onResult={onResult} /></MemoryRouter>)
+      fireEvent.click(screen.getByRole('button', { name: '启 卦' }))
+      expect(onResult).not.toHaveBeenCalled()
+      expect(mockNavigate).not.toHaveBeenCalled()
+      expect(screen.getByRole('alert')).toHaveTextContent('本地记录保存失败')
+    } finally {
+      setItem.mockRestore()
+    }
+  })
   beforeEach(() => {
     mockNavigate.mockClear();
     localStorage.clear();

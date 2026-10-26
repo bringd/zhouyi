@@ -57,6 +57,23 @@ const cachedRecord: UserRecord = {
 };
 
 describe("ResultDisplay", () => {
+  it('keeps generated text visible and warns when its cache cannot be saved', async () => {
+    saveRecord(baseRecord)
+    mockedGenerate.mockResolvedValue({ text: '本次解读正文', chunks: ['本次解读正文'] })
+    render(<MemoryRouter><ResultDisplay recordId={baseRecord.id} /></MemoryRouter>)
+    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('Storage full', 'QuotaExceededError')
+    })
+    try {
+      fireEvent.click(screen.getByRole('button', { name: '卦象详解' }))
+      expect(await screen.findByRole('alert')).toHaveTextContent('未能保存到浏览器')
+      expect(screen.getByText('本次解读正文')).toBeInTheDocument()
+      expect(screen.queryByText('已保存的解读')).not.toBeInTheDocument()
+      expect(getRecord(baseRecord.id)?.aiInterpretation).toBeUndefined()
+    } finally {
+      setItem.mockRestore()
+    }
+  })
   beforeEach(() => {
     clearAllRecords();
     mockedGenerate.mockReset();

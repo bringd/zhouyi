@@ -1,10 +1,13 @@
 import { motion } from 'framer-motion'
 import { cn } from '@/utils/cn'
 import type { YaoLine } from '@/types'
+import { HexagramGlyph } from './HexagramGlyph'
 
 export interface YaoLineScrollProps {
   /** The 6 yao lines for this hexagram, in order 1-6 (bottom to top in original I Ching convention) */
   yaoLines: YaoLine[]
+  /** 已校勘的小象原文，索引 0 对应初爻。 */
+  xiaoXiang?: readonly string[]
   className?: string
 }
 
@@ -12,17 +15,22 @@ const POSITION_LABELS_YANG = ['初九', '九二', '九三', '九四', '九五', 
 const POSITION_LABELS_YIN = ['初六', '六二', '六三', '六四', '六五', '上六'] as const
 
 // 真实 mini 爻 — 阳实 / 阴断
-function MiniYao({ type, isCurrent }: { type: 'yin' | 'yang'; isCurrent: boolean }) {
-  const color = isCurrent ? '#9b2c2c' : 'rgba(26,26,26,0.18)'
-  const w = 32
-  if (type === 'yang') {
-    return <div style={{ width: w, height: 6, background: color, borderRadius: 1 }} />
-  }
+function MiniYao({
+  type,
+  isCurrent,
+}: {
+  type: 'yin' | 'yang'
+  isCurrent: boolean
+}) {
   return (
-    <div style={{ display: 'flex', gap: 4, width: w }}>
-      <div style={{ width: (w - 4) / 2, height: 6, background: color, borderRadius: 1 }} />
-      <div style={{ width: (w - 4) / 2, height: 6, background: color, borderRadius: 1 }} />
-    </div>
+    <HexagramGlyph
+      type={type}
+      state={isCurrent ? 'highlight' : 'normal'}
+      title={isCurrent ? '当前阅读爻' : undefined}
+      width={32}
+      thickness={6}
+      gap={4}
+    />
   )
 }
 
@@ -70,7 +78,7 @@ function MiniHexagramStack({ yaoLines, currentLine }: MiniHexagramStackProps) {
  * 右侧 爻位徽章 + 卦辞 / 释 / 今 / 深意。
  * 字段为空时显示「（待补）」占位符，确保空卦仍能优雅渲染。
  */
-export function YaoLineScroll({ yaoLines, className }: YaoLineScrollProps) {
+export function YaoLineScroll({ yaoLines, xiaoXiang, className }: YaoLineScrollProps) {
   // V3: 卦象传统视觉一致 — 卡片按 6→1 渲染（上九在顶、初九在底），
   // 与左侧 mini 卦象堆栈方向一致（6 上 1 下）。mini 堆栈内部仍按 yaoLines[pos-1] 查爻形。
   const displayOrder = [...yaoLines].reverse()
@@ -120,6 +128,7 @@ export function YaoLineScroll({ yaoLines, className }: YaoLineScrollProps) {
               </div>
 
               {/* 释 */}
+              {xiaoXiang?.[yao.position - 1] && <p className="font-body text-sm text-ink leading-relaxed mb-2" data-testid={`xiaoxiang-${yao.position}`}><span className="text-june-bronze">《象》：</span>{xiaoXiang[yao.position - 1]}</p>}
               {yao.explanation ? (
                 <div className="font-body text-sm text-ink-light italic mb-1.5">
                   <span className="text-june-bronze font-display">▎释：</span>

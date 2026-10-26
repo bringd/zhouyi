@@ -28,6 +28,9 @@
   --color-rice:        #F5F4EC;  /* 宣纸 - Rice paper - Page background */
   --color-rice-dark:   #ECEEE3;  /* 旧纸 - Aged paper - Card background */
   --color-shadow:      #2C3A31;  /* 投影 - Shadow color */
+  /* Glyph pigments are independent from text and button accents. */
+  --color-yao-normal: #355e4b;
+  --color-yao-marked: #a13c2e;
 
   /* 字体系统 - Typography (per design spec 4.3)
    * System font stack — no @font-face / no web font downloads.

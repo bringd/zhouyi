@@ -44,6 +44,7 @@ export function ResultQinglan({
   aiStatus,
   aiError,
   hasCache,
+  storageWarning,
   isLoading,
   isError,
   hasText,
@@ -277,6 +278,7 @@ export function ResultQinglan({
                 </div>
               )}
 
+              {storageWarning && <p role="alert">{storageWarning}</p>}
               {hasCache && (
                 <p className="ql-result__ai-note">
                   <Check size={12} aria-hidden="true" />

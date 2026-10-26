@@ -1,0 +1,26 @@
+/* Distinguish a marked line by shape as well as pigment, without changing
+ * line height, stack order or the gap in a yin line. */
+.yao-line {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.yao-line--marked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 5px);
+  width: 6px;
+  height: 6px;
+  background: var(--color-yao-marked);
+  transform: translateY(-50%) rotate(45deg);
+  pointer-events: none;
+}
+
+@media (forced-colors: active) {
+  .yao-line {
+    --color-yao-normal: CanvasText;
+    --color-yao-marked: Highlight;
+    forced-color-adjust: none;
+  }
+}

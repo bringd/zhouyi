@@ -3,6 +3,19 @@ import { renderCardSvg, cardDataFromIds } from '@/lib/imageGen'
 
 describe('imageGen', () => {
   describe('renderCardSvg', () => {
+    it.each([1, 2, 3, 4, 5, 6] as const)('keeps moving line %s visible in both yin and yang exports', (movingLine) => {
+      for (const mainId of [1, 2] as const) {
+        const data = cardDataFromIds({ mainId, movingLine })!
+        const doc = new DOMParser().parseFromString(renderCardSvg(data), 'image/svg+xml')
+        expect(doc.querySelector('parsererror')).toBeNull()
+        const lines = Array.from(doc.querySelectorAll('[data-line-position]'))
+        expect(lines.map((line) => line.getAttribute('data-line-position'))).toEqual(['6', '5', '4', '3', '2', '1'])
+        expect(doc.querySelectorAll('[data-moving-line]')).toHaveLength(1)
+        expect(lines[6 - movingLine].querySelector('[data-moving-line]')?.getAttribute('data-moving-line')).toBe(String(movingLine))
+        expect(lines[6 - movingLine].querySelectorAll('rect[fill="#FFFFFF"]')).toHaveLength(mainId === 1 ? 1 : 2)
+      }
+    })
+
     it('produces a self-contained SVG document', () => {
       const data = cardDataFromIds({ mainId: 1 })
       expect(data).not.toBeNull()

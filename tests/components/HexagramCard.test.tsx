@@ -75,12 +75,9 @@ describe('HexagramCard', () => {
     expect(handler).toHaveBeenCalledTimes(1)
   })
 
-  it('navigates when clicked (default behavior)', () => {
-    // MemoryRouter will use the default initial path
+  it('provides a native link to the detail page by default', () => {
     renderWithRouter(<HexagramCard hexagram={mockQian} />)
-    fireEvent.click(screen.getByRole('button'))
-    // We can't easily test the navigation destination here without a more complex setup
-    // Just verify the click handler runs without error
-    expect(screen.getByRole('button')).toBeInTheDocument()
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/hexagram/1')
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 })

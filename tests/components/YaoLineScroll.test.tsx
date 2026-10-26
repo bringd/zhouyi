@@ -156,6 +156,8 @@ describe('YaoLineScroll (option A design — mini yao indicator)', () => {
     const currentRows = container.querySelectorAll('[data-current="true"]')
     // Exactly one row is the current one (position 3)
     expect(currentRows).toHaveLength(1)
+    expect(screen.getByTitle('当前阅读爻')).toBeInTheDocument()
+    expect(screen.queryByTitle('动爻')).not.toBeInTheDocument()
   })
 
   it('marks the correct position row as current for position 1 (V2 design)', () => {

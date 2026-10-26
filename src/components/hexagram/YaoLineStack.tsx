@@ -67,6 +67,7 @@ export function YaoLineStack({
           key={i}
           type={lines[i]}
           state={effectiveStates[i]}
+          data-yao-position={i + 1}
           width={width}
           thickness={thickness}
         />

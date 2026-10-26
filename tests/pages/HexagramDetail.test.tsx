@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { render } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 import HexagramDetail from '@/pages/HexagramDetail'
 import { validateModernInterpretation } from '@/lib/modernInterpretation'
+import { getHexagramById } from '@/lib/divination'
 
 // Same providers as the Smoke test: <SEO /> needs HelmetProvider.
 function withProviders(node: React.ReactNode) {
@@ -97,5 +98,48 @@ describe('HexagramDetail section rhythm (D1)', () => {
     // The parent of the <section> rhythm block should carry divide-y
     const parentWithDivide = container.querySelector('.divide-y')
     expect(parentWithDivide).not.toBeNull()
+  })
+})
+
+describe('HexagramDetail catalogue fixes', () => {
+  it.each(['0', '65', '1abc', '1.5', '01'])('handles invalid id %s without rendering a wrong hexagram', (id) => {
+    const { container } = renderAt(id)
+    expect(screen.getByRole('heading', { name: '未找到该卦象' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '返回图鉴' })).toHaveAttribute('href', '/codex')
+    expect(container.querySelector('[data-testid="hero-card"]')).toBeNull()
+  })
+
+  it('renders all six 小象 beside their matching line positions', () => {
+    renderAt('41')
+    const hexagram = getHexagramById(41)
+    for (let position = 1; position <= 6; position++) {
+      expect(screen.getByTestId(`xiaoxiang-${position}`)).toHaveTextContent(hexagram.xiangzhuan.xiaoXiang[position - 1])
+    }
+  })
+
+  it.each([['1', '用九'], ['2', '用六']])('shows the special text for %s separately from its six lines', (id, label) => {
+    const { container } = renderAt(id)
+    expect(screen.getByRole('heading', { name: label })).toBeInTheDocument()
+    expect(container.querySelectorAll('[data-testid^="xiaoxiang-"]')).toHaveLength(6)
+  })
+
+  it('retains catalogue filters in return, sequence and relation links', () => {
+    renderAt('41?view=palace&q=%E6%8D%9F&group=%E8%89%AE%E5%AE%AB')
+    const suffix = '?view=palace&q=%E6%8D%9F&group=%E8%89%AE%E5%AE%AB'
+    expect(screen.getByRole('link', { name: '返回图鉴' })).toHaveAttribute('href', '/codex' + suffix)
+    expect(screen.getByRole('link', { name: /上一卦/ })).toHaveAttribute('href', '/hexagram/40' + suffix)
+    expect(screen.getByRole('link', { name: /下一卦/ })).toHaveAttribute('href', '/hexagram/42' + suffix)
+    expect(screen.getByRole('link', { name: /查看 泽山咸/ })).toHaveAttribute('href', '/hexagram/31' + suffix)
+    fireEvent.click(screen.getByRole('link', { name: /下一卦/ }))
+    expect(screen.getByRole('heading', { name: '风雷益' })).toBeInTheDocument()
+  })
+
+  it('offers chapter anchors and an immutable source reference', () => {
+    renderAt('1')
+    expect(screen.getByRole('link', { name: '六爻与小象' })).toHaveAttribute('href', '#yao')
+    expect(screen.queryByRole('link', { name: /上一卦/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '下载卦象卡' })).toBeInTheDocument()
+    fireEvent.click(screen.getByText('原文来源与校订说明'))
+    expect(screen.getByRole('link', { name: /原文对照/ }).getAttribute('href')).toMatch(/^https:\/\/zh.wikisource.org\/.*oldid=/)
   })
 })

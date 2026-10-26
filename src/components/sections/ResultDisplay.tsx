@@ -31,6 +31,8 @@ export function ResultDisplay({ recordId }: ResultDisplayProps) {
   )
   const [aiStatus, setAiStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [aiError, setAiError] = useState<string | null>(null)
+  const [aiSaved, setAiSaved] = useState(Boolean(record?.aiInterpretation?.trim()))
+  const [storageWarning, setStorageWarning] = useState<string | null>(null)
   const { appearance } = useAppearance()
   const ResultView = RESULT_VIEWS[appearance]
 
@@ -66,6 +68,7 @@ export function ResultDisplay({ recordId }: ResultDisplayProps) {
   const handleInterpret = async () => {
     if (aiStatus === 'loading') return
     setAiError(null)
+    setStorageWarning(null)
     setAiStatus('loading')
     setAiText('')
     try {
@@ -87,7 +90,11 @@ export function ResultDisplay({ recordId }: ResultDisplayProps) {
       setAiStatus('idle')
       const updated: UserRecord = { ...record, aiInterpretation: result.text }
       setRecord(updated)
-      saveRecord(updated)
+      const saved = saveRecord(updated)
+      setAiSaved(saved)
+      if (!saved) {
+        setStorageWarning('解读已生成，但未能保存到浏览器，请先下载卦象卡或收藏到云端。')
+      }
     } catch (err) {
       let msg: string
       if (err instanceof AIError) {
@@ -212,7 +219,7 @@ export function ResultDisplay({ recordId }: ResultDisplayProps) {
     }
   }
 
-  const hasCache = Boolean(record.aiInterpretation?.trim())
+  const hasCache = aiSaved && Boolean(record.aiInterpretation?.trim())
   const isLoading = aiStatus === 'loading'
   const isError = aiStatus === 'error'
   const hasText = Boolean(aiText?.trim())
@@ -226,6 +233,7 @@ export function ResultDisplay({ recordId }: ResultDisplayProps) {
       aiText={aiText}
       aiStatus={aiStatus}
       aiError={aiError}
+      storageWarning={storageWarning}
       hasCache={hasCache}
       isLoading={isLoading}
       isError={isError}

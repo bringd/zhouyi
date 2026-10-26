@@ -1,0 +1,443 @@
+{
+  "reviewedAt": "2026-10-24",
+  "entries": [
+    {
+      "id": 1,
+      "name": "乾",
+      "url": "https://zh.wikisource.org/zh-hans/周易/乾",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/乾&oldid=2404991"
+    },
+    {
+      "id": 2,
+      "name": "坤",
+      "url": "https://zh.wikisource.org/zh-hans/周易/坤",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/坤&oldid=2404999"
+    },
+    {
+      "id": 3,
+      "name": "屯",
+      "url": "https://zh.wikisource.org/zh-hans/周易/屯",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/屯&oldid=10643482"
+    },
+    {
+      "id": 4,
+      "name": "蒙",
+      "url": "https://zh.wikisource.org/zh-hans/周易/蒙",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/蒙&oldid=10645379"
+    },
+    {
+      "id": 5,
+      "name": "需",
+      "url": "https://zh.wikisource.org/zh-hans/周易/需",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/需&oldid=10643261"
+    },
+    {
+      "id": 6,
+      "name": "訟",
+      "url": "https://zh.wikisource.org/zh-hans/周易/訟",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/訟&oldid=10645409"
+    },
+    {
+      "id": 7,
+      "name": "師",
+      "url": "https://zh.wikisource.org/zh-hans/周易/師",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/師&oldid=2405011"
+    },
+    {
+      "id": 8,
+      "name": "比",
+      "url": "https://zh.wikisource.org/zh-hans/周易/比",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/比&oldid=10645543"
+    },
+    {
+      "id": 9,
+      "name": "小畜",
+      "url": "https://zh.wikisource.org/zh-hans/周易/小畜",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/小畜&oldid=10645530"
+    },
+    {
+      "id": 10,
+      "name": "履",
+      "url": "https://zh.wikisource.org/zh-hans/周易/履",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/履&oldid=10647513"
+    },
+    {
+      "id": 11,
+      "name": "泰",
+      "url": "https://zh.wikisource.org/zh-hans/周易/泰",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/泰&oldid=2106138"
+    },
+    {
+      "id": 12,
+      "name": "否",
+      "url": "https://zh.wikisource.org/zh-hans/周易/否",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/否&oldid=10645603"
+    },
+    {
+      "id": 13,
+      "name": "同人",
+      "url": "https://zh.wikisource.org/zh-hans/周易/同人",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/同人&oldid=10645635",
+      "notes": [
+        {
+          "position": 4,
+          "note": "采用来源所列墉字异文，移除夹注"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "name": "大有",
+      "url": "https://zh.wikisource.org/zh-hans/周易/大有",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/大有&oldid=10645712",
+      "notes": [
+        {
+          "position": 2,
+          "note": "采用来源所列车字异文，移除夹注"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "name": "謙",
+      "url": "https://zh.wikisource.org/zh-hans/周易/謙",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/謙&oldid=2106142",
+      "notes": [
+        {
+          "position": 4,
+          "note": "撝/㧑保留原有字形"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "name": "豫",
+      "url": "https://zh.wikisource.org/zh-hans/周易/豫",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/豫&oldid=10645735"
+    },
+    {
+      "id": 17,
+      "name": "隨",
+      "url": "https://zh.wikisource.org/zh-hans/周易/隨",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/隨&oldid=10645020"
+    },
+    {
+      "id": 18,
+      "name": "蠱",
+      "url": "https://zh.wikisource.org/zh-hans/周易/蠱",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/蠱&oldid=2106145"
+    },
+    {
+      "id": 19,
+      "name": "臨",
+      "url": "https://zh.wikisource.org/zh-hans/周易/臨",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/臨&oldid=2106146"
+    },
+    {
+      "id": 20,
+      "name": "觀",
+      "url": "https://zh.wikisource.org/zh-hans/周易/觀",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/觀&oldid=10645159"
+    },
+    {
+      "id": 21,
+      "name": "噬嗑",
+      "url": "https://zh.wikisource.org/zh-hans/周易/噬嗑",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/噬嗑&oldid=10645753"
+    },
+    {
+      "id": 22,
+      "name": "賁",
+      "url": "https://zh.wikisource.org/zh-hans/周易/賁",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/賁&oldid=2405035"
+    },
+    {
+      "id": 23,
+      "name": "剝",
+      "url": "https://zh.wikisource.org/zh-hans/周易/剝",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/剝&oldid=10645800"
+    },
+    {
+      "id": 24,
+      "name": "復",
+      "url": "https://zh.wikisource.org/zh-hans/周易/復",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/復&oldid=10643037"
+    },
+    {
+      "id": 25,
+      "name": "无妄",
+      "url": "https://zh.wikisource.org/zh-hans/周易/无妄",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/无妄&oldid=10645038"
+    },
+    {
+      "id": 26,
+      "name": "大畜",
+      "url": "https://zh.wikisource.org/zh-hans/周易/大畜",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/大畜&oldid=10646304"
+    },
+    {
+      "id": 27,
+      "name": "頤",
+      "url": "https://zh.wikisource.org/zh-hans/周易/頤",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/頤&oldid=10643091"
+    },
+    {
+      "id": 28,
+      "name": "大過",
+      "url": "https://zh.wikisource.org/zh-hans/周易/大過",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/大過&oldid=10645184"
+    },
+    {
+      "id": 29,
+      "name": "坎",
+      "url": "https://zh.wikisource.org/zh-hans/周易/坎",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/坎&oldid=10646381",
+      "notes": [
+        {
+          "position": 4,
+          "note": "际据《易小传》《周易章句证异》对校，未采用转录的济字"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "name": "離",
+      "url": "https://zh.wikisource.org/zh-hans/周易/離",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/離&oldid=10646424"
+    },
+    {
+      "id": 31,
+      "name": "咸",
+      "url": "https://zh.wikisource.org/zh-hans/周易/咸",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/咸&oldid=10646450"
+    },
+    {
+      "id": 32,
+      "name": "恒",
+      "url": "https://zh.wikisource.org/zh-hans/周易/恒",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/恒&oldid=10646486"
+    },
+    {
+      "id": 33,
+      "name": "遯",
+      "url": "https://zh.wikisource.org/zh-hans/周易/遯",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/遯&oldid=10645108"
+    },
+    {
+      "id": 34,
+      "name": "大壯",
+      "url": "https://zh.wikisource.org/zh-hans/周易/大壯",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/大壯&oldid=10646529",
+      "notes": [
+        {
+          "position": 6,
+          "note": "详/祥保留原有通用字形"
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "name": "晉",
+      "url": "https://zh.wikisource.org/zh-hans/周易/晉",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/晉&oldid=10646579"
+    },
+    {
+      "id": 36,
+      "name": "明夷",
+      "url": "https://zh.wikisource.org/zh-hans/周易/明夷",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/明夷&oldid=10644507"
+    },
+    {
+      "id": 37,
+      "name": "家人",
+      "url": "https://zh.wikisource.org/zh-hans/周易/家人",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/家人&oldid=2405005"
+    },
+    {
+      "id": 38,
+      "name": "睽",
+      "url": "https://zh.wikisource.org/zh-hans/周易/睽",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/睽&oldid=10646622"
+    },
+    {
+      "id": 39,
+      "name": "蹇",
+      "url": "https://zh.wikisource.org/zh-hans/周易/蹇",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/蹇&oldid=2405036"
+    },
+    {
+      "id": 40,
+      "name": "解",
+      "url": "https://zh.wikisource.org/zh-hans/周易/解",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/解&oldid=10646666"
+    },
+    {
+      "id": 41,
+      "name": "損",
+      "url": "https://zh.wikisource.org/zh-hans/周易/損",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/損&oldid=10646704"
+    },
+    {
+      "id": 42,
+      "name": "益",
+      "url": "https://zh.wikisource.org/zh-hans/周易/益",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/益&oldid=10646726"
+    },
+    {
+      "id": 43,
+      "name": "夬",
+      "url": "https://zh.wikisource.org/zh-hans/周易/夬",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/夬&oldid=2405003"
+    },
+    {
+      "id": 44,
+      "name": "姤",
+      "url": "https://zh.wikisource.org/zh-hans/周易/姤",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/姤&oldid=10646826"
+    },
+    {
+      "id": 45,
+      "name": "萃",
+      "url": "https://zh.wikisource.org/zh-hans/周易/萃",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/萃&oldid=10647546"
+    },
+    {
+      "id": 46,
+      "name": "升",
+      "url": "https://zh.wikisource.org/zh-hans/周易/升",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/升&oldid=10646879"
+    },
+    {
+      "id": 47,
+      "name": "困",
+      "url": "https://zh.wikisource.org/zh-hans/周易/困",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/困&oldid=10647032"
+    },
+    {
+      "id": 48,
+      "name": "井",
+      "url": "https://zh.wikisource.org/zh-hans/周易/井",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/井&oldid=10645240"
+    },
+    {
+      "id": 49,
+      "name": "革",
+      "url": "https://zh.wikisource.org/zh-hans/周易/革",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/革&oldid=10643173",
+      "notes": [
+        {
+          "position": 2,
+          "note": "己/已保留原有己字，据《易因上下经》对校"
+        }
+      ]
+    },
+    {
+      "id": 50,
+      "name": "鼎",
+      "url": "https://zh.wikisource.org/zh-hans/周易/鼎",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/鼎&oldid=10647086",
+      "notes": [
+        {
+          "position": 4,
+          "note": "餗/𫗧保留原有字形"
+        }
+      ]
+    },
+    {
+      "id": 51,
+      "name": "震",
+      "url": "https://zh.wikisource.org/zh-hans/周易/震",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/震&oldid=10644930"
+    },
+    {
+      "id": 52,
+      "name": "艮",
+      "url": "https://zh.wikisource.org/zh-hans/周易/艮",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/艮&oldid=10647135",
+      "notes": [
+        {
+          "position": 3,
+          "note": "薰/熏保留原有字形"
+        }
+      ]
+    },
+    {
+      "id": 53,
+      "name": "漸",
+      "url": "https://zh.wikisource.org/zh-hans/周易/漸",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/漸&oldid=2560535"
+    },
+    {
+      "id": 54,
+      "name": "歸妹",
+      "url": "https://zh.wikisource.org/zh-hans/周易/歸妹",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/歸妹&oldid=10647182"
+    },
+    {
+      "id": 55,
+      "name": "豐",
+      "url": "https://zh.wikisource.org/zh-hans/周易/豐",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/豐&oldid=10645290"
+    },
+    {
+      "id": 56,
+      "name": "旅",
+      "url": "https://zh.wikisource.org/zh-hans/周易/旅",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/旅&oldid=10647234"
+    },
+    {
+      "id": 57,
+      "name": "巽",
+      "url": "https://zh.wikisource.org/zh-hans/周易/巽",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/巽&oldid=10644966"
+    },
+    {
+      "id": 58,
+      "name": "兌",
+      "url": "https://zh.wikisource.org/zh-hans/周易/兌",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/兌&oldid=2404993"
+    },
+    {
+      "id": 59,
+      "name": "渙",
+      "url": "https://zh.wikisource.org/zh-hans/周易/渙",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/渙&oldid=10647580"
+    },
+    {
+      "id": 60,
+      "name": "節",
+      "url": "https://zh.wikisource.org/zh-hans/周易/節",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/節&oldid=2405027"
+    },
+    {
+      "id": 61,
+      "name": "中孚",
+      "url": "https://zh.wikisource.org/zh-hans/周易/中孚",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/中孚&oldid=10647425",
+      "notes": [
+        {
+          "position": 3,
+          "note": "或据《周易文诠》《日讲易经解义》对校，修正转录的可字"
+        }
+      ]
+    },
+    {
+      "id": 62,
+      "name": "小過",
+      "url": "https://zh.wikisource.org/zh-hans/周易/小過",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/小過&oldid=10643238"
+    },
+    {
+      "id": 63,
+      "name": "既濟",
+      "url": "https://zh.wikisource.org/zh-hans/周易/既濟",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/既濟&oldid=2572417"
+    },
+    {
+      "id": 64,
+      "name": "未濟",
+      "url": "https://zh.wikisource.org/zh-hans/周易/未濟",
+      "revision": "https://zh.wikisource.org/w/index.php?title=周易/未濟&oldid=10647450"
+    }
+  ]
+}

@@ -9,20 +9,14 @@
  * URL resolution mirrors `src/lib/feed.ts`:
  *   1. `VITE_FEED_API_BASE` env var (staging override)
  *   2. Dev: same origin — `vite.config.ts` proxies `/api/records` → :8787
- *   3. Prod: the Worker origin, because Pages has no `/api/records`
- *      Function; a same-origin request would fall through to the SPA
- *      shell (`public/_redirects`) and hand us HTML.
+ *   3. Prod: same origin; the Pages middleware forwards to the Worker
+ *      and keeps its HttpOnly guest session on the Pages host.
  *
  * Wire-format note: the Worker returns Drizzle `timestamp`-mode columns
  * as JS `Date`s, and `Response.json()` surfaces them as ISO-8601
  * strings. Every timestamp is normalised to epoch-ms on the way in so
  * callers always see `createdAt: number`.
  *
- * Known limitation (deferred, tracked with the account-system work): in
- * production Pages and the Worker are different sites, so a
- * `SameSite=Lax` session cookie may not be attached to cross-site
- * fetches. `src/lib/feed.ts` has exactly the same shape — this is a
- * Worker-wide issue, not a records-specific one.
  */
 
 export type RecordSource = 'local' | 'cloud'
@@ -92,16 +86,10 @@ interface RawRecord {
   updated_at?: string | number | null
 }
 
-const PROD_BASE = 'https://zhouyi-worker.bringd.workers.dev'
-
 function getBaseUrl(): string {
   const env = (import.meta.env?.VITE_FEED_API_BASE ?? '') as string
   if (env) return env
-  // In dev the Vite proxy forwards `/api/records` to :8787, so a
-  // same-origin relative path is correct. In prod the Worker lives on
-  // another origin — see the module comment.
-  if (import.meta.env?.DEV) return ''
-  return PROD_BASE
+  return ''
 }
 
 async function request(path: string, init?: RequestInit): Promise<Response> {

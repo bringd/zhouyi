@@ -47,6 +47,7 @@ export function ResultZhusha({
   aiStatus,
   aiError,
   hasCache,
+  storageWarning,
   isLoading,
   isError,
   hasText,
@@ -243,6 +244,7 @@ export function ResultZhusha({
                 </div>
               )}
 
+              {storageWarning && <p role="alert">{storageWarning}</p>}
               {hasCache && (
                 <p className="zh-ai__cache">
                   <Check size={12} aria-hidden="true" />

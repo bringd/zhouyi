@@ -64,13 +64,18 @@ export interface AiQuota {
  * (older Function deployments, dev mode, etc.), or when the
  * caller passed a partial mock (tests).
  */
-export function readQuotaFromHeaders(headers: Headers | undefined | null): AiQuota | null {
+export function readQuotaFromHeaders(
+  headers: Headers | undefined | null,
+): AiQuota | null {
   if (!headers || typeof headers.get !== 'function') return null
   const mode = headers.get('X-AI-Mode') as 'byok' | 'demo' | null
   if (!mode) return null
   const limit = Number.parseInt(headers.get('X-AI-Quota-Limit') ?? '0', 10)
   const used = Number.parseInt(headers.get('X-AI-Quota-Used') ?? '0', 10)
-  const remaining = Number.parseInt(headers.get('X-AI-Quota-Remaining') ?? '0', 10)
+  const remaining = Number.parseInt(
+    headers.get('X-AI-Quota-Remaining') ?? '0',
+    10,
+  )
   return { mode, limit, used, remaining }
 }
 
@@ -242,122 +247,147 @@ export async function generateInterpretation(
     )
   }
 
-  clearTimeout(timeoutId)
-
-  if (!response.ok) {
-    if (response.status === 401) {
-      throw new AIError('API Key 无效或已过期，请检查设置。', 'unauthorized')
-    }
-    if (response.status === 403) {
-      throw new AIError('API Key 权限不足，请检查。', 'unauthorized')
-    }
-    if (response.status === 429) {
-      let message = '请求过于频繁，请稍后再试。'
-      try {
-        const body = (await response.json()) as { error?: { message?: string } }
-        if (body?.error?.message) message = body.error.message
-      } catch {
-        // ignore JSON parse failure
-      }
-      throw new AIError(message, 'rate-limit')
-    }
-    if (response.status === 529 || response.status >= 500) {
-      throw new AIError('Anthropic 服务暂时不可用', 'server-error')
-    }
-    throw new AIError(`请求失败 (${response.status})`, 'network-error')
-  }
-
-  if (!response.body) {
-    throw new AIError('响应体为空', 'network-error')
-  }
-
-  // Parse Anthropic SSE stream. Event format:
-  //   event: message_start
-  //   data: {"type":"message_start", ...}
-  //   event: content_block_delta
-  //   data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"..."}}
-  //   event: message_stop
-  //   data: {"type":"message_stop"}
-  //   event: error
-  //   data: {"type":"error","error":{"type":"...","message":"..."}}
-  const chunks: string[] = []
-  let fullText = ''
-  let usage: { inputTokens: number; outputTokens: number } | undefined
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
-
   try {
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      buffer += decoder.decode(value, { stream: true })
-
-      // Anthropic SSE events are separated by \n\n. A single chunk can
-      // contain multiple events or a partial one — keep the tail in
-      // the buffer.
-      const events = buffer.split('\n\n')
-      buffer = events.pop() ?? ''
-
-      for (const event of events) {
-        let dataPayload = ''
-        for (const line of event.split('\n')) {
-          if (line.startsWith('data:')) dataPayload += line.slice(5).trim()
-        }
-        if (!dataPayload) continue
-        if (dataPayload === '[DONE]') continue
-
-        let parsed: {
-          type?: string
-          delta?: { type?: string; text?: string }
-          message?: { usage?: { input_tokens?: number; output_tokens?: number } }
-          usage?: { input_tokens?: number; output_tokens?: number }
-          error?: { type?: string; message?: string }
-        }
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new AIError('API Key 无效或已过期，请检查设置。', 'unauthorized')
+      }
+      if (response.status === 403) {
+        throw new AIError('API Key 权限不足，请检查。', 'unauthorized')
+      }
+      if (response.status === 429) {
+        let message = '请求过于频繁，请稍后再试。'
         try {
-          parsed = JSON.parse(dataPayload) as typeof parsed
+          const body = (await response.json()) as {
+            error?: { message?: string }
+          }
+          if (body?.error?.message) message = body.error.message
         } catch {
-          continue
+          // ignore JSON parse failure
         }
+        throw new AIError(message, 'rate-limit')
+      }
+      if (response.status === 529 || response.status >= 500) {
+        throw new AIError('Anthropic 服务暂时不可用', 'server-error')
+      }
+      throw new AIError(`请求失败 (${response.status})`, 'network-error')
+    }
 
-        if (
-          parsed.type === 'content_block_delta' &&
-          parsed.delta?.type === 'text_delta' &&
-          typeof parsed.delta.text === 'string'
-        ) {
-          const chunk = parsed.delta.text
-          chunks.push(chunk)
-          fullText += chunk
-          onChunk?.(chunk)
-        } else if (parsed.type === 'message_start' && parsed.message?.usage) {
-          usage = {
-            inputTokens: parsed.message.usage.input_tokens ?? 0,
-            outputTokens: parsed.message.usage.output_tokens ?? 0,
+    if (!response.body) {
+      throw new AIError('响应体为空', 'network-error')
+    }
+
+    // Parse Anthropic SSE stream. Event format:
+    //   event: message_start
+    //   data: {"type":"message_start", ...}
+    //   event: content_block_delta
+    //   data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"..."}}
+    //   event: message_stop
+    //   data: {"type":"message_stop"}
+    //   event: error
+    //   data: {"type":"error","error":{"type":"...","message":"..."}}
+    const chunks: string[] = []
+    let fullText = ''
+    let usage: { inputTokens: number; outputTokens: number } | undefined
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+
+        // Anthropic SSE events are separated by \n\n. A single chunk can
+        // contain multiple events or a partial one — keep the tail in
+        // the buffer.
+        const events = buffer.split('\n\n')
+        buffer = events.pop() ?? ''
+
+        for (const event of events) {
+          let dataPayload = ''
+          for (const line of event.split('\n')) {
+            if (line.startsWith('data:')) dataPayload += line.slice(5).trim()
           }
-        } else if (parsed.type === 'message_delta' && parsed.usage) {
-          // Anthropic's `message_delta` event carries `usage` at the top
-          // level (not under `message`). It's typically only updated for
-          // output_tokens; fall back to the previous value for the rest.
-          usage = {
-            inputTokens: parsed.usage.input_tokens ?? usage?.inputTokens ?? 0,
-            outputTokens: parsed.usage.output_tokens ?? usage?.outputTokens ?? 0,
+          if (!dataPayload) continue
+          if (dataPayload === '[DONE]') continue
+
+          let parsed: {
+            type?: string
+            delta?: { type?: string; text?: string }
+            message?: {
+              usage?: { input_tokens?: number; output_tokens?: number }
+            }
+            usage?: { input_tokens?: number; output_tokens?: number }
+            error?: { type?: string; message?: string }
           }
-        } else if (parsed.type === 'error' && parsed.error) {
-          throw new AIError(
-            parsed.error.message ?? '卦象详解失败',
-            mapUpstreamErrorType(parsed.error.type),
-            undefined,
-          )
+          try {
+            parsed = JSON.parse(dataPayload) as typeof parsed
+          } catch {
+            continue
+          }
+
+          if (
+            parsed.type === 'content_block_delta' &&
+            parsed.delta?.type === 'text_delta' &&
+            typeof parsed.delta.text === 'string'
+          ) {
+            const chunk = parsed.delta.text
+            chunks.push(chunk)
+            fullText += chunk
+            onChunk?.(chunk)
+          } else if (parsed.type === 'message_start' && parsed.message?.usage) {
+            usage = {
+              inputTokens: parsed.message.usage.input_tokens ?? 0,
+              outputTokens: parsed.message.usage.output_tokens ?? 0,
+            }
+          } else if (parsed.type === 'message_delta' && parsed.usage) {
+            // Anthropic's `message_delta` event carries `usage` at the top
+            // level (not under `message`). It's typically only updated for
+            // output_tokens; fall back to the previous value for the rest.
+            usage = {
+              inputTokens: parsed.usage.input_tokens ?? usage?.inputTokens ?? 0,
+              outputTokens:
+                parsed.usage.output_tokens ?? usage?.outputTokens ?? 0,
+            }
+          } else if (parsed.type === 'error' && parsed.error) {
+            throw new AIError(
+              parsed.error.message ?? '卦象详解失败',
+              mapUpstreamErrorType(parsed.error.type),
+              undefined,
+            )
+          }
         }
       }
+    } catch (err) {
+      if (err instanceof AIError) throw err
+      if (
+        controller.signal.aborted ||
+        (err instanceof Error && err.name === 'AbortError')
+      ) {
+        throw new AIError('请求超时', 'timeout', undefined, err)
+      }
+      throw new AIError('解读连接中断，请重试', 'network-error', undefined, err)
+    } finally {
+      reader.releaseLock()
     }
-  } finally {
-    reader.releaseLock()
-  }
 
-  return usage
-    ? { text: fullText, chunks, usage, quota: readQuotaFromHeaders(response.headers) ?? undefined }
-    : { text: fullText, chunks, quota: readQuotaFromHeaders(response.headers) ?? undefined }
+    return usage
+      ? {
+          text: fullText,
+          chunks,
+          usage,
+          quota: readQuotaFromHeaders(response.headers) ?? undefined,
+        }
+      : {
+          text: fullText,
+          chunks,
+          quota: readQuotaFromHeaders(response.headers) ?? undefined,
+        }
+  } finally {
+    clearTimeout(timeoutId)
+  }
 }
 
 /**
@@ -369,9 +399,7 @@ export async function generateInterpretation(
  * etc.) sometimes surface numeric codes (1008, 1026, 1027, 2013)
  * instead — those land here as `upstream-error`.
  */
-function mapUpstreamErrorType(
-  type: string | undefined,
-): AIError['code'] {
+function mapUpstreamErrorType(type: string | undefined): AIError['code'] {
   switch (type) {
     case 'invalid_request_error':
       return 'upstream-error'

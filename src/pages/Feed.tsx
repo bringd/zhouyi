@@ -94,7 +94,7 @@ function FeedList({ onSelect }: { onSelect: (id: string) => void }) {
         <div className="p-8 bg-rice-dark border border-june-bronze/30 rounded-md text-center">
           <p className="font-display text-base text-ink tracking-widest mb-2">卦 册 尚 空</p>
           <p className="font-body text-sm text-ink-light leading-relaxed">
-            还没有人发布过卦象。<Link to="/divination" className="text-june-red underline">起一卦</Link>，
+            还没有人发布过卦象。<Link to="/divination" className="inline-flex min-h-6 items-center text-june-red underline">起一卦</Link>，
             然后在结果页点"发布"分享到社区。
           </p>
         </div>
@@ -215,7 +215,7 @@ function FeedDetail({ postId, onBack }: { postId: string; onBack: () => void }) 
         <button
           type="button"
           onClick={onBack}
-          className="text-xs text-june-bronze font-display tracking-widest hover:text-june-red"
+          className="inline-flex min-h-6 items-center text-xs text-june-bronze font-display tracking-widest hover:text-june-red"
         >
           ← 返回卦册
         </button>
@@ -249,7 +249,7 @@ function FeedDetail({ postId, onBack }: { postId: string; onBack: () => void }) 
             <div className="text-[12px] text-ink-light/60 font-body">
               以 <span className="text-june-red font-bold">{getNickname()}</span> 之名发布
               {!isNicknameSet() && (
-                <Link to="/settings" className="ml-2 text-june-bronze underline">
+                <Link to="/settings" className="ml-2 inline-flex min-h-6 items-center text-june-bronze underline">
                   改名 →
                 </Link>
               )}

@@ -17,18 +17,16 @@
  * `VITE_FEED_API_BASE` to that worker URL.
  */
 
-const PROD_BASE = 'https://zhouyi-worker.bringd.workers.dev' // Cloudflare Worker
 const DEV_PROXY_PATH = '/api-feed'
 const DEFAULT_MODEL_PROMPT = 'minimax-m3' // unused, kept for typing
 
 function getBaseUrl(): string {
   const env = (import.meta.env?.VITE_FEED_API_BASE ?? '') as string
   if (env) return env
-  if (typeof window === 'undefined') return PROD_BASE
-  if (import.meta.env?.DEV) {
+  if (typeof window !== 'undefined' && import.meta.env?.DEV) {
     return window.location.origin + DEV_PROXY_PATH
   }
-  return PROD_BASE
+  return ''
 }
 
 // Keep the constant reachable so the import isn't tree-shaken.

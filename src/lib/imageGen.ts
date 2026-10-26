@@ -72,7 +72,8 @@ function renderHexagramLines(
   hero: Hexagram,
   w: number,
   yTop: number,
-  yBottom: number
+  yBottom: number,
+  movingLine?: CardData['movingLine']
 ): string {
   const lineHeight = (yBottom - yTop) / 6
   const cx = w / 2
@@ -87,6 +88,9 @@ function renderHexagramLines(
     const y = yTop + i * lineHeight + lineHeight / 2
     const yTopRect = y - segHeight / 2
     const yBotRect = y + segHeight / 2
+    const isMoving = movingLine === 6 - i
+    const fill = isMoving ? C.riceWhite : C.gold
+    parts.push(`<g data-line-position="${6 - i}">`)
 
     if (i < 5) {
       const sepY = yBotRect + (lineHeight - segHeight) / 2
@@ -97,7 +101,7 @@ function renderHexagramLines(
 
     if (isYang) {
       parts.push(`<g>
-        <rect x="${cx - segWidth}" y="${yTopRect}" width="${segWidth * 2}" height="${segHeight}" fill="${C.gold}" stroke="${C.ink}" stroke-width="1.2" rx="${radius}"/>
+        <rect x="${cx - segWidth}" y="${yTopRect}" width="${segWidth * 2}" height="${segHeight}" fill="${fill}" stroke="${C.ink}" stroke-width="1.2" rx="${radius}"/>
         <rect x="${cx - segWidth + 4}" y="${yTopRect + 3}" width="${segWidth * 2 - 8}" height="3" fill="${C.goldLight}" opacity="0.55" rx="2"/>
       </g>`)
     } else {
@@ -105,12 +109,17 @@ function renderHexagramLines(
       const seg1Left = seg1Right - segWidth
       const seg2Left = cx + gap / 2
       parts.push(`<g>
-        <rect x="${seg1Left}" y="${yTopRect}" width="${segWidth}" height="${segHeight}" fill="${C.gold}" stroke="${C.ink}" stroke-width="1.2" rx="${radius}"/>
+        <rect x="${seg1Left}" y="${yTopRect}" width="${segWidth}" height="${segHeight}" fill="${fill}" stroke="${C.ink}" stroke-width="1.2" rx="${radius}"/>
         <rect x="${seg1Left + 3}" y="${yTopRect + 3}" width="${segWidth - 6}" height="3" fill="${C.goldLight}" opacity="0.55" rx="2"/>
-        <rect x="${seg2Left}" y="${yTopRect}" width="${segWidth}" height="${segHeight}" fill="${C.gold}" stroke="${C.ink}" stroke-width="1.2" rx="${radius}"/>
+        <rect x="${seg2Left}" y="${yTopRect}" width="${segWidth}" height="${segHeight}" fill="${fill}" stroke="${C.ink}" stroke-width="1.2" rx="${radius}"/>
         <rect x="${seg2Left + 3}" y="${yTopRect + 3}" width="${segWidth - 6}" height="3" fill="${C.goldLight}" opacity="0.55" rx="2"/>
       </g>`)
     }
+    if (isMoving) {
+      parts.push(`<path data-moving-line="${6 - i}" d="M ${cx + 150} ${y - 7} l 7 7 l -7 7 l -7 -7 Z" fill="${C.riceWhite}"/>
+        <text x="${cx + 170}" y="${y + 6}" font-family="${FONT_BODY}" font-size="16" fill="${C.riceWhite}">动</text>`)
+    }
+    parts.push('</g>')
   }
 
   return parts.join('\n  ')
@@ -122,7 +131,7 @@ export function renderCardSvg(data: CardData): string {
   const yBinaryLines = 130
   const yBinaryEnd = 540
   // Hexagram body: 6 stylized gold bars with highlight + inter-line separators
-  const lines = renderHexagramLines(hero, W, yBinaryLines, yBinaryEnd)
+  const lines = renderHexagramLines(hero, W, yBinaryLines, yBinaryEnd, data.movingLine)
 
   const yAfterHex = yBinaryEnd + 30
   const sectionY = data.movingLine !== undefined && data.changed ? yAfterHex + 30 : yAfterHex

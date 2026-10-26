@@ -20,6 +20,8 @@
  * 朱砂档案 —— 暖纸、朱砂、方正印版
  * ------------------------------------------------------------------ */
 [data-appearance='zhusha'] {
+  --color-yao-normal: #382c25;
+  --color-yao-marked: #a33a2e;
   --color-bg-page: #f3ecdd;
   --color-bg-paper: #fbf6eb;
   --color-bg-card: #fdf9f0;
@@ -72,6 +74,8 @@
  * 夜航观象 —— 深色底、淡金与青绿、星图与观测面板
  * ------------------------------------------------------------------ */
 [data-appearance='yehang'] {
+  --color-yao-normal: #d9c690;
+  --color-yao-marked: #ffab91;
   --color-bg-page: #101f23;
   --color-bg-paper: #17292d;
   --color-bg-card: #1b3035;
