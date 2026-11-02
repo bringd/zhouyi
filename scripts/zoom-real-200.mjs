@@ -52,6 +52,11 @@ import { THRESHOLDS, buildProbeConfig, pageProbe, evaluateProbe } from './shared
 const BASE = process.env.DSH_BASE_URL ?? 'http://localhost:5173'
 const OUT = process.env.DSH_OUT ?? 'screenshots/zoom-real-200'
 const PORT = Number(process.env.DSH_ZOOM_CDP ?? 9333)
+// 真实缩放的目标是 200%：dpr 倍率必须落在 2.0 附近（容差 ±5%）。
+// 只按到 150% 不算通过——矩阵后面还要按 cssWidth*2 设窗口，那不是 200% 验收。
+const ZOOM_FACTOR_MIN = 1.9
+const ZOOM_FACTOR_MAX = 2.1
+const ZOOM_WIDTH_RATIO_MAX = 0.55
 const PROFILE_DIR = join(tmpdir(), 'chrome-zoom-profile')
 await mkdir(OUT, { recursive: true })
 
@@ -160,10 +165,21 @@ async function connect(wsUrl) {
       pending.delete(m.id)
     }
   })
-  const send = (method, params = {}) =>
+  const send = (method, params = {}, timeoutMs = 20000) =>
     new Promise((r) => {
       const id = ++seq
-      pending.set(id, r)
+      // 命令本身也可能永远不回来（渲染进程卡住时 Page.navigate 就不回），
+      // 超时后按失败返回，不能让整条脚本挂死在一个 pending 的 await 上。
+      const timer = setTimeout(() => {
+        if (pending.has(id)) {
+          pending.delete(id)
+          r({ error: { message: `CDP 超时 ${timeoutMs}ms：${method}` } })
+        }
+      }, timeoutMs)
+      pending.set(id, (m) => {
+        clearTimeout(timer)
+        r(m)
+      })
       sock.send(JSON.stringify({ id, method, params }))
     })
   return { sock, send }
@@ -175,7 +191,27 @@ const chromePath = findChrome()
 
 /** 写 profile 的 Preferences：设置 Chrome 自身的每站点缩放级别 */
 async function writeZoomProfile(level) {
-  await rm(PROFILE_DIR, { recursive: true, force: true })
+  // 上一次 Chrome 的 crashpad 句柄可能还占着 profile 里的
+  // CrashpadMetrics-active.pma，Windows 上会报 EBUSY。
+  // 那个文件是瞬时产物，删不掉也不影响 Chrome 启动——重试几次，
+  // 还是不行就只把真正需要的文件清掉。
+  let removed = false
+  for (let attempt = 0; attempt < 5 && !removed; attempt++) {
+    try {
+      await rm(PROFILE_DIR, { recursive: true, force: true })
+      removed = true
+    } catch (e) {
+      if (attempt === 4) {
+        console.warn(
+          `  profile 目录删不掉（${e.code ?? e.message}），改为只清理关键文件后继续`
+        )
+        await rm(join(PROFILE_DIR, 'Default', 'Preferences'), { force: true }).catch(() => {})
+        await rm(join(PROFILE_DIR, 'Default', 'Secure Preferences'), { force: true }).catch(() => {})
+      } else {
+        await sleep(600)
+      }
+    }
+  }
   await mkdir(join(PROFILE_DIR, 'Default'), { recursive: true })
   const prefs = {
     partition: {
@@ -325,7 +361,10 @@ const evaluateOn = async (conn, expression) => {
 }
 
 const navAndWait = async (conn, url, key) => {
-  await conn.send('Page.navigate', { url })
+  const nav = await conn.send('Page.navigate', { url })
+  if (nav?.error) {
+    return { ok: false, reason: 'navigate-failed', info: { error: nav.error.message ?? nav.error } }
+  }
   const deadline = Date.now() + 15000
   let last = null
   while (Date.now() < deadline) {
@@ -430,14 +469,38 @@ public class ZoomKeys {
   [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
 }
 '@
-$win = Get-Process chrome -ErrorAction SilentlyContinue |
-  Where-Object { $_.MainWindowHandle -ne 0 } |
+# 只认本脚本自己起的那个 Chrome（按 --user-data-dir 认），
+# 匹配不到就明确失败——不能退回「任意一个有窗口的 chrome 进程」：
+# 本机同时开着 9222 那个共享实例，退化分支会把 Ctrl+plus 发给被测实例之外的浏览器。
+$dir = '${PROFILE_DIR.replace(/\\/g, '\\')}'
+$win = Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" -ErrorAction SilentlyContinue |
+  Where-Object { $_.CommandLine -and $_.CommandLine.Contains($dir) } |
+  ForEach-Object { Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue } |
+  Where-Object { $_ -and $_.MainWindowHandle -ne 0 } |
   Select-Object -First 1
 if (-not $win) { Write-Output 'NO_WINDOW'; exit 2 }
 Write-Output ("WINDOW:" + $win.MainWindowTitle)
 [ZoomKeys]::ShowWindow($win.MainWindowHandle, 9) | Out-Null
-[ZoomKeys]::SetForegroundWindow($win.MainWindowHandle) | Out-Null
-Start-Sleep -Milliseconds 500
+# Windows 会把 SetForegroundWindow 的权限限制给「当前前台窗口所属的进程」，
+# 后台进程直接调常常被拒绝（表现为前台窗口始终是别的窗口）。
+# 经典的解法：先发一次 Shift 键 —— 系统会把「最近一次输入的来源进程」
+# 临时提升为可设置前台的进程，随后 SetForegroundWindow 就能成功。
+[ZoomKeys]::keybd_event(0x10, 0, 0, [UIntPtr]::Zero)
+[ZoomKeys]::keybd_event(0x10, 0, 2, [UIntPtr]::Zero)
+Start-Sleep -Milliseconds 120
+# 后台进程直接调 SetForegroundWindow 常常被系统拒绝，
+# 先用 Shell 的 AppActivate 激活一次，再补一次 SetForegroundWindow，
+# 并确认前台窗口确实是目标窗口——按键只发给前台窗口，没拿到焦点就等于没发。
+$fg = [IntPtr]::Zero
+for ($i = 0; $i -lt 12; $i++) {
+  try { (New-Object -ComObject WScript.Shell).AppActivate($win.Id) | Out-Null } catch {}
+  [ZoomKeys]::SetForegroundWindow($win.MainWindowHandle) | Out-Null
+  Start-Sleep -Milliseconds 300
+  $fg = [ZoomKeys]::GetForegroundWindow()
+  if ($fg -eq $win.MainWindowHandle) { break }
+}
+Write-Output ("FOREGROUND:" + $fg + " TARGET:" + $win.MainWindowHandle)
+if ($fg -ne $win.MainWindowHandle) { Write-Output 'NOT_FOCUSED'; exit 3 }
 $VK_CONTROL = 0x11
 [ZoomKeys]::keybd_event($VK_CONTROL, 0, 0, [UIntPtr]::Zero)
 [ZoomKeys]::keybd_event(${vk}, 0, 0, [UIntPtr]::Zero)
@@ -456,13 +519,42 @@ Write-Output 'INJECTED'
         if (out.includes('INJECTED')) {
           resolve({ ok: true, windowTitle: (out.match(/WINDOW:(.*)/) ?? [])[1]?.trim() })
         } else if (out.includes('NO_WINDOW')) {
-          resolve({ ok: false, error: '没有找到可见的 Chrome 窗口（有界面实例没起来？）' })
+          resolve({
+            ok: false,
+            error:
+              '找不到本脚本自己起的那个 Chrome 窗口（按 --user-data-dir 匹配失败）：' +
+              '不做「任意 chrome 进程」的降级，避免把按键发给别的浏览器实例',
+          })
+        } else if (out.includes('NOT_FOCUSED')) {
+          resolve({
+            ok: false,
+            error:
+              '没拿到前台焦点（前台窗口不是目标 Chrome）：' +
+              ((out.match(/FOREGROUND:(.*)/) ?? [])[1] ?? '').trim(),
+          })
         } else {
           resolve({ ok: false, error: (err && String(err.message)) || out.trim().slice(0, 200) })
         }
       }
     )
   })
+}
+
+/** 读浏览器窗口的物理尺寸（CDP 窗口 bounds，比页面里的 outerWidth 可靠） */
+async function getWindowBounds(inst) {
+  try {
+    const { result } = await inst.browserConn.send('Browser.getWindowForTarget', {
+      targetId: inst.target.id,
+    })
+    const windowId = result?.windowId
+    if (windowId === undefined) return null
+    const b = await inst.browserConn.send('Browser.getWindowBounds', { windowId })
+    const bounds = b?.result?.bounds
+    if (!bounds) return null
+    return { width: bounds.width, height: bounds.height, left: bounds.left, top: bounds.top }
+  } catch (e) {
+    return null
+  }
 }
 
 /** 调整浏览器窗口尺寸（真实缩放下 CSS 视口宽度由窗口宽度决定） */
@@ -498,8 +590,12 @@ await seedRecord(inst.pageConn)
 await sleep(300)
 const baseline = await evaluateOn(inst.pageConn, `(${zoomState.toString()})()`)
 report.zoom.baseline = baseline
+// 缩放之前的物理窗口宽度（CDP bounds）：
+// 「真实缩放而不是把窗口改小」这条自证要用它，
+// 取不到就等于没有证据 → 判未通过。
+report.zoom.initialWindowBounds = await getWindowBounds(inst)
 console.log(
-  `基准（100%）：dpr=${baseline.devicePixelRatio} innerWidth=${baseline.innerWidth} outerWidth=${baseline.outerWidth} visualViewport.scale=${baseline.visualViewportScale}`
+  `基准（100%）：dpr=${baseline.devicePixelRatio} innerWidth=${baseline.innerWidth} outerWidth=${baseline.outerWidth} visualViewport.scale=${baseline.visualViewportScale} 物理窗口宽=${report.zoom.initialWindowBounds?.width ?? '?'}px`
 )
 
 /* --- 策略 1：Windows 原生输入注入（真实浏览器缩放） --- */
@@ -527,18 +623,29 @@ let chosen = null
       : 'Ctrl+0 复位失败：' + (reset.error ?? '')
   )
   await sleep(600)
-  const at100 = await evaluateOn(inst.pageConn, `(${zoomState.toString()})()`)
+  let at100 = await evaluateOn(inst.pageConn, `(${zoomState.toString()})()`)
+  // 窗口刚起来时 outerWidth 可能还是 0（窗口还没真正显示出来），
+  // 那样后面「物理窗口宽度没变」的校验就是拿 0 跟 1440 比，必然不成立。
+  // 这里等窗口真正显示出来再取基准。
+  for (let i = 0; i < 20 && at100.outerWidth === 0; i++) {
+    await sleep(300)
+    at100 = await evaluateOn(inst.pageConn, `(${zoomState.toString()})()`)
+  }
   nativeAttempt.steps.push(
     `复位后 dpr=${at100.devicePixelRatio} innerWidth=${at100.innerWidth} outerWidth=${at100.outerWidth}`
   )
   report.zoom.baseline = at100
+  // 缩放前的物理窗口宽度（用 CDP 的窗口 bounds，页面里的 outerWidth 不可靠）
+  const boundsBefore = await getWindowBounds(inst)
 
   let state = at100
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 16; i++) {
     const injected = await injectBrowserZoomKey('plus')
     if (!injected.ok) {
+      // 焦点没拿到就重试下一次，不要直接放弃（系统抢焦点是常态）
       nativeAttempt.steps.push('Ctrl+加号 注入失败：' + (injected.error ?? ''))
-      break
+      await sleep(600)
+      continue
     }
     await sleep(450)
     state = await evaluateOn(inst.pageConn, `(${zoomState.toString()})()`)
@@ -551,7 +658,24 @@ let chosen = null
   const factor = state.devicePixelRatio / at100.devicePixelRatio
   const widthRatio = state.innerWidth / at100.innerWidth
   nativeAttempt.after = state
-  if (factor >= 1.5 && widthRatio <= 0.75 && state.outerWidth === at100.outerWidth) {
+  // 「物理窗口没变」用 CDP 的窗口 bounds 判，不用 window.outerWidth：
+  // 页面里的 outerWidth 在窗口还没真正显示出来时是 0，
+  // 拿它跟 1440 比会把一次真实的浏览器缩放误判成「把窗口改小了」。
+  const boundsAfter = await getWindowBounds(inst)
+  const physicalDelta =
+    boundsBefore && boundsAfter ? Math.abs(boundsAfter.width - boundsBefore.width) : null
+  nativeAttempt.windowBounds = { before: boundsBefore, after: boundsAfter }
+  nativeAttempt.physicalWidthDelta = physicalDelta
+  // 「真实浏览器缩放」与「达到 200% 目标」是两件事，分开判：
+  // - 真实缩放：dpr 涨、innerWidth 收窄、物理窗口宽度不变（bounds 拿不到 = 没有证据 = 不算通过）；
+  // - 200% 目标：dpr 倍率要真的到 2.0 附近（1.9~2.1），
+  //   只按到 150% 不算数——矩阵后面还要按 cssWidth*2 设窗口，那不是 200% 验收。
+  const isRealZoom = widthRatio <= 0.75 && physicalDelta !== null && physicalDelta <= 2
+  const reaches200 = factor >= ZOOM_FACTOR_MIN && factor <= ZOOM_FACTOR_MAX
+  nativeAttempt.isRealBrowserZoom = isRealZoom
+  nativeAttempt.reachesTarget200 = reaches200
+  nativeAttempt.effectiveZoomPercent = Math.round(factor * 100)
+  if (isRealZoom && reaches200) {
     nativeAttempt.verified = true
     nativeAttempt.zoomPercent = Math.round(factor * 100)
     chosen = { kind: 'native-keyboard', instance: inst }
@@ -561,7 +685,9 @@ let chosen = null
       factor.toFixed(3) +
       '、innerWidth 比率 ' +
       widthRatio.toFixed(3) +
-      '（需 dpr >= 1.5 且 innerWidth <= 0.75）'
+      '、物理窗口宽度变化 ' +
+      (physicalDelta === null ? '未知（拿不到窗口证据）' : physicalDelta + 'px') +
+      `（需 dpr ${ZOOM_FACTOR_MIN}~${ZOOM_FACTOR_MAX} 且 innerWidth <= 0.75 且物理窗口不变）`
   }
 }
 report.zoom.attempts.push(nativeAttempt)
@@ -708,21 +834,42 @@ report.zoom.zoomed = zoomed
 const zoomBaseline = report.zoom.baseline ?? baseline
 const dprFactor = zoomed.devicePixelRatio / zoomBaseline.devicePixelRatio
 const widthRatio = zoomed.innerWidth / zoomBaseline.innerWidth
-const outerDelta = Math.abs(zoomed.outerWidth - zoomBaseline.outerWidth)
+// 物理窗口宽度：用 CDP 的 bounds（同一个实例、同一个 target），
+// 不用页面里的 window.outerWidth——它在窗口没真正显示出来时是 0，
+// 拿它判「窗口没被改小」会把一次真实缩放误判成改窗口。
+const finalBoundsBefore = report.zoom.windowBounds?.before ?? report.zoom.initialWindowBounds ?? null
+const finalBoundsAfter = await getWindowBounds(chosen.instance)
+const physicalDelta =
+  finalBoundsBefore && finalBoundsAfter
+    ? Math.abs(finalBoundsAfter.width - finalBoundsBefore.width)
+    : null
 report.zoom.effectiveZoomPercent = Math.round(dprFactor * 100)
 report.zoom.baseline = zoomBaseline
+report.zoom.windowBounds = {
+  before: finalBoundsBefore,
+  after: finalBoundsAfter,
+}
+report.zoom.physicalWidthDelta = physicalDelta
 report.zoom.isRealBrowserZoom = chosen.kind !== 'device-scale-factor'
-report.zoom.verified =
+// 两件事分开判：① 是不是真实浏览器缩放 ② 有没有达到 200% 目标
+const isRealZoom =
   chosen.kind !== 'device-scale-factor' &&
-  dprFactor >= 1.5 &&
-  widthRatio <= 0.75 &&
+  widthRatio <= ZOOM_WIDTH_RATIO_MAX &&
   zoomed.innerWidth < zoomBaseline.innerWidth &&
-  outerDelta <= 2
+  physicalDelta !== null &&
+  physicalDelta <= 2
+const reaches200 = dprFactor >= ZOOM_FACTOR_MIN && dprFactor <= ZOOM_FACTOR_MAX
+report.zoom.reachesTarget200 = reaches200
+report.zoom.verified = isRealZoom && reaches200
 if (!report.zoom.verified) {
   report.zoom.verificationReason =
     chosen.kind === 'device-scale-factor'
       ? '设备像素比模拟：dpr 变了但 CSS 视口没有变窄，不能算真实浏览器缩放'
-      : `自证失败：dpr 倍率 ${dprFactor.toFixed(3)}（需 >= 1.5），innerWidth 比率 ${widthRatio.toFixed(3)}（需 <= 0.75），outerWidth 变化 ${outerDelta}px（需 <= 2，证明是页面缩放而不是把窗口改小）`
+      : [
+          `自证失败：dpr 倍率 ${dprFactor.toFixed(3)}（需 ${ZOOM_FACTOR_MIN}~${ZOOM_FACTOR_MAX}，只按到 ${Math.round(dprFactor * 100)}% 不算 200% 验收）`,
+          `innerWidth 比率 ${widthRatio.toFixed(3)}（需 <= ${ZOOM_WIDTH_RATIO_MAX}）`,
+          `物理窗口宽度变化 ${physicalDelta === null ? '未知（拿不到窗口 bounds 证据）' : physicalDelta + 'px'}（需 <= 2，证明是页面缩放而不是把窗口改小）`,
+        ].join('，')
   failures.push({
     kind: 'real-zoom-not-verified',
     appearance: 'all',
@@ -731,8 +878,8 @@ if (!report.zoom.verified) {
     width: '-',
     section: 'real-zoom',
     selector: '-',
-    value: `dpr ${zoomBaseline.devicePixelRatio}→${zoomed.devicePixelRatio}, innerWidth ${zoomBaseline.innerWidth}→${zoomed.innerWidth}, outerWidth ${zoomBaseline.outerWidth}→${zoomed.outerWidth}`,
-    threshold: 'dpr 跃升 >=1.5× 且 CSS 视口收窄 <=0.75× 且物理窗口不变',
+    value: `dpr ${zoomBaseline.devicePixelRatio}→${zoomed.devicePixelRatio}, innerWidth ${zoomBaseline.innerWidth}→${zoomed.innerWidth}, 物理窗口 ${finalBoundsBefore?.width ?? '?'}→${finalBoundsAfter?.width ?? '?'}`,
+    threshold: `dpr 跃升 ${ZOOM_FACTOR_MIN}~${ZOOM_FACTOR_MAX}× 且 CSS 视口收窄 <=${ZOOM_WIDTH_RATIO_MAX}× 且物理窗口不变`,
     unit: '',
     text: '',
     detail: `真实 200% 缩放未验证：${report.zoom.verificationReason}`,
@@ -742,11 +889,11 @@ if (!report.zoom.verified) {
   )
 } else {
   console.log(
-    `自证结果：通过 —— dpr ${zoomBaseline.devicePixelRatio}→${zoomed.devicePixelRatio}（${report.zoom.effectiveZoomPercent}%），innerWidth ${zoomBaseline.innerWidth}→${zoomed.innerWidth}px（视口收窄到 ${(widthRatio * 100).toFixed(1)}%）`
+    `自证结果：通过 —— dpr ${zoomBaseline.devicePixelRatio}→${zoomed.devicePixelRatio}（${report.zoom.effectiveZoomPercent}%），innerWidth ${zoomBaseline.innerWidth}→${zoomed.innerWidth}px（视口收窄到 ${(widthRatio * 100).toFixed(1)}%），物理窗口宽度 ${finalBoundsBefore?.width ?? '?'}→${finalBoundsAfter?.width ?? '?'}px`
   )
 }
 console.log(
-  `记录：outerWidth ${zoomBaseline.outerWidth}→${zoomed.outerWidth}，visualViewport.scale ${zoomBaseline.visualViewportScale}→${zoomed.visualViewportScale}`
+  `记录：物理窗口宽度 ${finalBoundsBefore?.width ?? '?'}→${finalBoundsAfter?.width ?? '?'}px，visualViewport.scale ${zoomBaseline.visualViewportScale}→${zoomed.visualViewportScale}`
 )
 
 /* --------------------------- 3) 矩阵测量 --------------------------- */
@@ -762,6 +909,8 @@ const coverage = {
   atRequestedWidth: 0,
   /** 受平台限制（浏览器最小窗口宽度）没量到标称档位的组数 */
   platformLimited: 0,
+  /** 真正在 200% 缩放下量到的组数（视口/缩放被浏览器钳住的组不计入） */
+  measuredAt200: 0,
 }
 report.coverage = coverage
 
@@ -817,6 +966,48 @@ for (const preset of WIDTH_PRESETS) {
       console.log(
         `  重启后窗口 ${physicalWidth}px：dpr=${afterResize.devicePixelRatio} innerWidth=${afterResize.innerWidth}`
       )
+      // 重启后必须**重新自证**：缩放级别可能没跟过来（profile 里的级别被清了、
+      // 或者窗口宽度变了导致 dpr 基准不同）。不自证就继续量，
+      // 等于拿「不是 200%」的状态去冒充 200% 验收。
+      const resizeFactor = afterResize.devicePixelRatio / zoomBaseline.devicePixelRatio
+      const resizeWidthRatio = afterResize.innerWidth / zoomBaseline.innerWidth
+      if (
+        resizeFactor < ZOOM_FACTOR_MIN ||
+        resizeFactor > ZOOM_FACTOR_MAX ||
+        resizeWidthRatio > ZOOM_WIDTH_RATIO_MAX
+      ) {
+        report.zoom.restartReverifications = report.zoom.restartReverifications ?? []
+        report.zoom.restartReverifications.push({
+          physicalWidth,
+          dprFactor: Math.round(resizeFactor * 1000) / 1000,
+          widthRatio: Math.round(resizeWidthRatio * 1000) / 1000,
+          ok: false,
+        })
+        failures.push({
+          kind: 'real-zoom-not-verified',
+          appearance: 'all',
+          appearanceName: '全部',
+          page: '-',
+          width: String(physicalWidth),
+          section: 'real-zoom',
+          selector: '-',
+          value: `dpr 倍率 ${resizeFactor.toFixed(3)}，innerWidth 比率 ${resizeWidthRatio.toFixed(3)}`,
+          threshold: `dpr ${ZOOM_FACTOR_MIN}~${ZOOM_FACTOR_MAX}× 且视口收窄 <=${ZOOM_WIDTH_RATIO_MAX}×`,
+          unit: '',
+          text: '',
+          detail: `真实 200% 缩放未验证：重启 Chrome 到 ${physicalWidth}px 后缩放没有保持（dpr 倍率 ${resizeFactor.toFixed(3)}，视口比率 ${resizeWidthRatio.toFixed(3)}）`,
+        })
+        console.log(
+          `  重启后缩放没有保持（倍率 ${resizeFactor.toFixed(3)}，视口比率 ${resizeWidthRatio.toFixed(3)}）：记为未验证`
+        )
+      } else {
+        report.zoom.restartReverifications.push({
+          physicalWidth,
+          dprFactor: Math.round(resizeFactor * 1000) / 1000,
+          widthRatio: Math.round(resizeWidthRatio * 1000) / 1000,
+          ok: true,
+        })
+      }
     }
     currentPhysical = physicalWidth
     await sleep(300)
@@ -887,6 +1078,51 @@ for (const preset of WIDTH_PRESETS) {
       failures.push(...judged.failures)
       exemptions.push(...judged.exemptions)
       coverage.measured += 1
+      // 先按「量到了就是 200%」计，下面那一段发现被浏览器钳住时再扣回去
+      coverage.measuredAt200 += 1
+
+      // 矩阵阶段的每一组都要**当场核对缩放倍率**：
+      // 窗口改宽改窄本身不会改缩放级别，但窗口窄到一定程度，
+      // 浏览器会把页面缩放**钳住**（实测：390px 物理窗口那一档 dpr 从 2.5 掉到 2，
+      // 即 1.6×，不是 200%）。这种组是在**非 200%** 的渲染下量的，
+      // 不能算进「200% 验收」的覆盖里——但它是浏览器行为，不是产品缺陷，
+      // 所以记成**平台限制**（和「视口被最小窗口宽度钳住」同一类），
+      // 并且在汇总里单独说清楚，不能悄悄算作 200% 已验证。
+      const rowDprFactor = probe.doc.devicePixelRatio / zoomBaseline.devicePixelRatio
+      const rowDprOk = rowDprFactor >= ZOOM_FACTOR_MIN && rowDprFactor <= ZOOM_FACTOR_MAX
+      // 只有在**真浏览器缩放**成立时，逐行倍率偏低才是「浏览器钳住了缩放」这种平台限制；
+      // 如果这一轮退回了 dpr 模拟，那整轮本来就该判未验证（末尾的自证会失败），
+      // 不要再往平台限制里记一笔，免得把「没验成」说成「平台限制」。
+      if (!rowDprOk && chosen.kind !== 'device-scale-factor') {
+        // 同一组可能同时被「最小窗口宽度」和「缩放钳制」限制，
+        // 平台限制档按**组**计数，不重复计。
+        const existing = report.platformLimits.find(
+          (p) => p.appearance === appearance.id && p.page === p.name && p.preset === preset.label
+        )
+        const zoomNote = `另外浏览器把页面缩放钳到了 ${(rowDprFactor * 100).toFixed(1)}%（实测 dpr ${probe.doc.devicePixelRatio}，200% 应为 ${(zoomBaseline.devicePixelRatio * 2).toFixed(2)}）：这一组不是在 200% 缩放下量的，不计入 200% 验收覆盖`
+        if (existing) {
+          existing.limitKind = 'width+zoom-clamped'
+          existing.reason = `${existing.reason}；${zoomNote}`
+        } else {
+          coverage.platformLimited += 1
+          report.platformLimits.push({
+            appearance: appearance.id,
+            appearanceName: appearance.name,
+            page: p.name,
+            preset: preset.label,
+            requestedCssWidth: preset.cssWidth,
+            actualCssWidth,
+            deviation: widthDeviation,
+            devicePixelRatio: probe.doc.devicePixelRatio,
+            limitKind: 'zoom-clamped',
+            reason: zoomNote,
+          })
+        }
+        coverage.measuredAt200 = Math.max(0, coverage.measuredAt200 - 1)
+        console.log(
+          `  ⚠ 这一组的缩放倍率是 ${rowDprFactor.toFixed(3)}（不是 2.0，浏览器钳住了）：记为平台限制，不计入 200% 覆盖`
+        )
+      }
 
       const shot = await conn.send('Page.captureScreenshot', { format: 'png' })
       const shotName = `${appearance.id}-${p.name}-${preset.label}.png`
@@ -962,11 +1198,19 @@ console.log(
       ? `，平台限制档 ${coverage.platformLimited} 组（见下）`
       : '（全部组都量到了标称 CSS 视口）')
 )
+console.log(
+  report.zoom.verified
+    ? `**在真实 200% 缩放下量到的 ${coverage.measuredAt200} 组**` +
+        (coverage.measuredAt200 < coverage.measured
+          ? `；另有 ${coverage.measured - coverage.measuredAt200} 组被浏览器钳住了缩放/视口，不计入 200% 验收`
+          : '（全部组都在 200% 缩放下量的）')
+    : '**这一轮没有拿到真实 200% 缩放**（见下方失败项），矩阵数据不构成 200% 验收'
+)
 if (report.platformLimits.length) {
-  console.log('平台限制档（没量到标称 CSS 视口，按实测值记账）：')
+  console.log('平台限制档（没量到标称 CSS 视口、或缩放被浏览器钳住，按实测值记账）：')
   const seen = new Set()
   for (const p of report.platformLimits) {
-    const key = p.preset + '|' + p.requestedCssWidth + '|' + p.actualCssWidth
+    const key = p.preset + '|' + p.requestedCssWidth + '|' + p.actualCssWidth + '|' + (p.limitKind ?? 'width')
     if (seen.has(key)) continue
     seen.add(key)
     console.log(`  - ${p.preset}：标称 ${p.requestedCssWidth}px → 实测 ${p.actualCssWidth}px（${p.reason}）`)

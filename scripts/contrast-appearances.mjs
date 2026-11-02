@@ -322,14 +322,22 @@ function prepareTarget(selector, index, tag) {
   }
   const isField = el.tagName === 'TEXTAREA' || el.tagName === 'INPUT'
   let filled = false
-  if (isField && !el.value) {
-    // 输入框空着的时候画面上没有字，量不到对比度：临时塞一段示例文字（测完还原）
-    const proto =
-      el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype
-    const setter = Object.getOwnPropertyDescriptor(proto, 'value').set
-    el.setAttribute('data-pc-old-value', el.value)
-    setter.call(el, '示例文字')
-    filled = true
+  if (isField) {
+    // 原值**总是**先存下来（不只是空的时候）：
+    // 早期实现只在空值时存，释放时却无条件用这个属性恢复，
+    // 于是本来有内容的输入框被清空了——审核工具不能改用户的输入。
+    // 只在第一次准备时存，避免第二次准备把「示例文字」当成原值存回去。
+    if (!el.hasAttribute('data-pc-old-value')) {
+      el.setAttribute('data-pc-old-value', el.value)
+    }
+    if (!el.value) {
+      // 输入框空着的时候画面上没有字，量不到对比度：临时塞一段示例文字（测完还原）
+      const proto =
+        el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype
+      const setter = Object.getOwnPropertyDescriptor(proto, 'value').set
+      setter.call(el, '示例文字')
+      filled = true
+    }
   }
   el.setAttribute('data-pc-target', tag)
   // 目标元素内部可能有多段不同颜色的文字（例如标题里的 <em> 用强调色）。
@@ -355,9 +363,8 @@ function prepareTarget(selector, index, tag) {
   // ------------------------------------------------------------------
   const fragments = []
   // 元素（含祖先）的有效不透明度：
-  // 文字最终渲染出来的颜色 = color 与底色按「color 的 alpha × 各级 opacity」混合。
-  // 不算这一层的话，`opacity: 0.16` 的装饰水印会被当成「覆盖率只有 16%」，
-  // 于是「差值 / 理论差值」算出来的覆盖率永远到不了阈值，量不到文字。
+  // 只作诊断与兜底用——判定值改用**屏幕上真正画出来的字色**（见 analyzePair），
+  // 组透明度、伪元素、text-fill 都会被那一版如实算进去。
   const effectiveOpacity = (node) => {
     let acc = 1
     let n = node
@@ -368,14 +375,32 @@ function prepareTarget(selector, index, tag) {
     }
     return acc
   }
+  // 元素实际呈现的缩放倍率：
+  // transform: scale(.5) 之后，computed font-size 仍是 32px，
+  // 但屏幕上看到的是 16px——按 32px 选「大字」门槛就会放过本该按正文判的文字。
+  // getBoundingClientRect() 含所有 transform 的缩放，offsetWidth 不含，
+  // 两者相除就是实际呈现倍率（含祖先的缩放）。
+  const visualScale = (node) => {
+    try {
+      const rect = node.getBoundingClientRect()
+      const own = node.offsetWidth || rect.width
+      if (!own || !isFinite(own) || own <= 0) return 1
+      const s = rect.width / own
+      return s > 0.05 && s < 20 ? s : 1
+    } catch (e) {
+      return 1
+    }
+  }
   const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
   let textNode = null
   while ((textNode = walker.nextNode())) {
     if (!(textNode.nodeValue || '').trim()) continue
     const parent = textNode.parentElement
     if (!parent) continue
-    const pcolor = getComputedStyle(parent).color
+    const pcs = getComputedStyle(parent)
+    const pcolor = pcs.color
     const popacity = effectiveOpacity(parent)
+    const pscale = visualScale(parent)
     const range = document.createRange()
     try {
       range.selectNodeContents(textNode)
@@ -392,17 +417,36 @@ function prepareTarget(selector, index, tag) {
         h: rect.height,
         color: pcolor,
         opacity: popacity,
+        fontSize: parseFloat(pcs.fontSize) * pscale,
+        fontWeight: parseInt(pcs.fontWeight) || 400,
+        scale: pscale,
+        text: (textNode.nodeValue || '').trim().slice(0, 40),
       })
     }
   }
   // 输入框 / 文本域没有文本节点，文字是浏览器渲染的 value：
   // 用整个盒子当片段，字色取元素自身的计算 color。
   if (fragments.length === 0) {
-    fragments.push({ x: 0, y: 0, w: r.width, h: r.height, color: cs.color, opacity: effectiveOpacity(el) })
+    const escale = visualScale(el)
+    fragments.push({
+      x: 0,
+      y: 0,
+      w: r.width,
+      h: r.height,
+      color: cs.color,
+      opacity: effectiveOpacity(el),
+      fontSize: parseFloat(cs.fontSize) * escale,
+      fontWeight: parseInt(cs.fontWeight) || 400,
+      scale: escale,
+      text: 'value',
+    })
   }
 
-  // 替换元素（SVG 图标、图片、canvas）不是文字：
-  // 把它们当遮挡区排除，避免 icon 的像素被当成文字落点来判。
+  // 替换元素（SVG 图标、图片、canvas）记录下来**只作诊断**：
+  // 早期实现把它们整个外接矩形当遮挡区排除，结果把「压在图标框里的可见文字」
+  // 一起排除了（透明空 SVG + 前景文字就是这种情况）。
+  // 现在靠掩膜本身把它们排除掉：掩膜不强制 SVG 的 fill/stroke，
+  // 于是 SVG 在两张掩膜里长得一样，相减后自然消失 ✓。
   const obstacles = []
   el.querySelectorAll('svg, img, canvas, video, picture, iframe').forEach((c) => {
     const cr = c.getBoundingClientRect()
@@ -486,6 +530,7 @@ function freezeScene() {
     const s = document.createElement('style')
     s.id = '__pc_placeholder'
     s.textContent = '::placeholder { color: transparent !important; }'
+    document.getElementById('__pc_placeholder')?.remove()
     document.head.appendChild(s)
     // 等图片加载完：否则两次截图之间 SVG 淡入，差集会把整幅山水当成「文字像素」
     const imgs = [...document.images].filter((i) => !i.complete)
@@ -513,26 +558,326 @@ function freezeScene() {
   })()
 }
 
-/** 页面内：把目标元素及其子元素的文字变透明 */
+/**
+ * 页面内：把目标元素及其子元素的文字变透明。
+ *
+ * 原样恢复：改之前把元素/后代的内联 color 存下来（data-pc-old-color），
+ * 恢复时写回去——直接 removeProperty 会把应用自己写的内联颜色也抹掉，
+ * 那样后面再测同一个元素时读到的字色就不对了。
+ *
+ * 伪元素（::before/::after）的生成内容也一起变透明：
+ * 那不是元素自己的文本片段，留着会污染「无字」那张图的底色。
+ */
 function makeTransparent(tag, on) {
   const el = document.querySelector(`[data-pc-target="${tag}"]`)
   if (!el) return false
+  const nodes = [el, ...el.querySelectorAll('*')]
+  const styleId = `__pc_pseudo_${tag}`
+  // 要清掉的「文字绘制通道」：
+  // color 只是其中一条，-webkit-text-fill-color 会盖过它继续把字画出来，
+  // 少了它，「无字」那张图里字还在（实测会把 21:1 算成 1:1）。
+  const inkProps = {
+    color: 'transparent',
+    '-webkit-text-fill-color': 'transparent',
+    // 置透明期间关掉过渡（理由同 applyMask）：
+    // 恢复时如果还在过渡，前后读到的字色 alpha 不一样，
+    // 会被自己的操作误判成「测量期间页面在动」。
+    transition: 'none',
+  }
   if (on) {
-    el.style.setProperty('color', 'transparent', 'important')
-    el.querySelectorAll('*').forEach((c) => c.style.setProperty('color', 'transparent', 'important'))
+    nodes.forEach((c) => {
+      c.dataset.pcOldInk = JSON.stringify(
+        Object.keys(inkProps).map((prop) => ({
+          prop,
+          v: c.style.getPropertyValue(prop),
+          p: c.style.getPropertyPriority(prop),
+        }))
+      )
+      for (const prop of Object.keys(inkProps)) {
+        try {
+          c.style.setProperty(prop, inkProps[prop], 'important')
+        } catch (e) {
+          /* 忽略 */
+        }
+      }
+    })
+    const sel = `[data-pc-target="${tag}"]`
+    const style = document.createElement('style')
+    style.id = styleId
+    style.textContent = `
+${sel}::before, ${sel}::after, ${sel} *::before, ${sel} *::after {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+`
+    document.head.appendChild(style)
   } else {
-    el.style.removeProperty('color')
-    el.querySelectorAll('*').forEach((c) => c.style.removeProperty('color'))
-    el.removeAttribute('data-pc-target')
-    if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
-      const proto =
-        el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype
-      const setter = Object.getOwnPropertyDescriptor(proto, 'value').set
-      setter.call(el, el.getAttribute('data-pc-old-value') || '')
-      el.removeAttribute('data-pc-old-value')
-    }
+    nodes.forEach((c) => {
+      const raw = c.dataset.pcOldInk
+      if (!raw) return
+      let list = []
+      try {
+        list = JSON.parse(raw)
+      } catch (e) {
+        list = []
+      }
+      for (const item of list) {
+        // 顺序很重要：**transition 最后恢复**，而且中间强制结算一次样式。
+        // 元素自带 `transition: all .2s` 时，工具把字色改成 transparent
+        // 会触发它的颜色过渡；恢复时如果颜色和 transition 在同一次样式结算里
+        // 生效，颜色会在过渡中途被读到（rgba(...,0.235) 之类），
+        // 被自己的操作误判成「测量期间页面在动」。
+        if (item.prop === 'transition') continue
+        if (!item.v) c.style.removeProperty(item.prop)
+        else c.style.setProperty(item.prop, item.v, item.p || '')
+      }
+      void c.offsetWidth
+      for (const item of list) {
+        if (item.prop !== 'transition') continue
+        if (!item.v) c.style.removeProperty(item.prop)
+        else c.style.setProperty(item.prop, item.v, item.p || '')
+      }
+      delete c.dataset.pcOldInk
+    })
+    document.getElementById(styleId)?.remove()
   }
   return true
+}
+
+/** 页面内：测完一个元素后清掉标记与临时内容 */
+function releaseTarget(tag) {
+  const el = document.querySelector(`[data-pc-target="${tag}"]`)
+  if (!el) return false
+  el.removeAttribute('data-pc-target')
+  if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
+    const proto =
+      el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype
+    const setter = Object.getOwnPropertyDescriptor(proto, 'value').set
+    setter.call(el, el.getAttribute('data-pc-old-value') || '')
+    el.removeAttribute('data-pc-old-value')
+  }
+  return true
+}
+
+/**
+ * 页面内：给目标元素套上「受控背景」——白底黑字（或白底无字）。
+ *
+ * 用途：单独截**与原背景无关**的字形掩膜。
+ * 有了它，算法就能在原背景上认出「哪里是文字」，
+ * 包括字色与底色相同（黑字压纯黑底）这种「有字/无字两图完全一样」的情况。
+ *
+ * mode：
+ *   'text' —— 白底黑字（掩膜 A）
+ *   'none' —— 白底无字（掩膜 B）
+ * 两张掩膜相减才是纯字形：原生控件（滚动条、textarea 的缩放抓手）
+ * 在两张里长得一样，相减后自动消失——只靠「非白即字」会把它们误认成文字。
+ *
+ * 关键实现（第三轮独立审核逼出来的）：
+ * 1. **强制样式走内联 style.setProperty(..., 'important')**，
+ *    而不是只靠样式表的 `!important`。
+ *    内联 important 在层叠里压过样式表的 important，
+ *    所以像 `<span style="background-color:black!important">` 这种写法
+ *    不会再把掩膜的白底顶掉（顶掉的话那段字在掩膜里就消失了，
+ *    落点丢失 → 元素被别处的文字「带过」→ 假通过）。
+ *    用完按原值原样恢复（含优先级）。
+ * 2. **不强制 fill / stroke**：SVG 图标在自己的两张掩膜里长得一样，
+ *    相减后自然消失，不必再把整个外接矩形当遮挡区排除
+ *    （那样会把压在图标框里的可见文字也一起排掉）。
+ * 3. **伪元素生成内容在两张掩膜里都中性化**：
+ *    `::before/::after` 的文字不属于元素自己的文本片段，
+ *    让它在两张里都透明，就不会变成假的文字落点。
+ */
+function applyMask(tag, mode, on) {
+  const el = document.querySelector(`[data-pc-target="${tag}"]`)
+  if (!el) return false
+  const styleId = `__pc_mask_${tag}`
+  const existing = document.getElementById(styleId)
+  if (!on) {
+    if (existing) existing.remove()
+    // 恢复内联强制样式
+    const nodes = [el, ...el.querySelectorAll('*')]
+    nodes.forEach((c) => {
+      const raw = c.dataset.pcMaskSaved
+      if (!raw) return
+      let saved = {}
+      try {
+        saved = JSON.parse(raw)
+      } catch (e) {
+        saved = {}
+      }
+      // 恢复顺序：**transition 最后恢复**，而且中间要强制结算一次样式。
+      //
+      // 元素自带 `transition: all .2s` 时，掩膜把字色改成 #000 / transparent
+      // 会触发它的颜色过渡。还原时如果只是「先改颜色、最后改 transition」，
+      // 浏览器会在**同一次样式结算**里同时看到两者 → 过渡照跑，
+      // 颜色在过渡中途被读到（rgba(...,0.235) 之类），
+      // 被自己的操作误判成「测量期间页面在动」。
+      // 强制一次重排，让「颜色恢复」在 transition:none 的状态下先结算掉。
+      const propsOrder = Object.keys(saved).filter((p) => p !== 'transition')
+      propsOrder.push('transition')
+      for (const prop of propsOrder) {
+        const entry = saved[prop]
+        if (prop === 'transition') continue
+        if (!entry || !entry.v) c.style.removeProperty(prop)
+        else c.style.setProperty(prop, entry.v, entry.p || '')
+      }
+      void c.offsetWidth
+      for (const prop of propsOrder) {
+        const entry = saved[prop]
+        if (prop !== 'transition') continue
+        if (!entry || !entry.v) c.style.removeProperty(prop)
+        else c.style.setProperty(prop, entry.v, entry.p || '')
+      }
+      delete c.dataset.pcMaskSaved
+    })
+    return true
+  }
+  if (existing) existing.remove()
+  const nodes = [el, ...el.querySelectorAll('*')]
+  const ink = mode === 'none' ? 'transparent' : '#000000'
+  const props = {
+    opacity: '1',
+    color: ink,
+    '-webkit-text-fill-color': ink,
+    'background-color': '#FFFFFF',
+    'background-image': 'none',
+    'border-color': '#FFFFFF',
+    'outline-color': '#FFFFFF',
+    'text-decoration-color': '#FFFFFF',
+    'text-shadow': 'none',
+    'box-shadow': 'none',
+    // 强制期间关掉过渡：
+    // 工具自己改内联色会触发元素的 color 过渡，
+    // 恢复时颜色还在过渡中途——前后两次读到的字色 alpha 不一样，
+    // 会被自己的操作误判成「测量期间页面在动」。
+    transition: 'none',
+  }
+  nodes.forEach((c) => {
+    // 快照只在**第一次**强制时记：第二次（换 ink 颜色）如果再记一遍，
+    // 存下来的就是「上一次强制后的值」，还原时会把掩膜样式留在页面上——
+    // 那个 -webkit-text-fill-color 会盖过 color 继续把字画成黑色，
+    // 「无字」那张图就废了。
+    let saved = {}
+    const already = c.dataset.pcMaskSaved
+    if (already) {
+      try {
+        saved = JSON.parse(already)
+      } catch (e) {
+        saved = {}
+      }
+    } else {
+      for (const prop of Object.keys(props)) {
+        saved[prop] = { v: c.style.getPropertyValue(prop), p: c.style.getPropertyPriority(prop) }
+      }
+      try {
+        c.dataset.pcMaskSaved = JSON.stringify(saved)
+      } catch (e) {
+        /* 忽略 */
+      }
+    }
+    for (const prop of Object.keys(props)) {
+      try {
+        c.style.setProperty(prop, props[prop], 'important')
+      } catch (e) {
+        /* 某些属性在个别元素上不可设，忽略 */
+      }
+    }
+  })
+  const sel = `[data-pc-target="${tag}"]`
+  const style = document.createElement('style')
+  style.id = styleId
+  style.textContent = `
+${sel}::before, ${sel}::after, ${sel} *::before, ${sel} *::after {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+`
+  document.head.appendChild(style)
+  return true
+}
+
+/**
+ * 页面内：把所有动画推到终态。
+ *
+ * 入场动画（framer-motion）可能**在测量中途才启动**：
+ * 比如 whileInView 动画要等元素滚进视口才触发，
+ * 稳定轮询那一瞬间还没有动画在跑，等截图时动画却已经跑了一半。
+ * 四张截图落在动画的不同帧上，掩膜和原背景就对不上了，
+ * 会量出「文字压在半透明装饰上」的假低对比度。
+ * 所以每次截图前都再冻一次，保证四张图是同一帧。
+ */
+function freezeAnimations() {
+  if (!document.getAnimations) return 0
+  let n = 0
+  document.getAnimations().forEach((a) => {
+    try {
+      const timing = a.effect && a.effect.getComputedTiming ? a.effect.getComputedTiming() : null
+      if (timing && timing.iterations === Infinity) a.pause()
+      else a.finish()
+      n += 1
+    } catch (e) {
+      try {
+        a.pause()
+      } catch (e2) {
+        /* 忽略 */
+      }
+    }
+  })
+  return n
+}
+
+/** 页面内：读一个元素当前的渲染状态（用来判断两次截图之间页面有没有变） */
+function readState(selector, index) {
+  const el = document.querySelectorAll(selector)[index]
+  if (!el) return { missing: true }
+  const r = el.getBoundingClientRect()
+  const cs = getComputedStyle(el)
+  let acc = 1
+  let n = el
+  while (n && n.nodeType === 1) {
+    const o = parseFloat(getComputedStyle(n).opacity)
+    if (Number.isFinite(o)) acc *= o
+    n = n.parentElement
+  }
+  // 片段矩形：后代在动画里来回动时，元素外盒可能没变，片段却已经错位了，
+  // 只看外盒会漏掉这种漂移。
+  const fragments = []
+  try {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+    let node = null
+    while ((node = walker.nextNode())) {
+      if (!(node.nodeValue || '').trim()) continue
+      const range = document.createRange()
+      try {
+        range.selectNodeContents(node)
+      } catch (e) {
+        continue
+      }
+      for (const rect of range.getClientRects()) {
+        if (rect.width < 0.5 || rect.height < 0.5) continue
+        fragments.push({
+          x: Math.round((rect.left - r.left) * 10) / 10,
+          y: Math.round((rect.top - r.top) * 10) / 10,
+          w: Math.round(rect.width * 10) / 10,
+          h: Math.round(rect.height * 10) / 10,
+          text: (node.nodeValue || '').trim().slice(0, 40),
+        })
+      }
+    }
+  } catch (e) {
+    /* 忽略 */
+  }
+  return {
+    x: r.x,
+    y: r.y,
+    w: r.width,
+    h: r.height,
+    color: cs.color,
+    opacity: acc,
+    scrollX: window.scrollX,
+    scrollY: window.scrollY,
+    fragments,
+  }
 }
 
 /**
@@ -540,7 +885,7 @@ function makeTransparent(tag, on) {
  *
  * coreMedianRatio = 字芯像素中位前景 / 中位背景的对比度（参考值）
  * weakestRatio    = **文字色落在最不利底色上的对比度**（判定值）
- * minPixelRatio   = 逐像素「该像素自己的颜色 vs 脚下底色」的对比度（参考值）
+ * minPixelRatio   = 逐像素「该像素自己的颜色 vs 脚下底色」的对比度（参考量）
  *
  * 判定值的口径（第一轮验收 P2-02 的硬要求）：
  * 文字的对比度取决于两件事——文字本身的颜色，和它**落在哪一块底色上**。
@@ -563,21 +908,36 @@ function makeTransparent(tag, on) {
  * 旧算法因为 #333 侧的差值（51）远小于白底侧（255），
  * 压根没去看那一侧，于是报出 21:1 并判通过。
  *
- * 新实现把「哪里是文字」和「对比度多大」**解耦**：
- * 像素被文字覆盖的比例 α 可以从混色公式直接还原——
+ * 再往后（发布准备复验）又补了一条更狠的边界：
+ * 同一张图右半边是 #010101 / #000000 底，**黑字压纯黑底**时
+ * 「有字」和「无字」两张图在那一侧**逐像素完全相同**——
+ * 差值法在任何阈值下都找不到那个落点，于是又报出左半边的 21:1。
+ * 这说明「用原背景的差值找字」这条路本身就是死的：
+ * 底色和字色一样时，那两张图里**根本没有关于「有没有字」的信息**。
  *
- *     P = α·C + (1-α)·B   →   α = |P - B| / |C - B|
- *
- * 其中 P 是「有字」截图、 B 是「无字」截图、 C 是该处文字的真实颜色。
- * α 只取决于这个像素被盖住多少，**与对比度大小无关**，
- * 所以深底上的低对比文字照样会被认出来。
- * 每个落点再用**它所属文本片段自己的颜色** C 去算对比度，
+ * 这一版把「哪里是文字」和「对比度多大」**彻底解耦**：
+ * 文字位置改由**受控背景下的字形掩膜**认定——
+ * 把目标强制画成「白底黑字」再截一张（applyMask），
+ * 掩膜里非白像素就是字形，覆盖率 α = 1 − 平均亮度/255，
+ * 与原背景毫无关系；黑字压纯黑底时掩膜照样能认出字形。
+ * 然后回到**原背景**上取该落点的底色，用该片段自己的字色算对比度。
+ * 每个落点用**它所属文本片段自己的颜色** C 去算对比度，
  * 多色后代（<em> 强调色等）各自配对，不会张冠李戴。
  *
  * 抗锯齿边缘的逐像素混合值仍然记录下来，名字是 minPixelRatio，只作参考。
+ *
+ * 第三个参数组之后的 maskB64 是**受控背景掩膜**：
+ * 少了这张图，「有字/无字」两张图在同色落点上完全没有信息，
+ * 算法无法判断那里到底有没有字——那种情况下宁可报错，也不能报一个假的高对比度。
  */
-function analyzePair(aB64, bB64, fragments, obstacles) {
+function analyzePair(aB64, bB64, fragments, obstacles, maskTextB64, maskNoneB64) {
   return (async () => {
+    if (!maskTextB64 || !maskNoneB64) {
+      throw new Error(
+        '缺少受控背景掩膜：仅凭「有字/无字」两张图无法区分「文字与底色同色」的落点' +
+          '（黑字压纯黑底时两图完全相同），必须提供两张「白底黑字 / 白底无字」掩膜图'
+      )
+    }
     const load = async (b64) => {
       const img = new Image()
       img.src = 'data:image/png;base64,' + b64
@@ -595,6 +955,8 @@ function analyzePair(aB64, bB64, fragments, obstacles) {
     }
     const A = await load(aB64)
     const B = await load(bB64)
+    const M1 = await load(maskTextB64)
+    const M2 = await load(maskNoneB64)
     const lum = ({ r, g, b }) => {
       const f = (v) => {
         v /= 255
@@ -641,7 +1003,7 @@ function analyzePair(aB64, bB64, fragments, obstacles) {
     const edge = 1
     const isEdge = (x, y) => x < edge || y < edge || x >= W - edge || y >= H - edge
 
-    // 每个像素「被盖住的程度」：单通道最大差（0-255）
+    // 「有字 − 无字」的差值：只作参考量与诊断用（最小像素比、差异像素数）。
     const diffs = new Uint16Array(W * H)
     let maxDiff = 0
     let diffPixelCount = 0
@@ -656,7 +1018,30 @@ function analyzePair(aB64, bB64, fragments, obstacles) {
       if (d >= 3) diffPixelCount++
     }
 
-    // 替换元素（图标 / 图片）不是文字，它们的像素不算文字落点
+    // 受控背景掩膜的覆盖率 α：
+    // 掩膜 A（白底黑字）− 掩膜 B（白底无字）＝纯字形。
+    // 原生控件（滚动条、textarea 的缩放抓手）在两张掩膜里长得一样，相减后消失，
+    // 不会被误认成文字；字形像素的差值 = 255×α，与原背景毫无关系。
+    // 这一步把「哪里是文字」和「对比度多大」彻底分开：
+    // 掩膜认字只看字形，底色多少留到后面用原背景去算。
+    const maskAlpha = new Float32Array(W * H)
+    for (let p = 0, i = 0; p < W * H; p++, i += 4) {
+      const d =
+        (Math.abs(M1.data[i] - M2.data[i]) +
+          Math.abs(M1.data[i + 1] - M2.data[i + 1]) +
+          Math.abs(M1.data[i + 2] - M2.data[i + 2])) /
+        3
+      maskAlpha[p] = Math.max(0, Math.min(1, d / 255))
+    }
+
+    // 替换元素（图标 / 图片）不是文字，它们的像素不算文字落点。
+    //
+    // 注意：**这里只作诊断，不再真的排除**。
+    // 旧实现按替换元素的**整个外接矩形**排除落点，
+    // 于是「透明空 SVG 框里的可见文字」被一起排掉
+    // （独立审核实测：掩膜已认出 2972 个落点，全被障碍矩形删了 → 报 21:1 通过）。
+    // 现在掩膜不强制 fill/stroke：SVG 图标在自己的两张掩膜里长得一样，
+    // 相减后自然消失，不再需要整框排除。
     const blocked = (x, y) => {
       for (const o of obstacles || []) {
         if (x >= o.x && x < o.x + o.w && y >= o.y && y < o.y + o.h) return true
@@ -665,8 +1050,8 @@ function analyzePair(aB64, bB64, fragments, obstacles) {
     }
 
     const NOISE = 3 // 单通道差值低于此值视为噪声（PNG 无损，剩下的都是抗锯齿边）
-    const ALPHA_MIN = 0.5 // 覆盖率到这个程度才算「这个像素被文字盖住了」
-
+    const ALPHA_MIN = 0.5 // 掩膜覆盖率到这个程度才算「这个像素被文字盖住了」
+    const CORE_ALPHA = 0.9 // 覆盖率到这个程度，字芯像素才是「纯字色」
     let weakest = Infinity
     let weakestIdx = -1
     let weakestFg = null
@@ -678,61 +1063,66 @@ function analyzePair(aB64, bB64, fragments, obstacles) {
     const coreBgList = []
     const samples = []
     const fragList = (Array.isArray(fragments) ? fragments : []).filter(Boolean)
-    // 诊断：没测到文字时要能说清是「没差异」还是「差异不够」还是「片段没颜色」
+    // 每个片段单独判：不同片段可能字号不同（大字阈值 3:1 / 正文 4.5:1），
+    // 必须各按各的实际呈现字号选门槛，不能整个元素共用一个。
+    const fragResults = []
+    // 诊断：没测到文字时要能说清是「掩膜里没有字」还是「差异不够」还是「片段没颜色」
     const diag = {
       fragmentCount: fragList.length,
       parsedColorCount: 0,
       diffPixelCount: 0,
-      fragDiffPixelCount: 0,
+      fragMaskPixelCount: 0,
+      maskTextPixelCount: 0,
+      maskMaxAlpha: 0,
       maxDiffInFrag: 0,
-      expectedAtMax: 0,
-      alphaAtMax: 0,
+      uncoveredFragments: 0,
     }
     diag.diffPixelCount = diffPixelCount
+    for (let p = 0; p < W * H; p++) {
+      if (maskAlpha[p] >= ALPHA_MIN) diag.maskTextPixelCount++
+      if (maskAlpha[p] > diag.maskMaxAlpha) diag.maskMaxAlpha = Math.round(maskAlpha[p] * 100) / 100
+    }
+
+    const medianOf = (list) => {
+      if (!list.length) return null
+      const c = list.slice().sort((x, y) => x - y)
+      const m = c[Math.floor(c.length / 2)]
+      return { r: m.r, g: m.g, b: m.b }
+    }
 
     for (const frag of fragList) {
       const C = parseColor(frag.color)
       if (!C) continue
-      // 元素的 opacity 也要算进字色的 alpha：
-      // 渲染出来的实际颜色 = color 与底色按「alpha × opacity」混合
-      const op = Number.isFinite(frag.opacity) ? frag.opacity : 1
-      C.a = Math.max(0, Math.min(1, C.a * op))
       diag.parsedColorCount++
       const fx0 = Math.max(0, Math.floor(frag.x))
       const fy0 = Math.max(0, Math.floor(frag.y))
       const fx1 = Math.min(W - 1, Math.ceil(frag.x + frag.w) - 1)
       const fy1 = Math.min(H - 1, Math.ceil(frag.y + frag.h) - 1)
+      // 本片段的落点与字芯
+      const fragCore = []
+      const fragEdge = []
+      let fragWorst = Infinity
+      let fragWorstIdx = -1
+      let fragWorstFg = null
+      let fragWorstBg = null
       for (let y = fy0; y <= fy1; y++) {
         for (let x = fx0; x <= fx1; x++) {
           const p = y * W + x
           if (isEdge(x, y)) continue
-          if (blocked(x, y)) continue
-          const d = diffs[p]
-          if (d < NOISE) continue
-          diag.fragDiffPixelCount++
+          // 文字像素由**受控背景掩膜**认定：只看字形覆盖率，与原底色无关。
+          // 这样字色和底色一样（黑字压纯黑底）时，那个落点照样会被算进来。
+          const alpha = maskAlpha[p]
+          if (alpha < ALPHA_MIN) continue
+          diag.fragMaskPixelCount++
           const i = p * 4
           const bg = { r: B.data[i], g: B.data[i + 1], b: B.data[i + 2] }
           const painted = { r: A.data[i], g: A.data[i + 1], b: A.data[i + 2] }
-          // 这一块底色上的「有效字色」（半透明文字要按底色合成）
-          const eff = composite(C, bg)
-          // 该像素如果被文字完全盖住，差值应该等于 |有效字色 - 底色|
-          const expected = maxCh(eff, bg)
-          if (expected < 1) continue // 这块底色上分不出文字
-          // 覆盖率 α = |P-B| / |C-B|：只看「盖住多少」，与对比度大小无关
-          const alpha = d / expected
-          if (d > diag.maxDiffInFrag) {
-            diag.maxDiffInFrag = d
-            diag.expectedAtMax = expected
-            diag.alphaAtMax = Math.round(alpha * 100) / 100
-          }
-          if (alpha < ALPHA_MIN) continue
-          // 判定值：这段文字自己的颜色，落在这块底色上的对比度
-          const r = ratio(eff, bg)
-          if (r < weakest) {
-            weakest = r
-            weakestIdx = p
-            weakestFg = eff
-            weakestBg = bg
+          if (alpha >= CORE_ALPHA) {
+            fragCore.push({ p, i, bg, painted, alpha })
+            coreFgList.push(painted)
+            coreBgList.push(bg)
+          } else {
+            fragEdge.push({ p, i, bg, painted, alpha })
           }
           // 参考值：这个像素自己（抗锯齿混合后）的颜色对它脚下底色的对比度
           const rp = ratio(painted, bg)
@@ -741,26 +1131,108 @@ function analyzePair(aB64, bB64, fragments, obstacles) {
             minPixelFg = painted
             minPixelBg = bg
           }
-          if (alpha >= 0.9) {
-            coreFgList.push(painted)
-            coreBgList.push(bg)
-          }
-          if (samples.length < 400) {
-            samples.push({
-              x,
-              y,
-              ratio: Math.round(r * 100) / 100,
-              textColor: {
-                r: Math.round(eff.r),
-                g: Math.round(eff.g),
-                b: Math.round(eff.b),
-              },
-              backdrop: { r: bg.r, g: bg.g, b: bg.b },
-              painted: { r: painted.r, g: painted.g, b: painted.b },
-              alpha: Math.round(alpha * 100) / 100,
-            })
-          }
         }
+      }
+
+      // 这一段文字**在屏幕上真正画出来的颜色**：
+      // 取字芯像素（A 图）反解出来的纯字色。
+      //
+      // 反解公式：painted = α·C + (1−α)·bg  →  C = (painted − (1−α)·bg) / α
+      // 其中 α 是掩膜给出的覆盖率（掩膜是纯黑字压纯白底，差值正好等于 255×α）。
+      // 小字号（12~14px）的笔画只有一两个像素宽，字芯覆盖率往往到不了 1，
+      // 直接拿 painted 当字色会**系统性低估**对比度（12px 实测低估约 16%，
+      // 会把 5.1:1 报成 4.26:1，凭空造出失败）。反解之后拿到的才是真实字色。
+      //
+      // 声明色（color 的自身 alpha 合成到底色）作为**上界**一起参与：
+      // 取两者里更保守的那个，避免反解在极端情况下把字色算得过头。
+      const pureColor = (painted, bg, alpha) => {
+        if (alpha >= 0.995) return painted
+        const inv = {
+          r: (painted.r - (1 - alpha) * bg.r) / alpha,
+          g: (painted.g - (1 - alpha) * bg.g) / alpha,
+          b: (painted.b - (1 - alpha) * bg.b) / alpha,
+        }
+        return {
+          r: Math.max(0, Math.min(255, inv.r)),
+          g: Math.max(0, Math.min(255, inv.g)),
+          b: Math.max(0, Math.min(255, inv.b)),
+        }
+      }
+      const corePainted = fragCore.map((s) => pureColor(s.painted, s.bg, s.alpha))
+      const rendered = medianOf(corePainted)
+      // 声明色只作兜底（没有字芯像素时）：半透明字色按自身 alpha 合成到底色上，
+      // **不再**把组 opacity 再乘一次（那是屏幕上的效果，不是字色本身的属性）。
+      const declaredEff = (bg) => composite(C, bg)
+      const fragColor = rendered || declaredEff({ r: 255, g: 255, b: 255 })
+
+      const fragSamples = []
+      const evaluateSpot = (s, usePainted) => {
+        const bg = s.bg
+        // 字芯像素：用反解出来的纯字色（最接近真实的文字颜色）；
+        // 边缘像素：抗锯齿混合过，用片段的中位字色更准。
+        const fg = usePainted ? pureColor(s.painted, bg, s.alpha) : fragColor
+        // 声明色给出的「意图对比度」作为上界一起看：取更保守的那个。
+        const r = Math.min(ratio(fg, bg), ratio(declaredEff(bg), bg))
+        if (r < fragWorst) {
+          fragWorst = r
+          fragWorstIdx = s.p
+          fragWorstFg = fg
+          fragWorstBg = bg
+        }
+        if (r < weakest) {
+          weakest = r
+          weakestIdx = s.p
+          weakestFg = fg
+          weakestBg = bg
+        }
+        if (fragSamples.length < 60) {
+          fragSamples.push({
+            x: s.p % W,
+            y: Math.floor(s.p / W),
+            ratio: Math.round(r * 100) / 100,
+            textColor: {
+              r: Math.round(fg.r),
+              g: Math.round(fg.g),
+              b: Math.round(fg.b),
+            },
+            backdrop: { r: bg.r, g: bg.g, b: bg.b },
+            painted: { r: s.painted.r, g: s.painted.g, b: s.painted.b },
+            alpha: Math.round(s.alpha * 100) / 100,
+          })
+        }
+      }
+      for (const s of fragCore) evaluateSpot(s, true)
+      for (const s of fragEdge) evaluateSpot(s, false)
+
+      // 片段级覆盖检查：这段文字在掩膜里一个字形都没认出来 →
+      // 说明掩膜没能覆盖它（内联 important 背景、filter、遮罩层等），
+      // 这种情况下不能拿「别处的文字」当这个元素的通过依据。
+      // 但**被裁切到画面外**的片段不算：它本来就看不见，
+      // 截图里根本没有它的像素（Range 的矩形仍然会报出被裁掉的那几行）。
+      const inFrame = fx1 >= 0 && fx0 <= W - 1 && fy1 >= 0 && fy0 <= H - 1
+      const inkCount = fragCore.length + fragEdge.length
+      const covered = inkCount > 0 || !inFrame
+      if (!covered) diag.uncoveredFragments++
+
+      const fontSize = Number.isFinite(frag.fontSize) ? frag.fontSize : 16
+      const fontWeight = Number.isFinite(frag.fontWeight) ? frag.fontWeight : 400
+      // 门槛（3:1 / 4.5:1）由调用侧算：analyzePair 会被序列化进页面执行，
+      // 拿不到 Node 侧的 THRESHOLDS。
+      fragResults.push({
+        text: frag.text ?? '',
+        covered,
+        inkCount,
+        coreCount: fragCore.length,
+        ratio: fragWorst === Infinity ? null : Math.round(fragWorst * 100) / 100,
+        point: fragWorstIdx >= 0 ? { x: fragWorstIdx % W, y: Math.floor(fragWorstIdx / W) } : null,
+        fg: fragWorstFg,
+        bg: fragWorstBg,
+        fontSize: Math.round(fontSize * 10) / 10,
+        fontWeight,
+        samples: fragSamples.sort((a, b) => a.ratio - b.ratio).slice(0, 12),
+      })
+      for (const s of fragSamples) {
+        if (samples.length < 400) samples.push(s)
       }
     }
 
@@ -796,6 +1268,10 @@ function analyzePair(aB64, bB64, fragments, obstacles) {
       corePixelCount: coreFgList.length,
       textPixelCount: samples.length,
       fragmentCount: fragList.length,
+      // 逐片段结果：调用侧按各片段自己的实际字号选门槛
+      fragmentResults: fragResults,
+      // 有片段在掩膜里一个字形都没认出来 → 取证不完整，不能当通过依据
+      uncoveredFragments: diag.uncoveredFragments,
       diag,
       maxDiff,
       imageWidth: W,
@@ -820,15 +1296,32 @@ async function measureElement(selector, index, tag) {
   // 这里轮询到没有有限动画在跑为止，不用固定 sleep。
   const settleDeadline = Date.now() + 4000
   let prepared = null
-  while (Date.now() < settleDeadline) {
-    prepared = await evaluate(
-      `(${prepareTarget.toString()})(${JSON.stringify(selector)}, ${index}, ${JSON.stringify(tag)})`
-    )
-    if (prepared.missing) break
-    if (prepared.invisible) break
-    if (prepared.settled) break
-    await sleep(120)
+  let prevColor = null
+  let stableSamples = 0
+  /** 等页面稳定：动画停了，而且字色连续两次读数相同 */
+  const settle = async () => {
+    prevColor = null
+    stableSamples = 0
+    const deadline = Date.now() + 4000
+    while (Date.now() < deadline) {
+      prepared = await evaluate(
+        `(${prepareTarget.toString()})(${JSON.stringify(selector)}, ${index}, ${JSON.stringify(tag)})`
+      )
+      if (prepared.missing) break
+      if (prepared.invisible) break
+      // 字色本身也要稳定：按钮的入场淡入是 CSS color 过渡
+      // （computed color 的 alpha 在变），它不在 document.getAnimations() 里，
+      // 冻结动画管不到——不额外等一下，前后两次读到的字色 alpha 不一样，
+      // 会被判成「测量期间页面在动」。
+      if (prepared.color === prevColor) stableSamples += 1
+      else stableSamples = 0
+      prevColor = prepared.color
+      if (prepared.settled && stableSamples >= 1) break
+      await sleep(120)
+    }
+    return prepared
   }
+  await settle()
   if (prepared.missing) return { status: 'missing' }
   if (prepared.invisible) return { status: 'invisible', ...prepared }
   // 还是没稳定（例如有循环动画一直在跑）：按「元素当前的不透明度」如实记录，
@@ -837,28 +1330,137 @@ async function measureElement(selector, index, tag) {
     prepared.unsettled = true
   }
 
-  const clip = { x: prepared.x, y: prepared.y, width: prepared.w, height: prepared.h, scale: 1 }
-  const withText = await send('Page.captureScreenshot', {
-    format: 'png',
-    clip,
-    captureBeyondViewport: true,
-  })
-  await evaluate(`(${makeTransparent.toString()})(${JSON.stringify(tag)}, true)`)
-  await sleep(120)
-  const withoutText = await send('Page.captureScreenshot', {
-    format: 'png',
-    clip,
-    captureBeyondViewport: true,
-  })
-  await evaluate(`(${makeTransparent.toString()})(${JSON.stringify(tag)}, false)`)
-  await evaluate(`document.getElementById('__pc_placeholder')?.remove(); true`)
-  await sleep(60)
+  // 再冻一次动画并**重新取一次目标状态**：
+  // 冻结会把动画推到终态，元素的 opacity/位置可能跟稳定轮询那一瞬间不同，
+  // 字色与覆盖率必须按冻结后的状态算。
+  await evaluate(`(${freezeAnimations.toString()})()`)
+  prepared = await evaluate(
+    `(${prepareTarget.toString()})(${JSON.stringify(selector)}, ${index}, ${JSON.stringify(tag)})`
+  )
+  if (prepared.missing) return { status: 'missing' }
+  if (prepared.invisible) return { status: 'invisible', ...prepared }
+  if (!prepared.settled) prepared.unsettled = true
 
-  if (!withText.result?.data || !withoutText.result?.data) {
+  const before = await evaluate(`(${readState.toString()})(${JSON.stringify(selector)}, ${index})`)
+
+  // 截图坐标系：clip 用的是**文档坐标**（captureBeyondViewport 会渲染整页再裁），
+  // 而 getBoundingClientRect() 给的是视口坐标——页面滚动过时两者差一个 scrollY，
+  // 不加就会截到别的区域（审核实测：滚动 800px 后整块元素截空，判成 no-text）。
+  const scroll = await evaluate(`({ x: window.scrollX, y: window.scrollY })`)
+  const clipOf = (p) => ({
+    x: Math.round(p.x + (scroll?.x ?? 0)),
+    y: Math.round(p.y + (scroll?.y ?? 0)),
+    width: Math.round(p.w),
+    height: Math.round(p.h),
+    scale: 1,
+  })
+
+  // 四张截图必须落在同一帧上：**每张之前都重新冻结一次动画**。
+  const captureOnce = async () => {
+    const clip = clipOf(prepared)
+    await evaluate(`(${freezeAnimations.toString()})()`)
+    const withText = await send('Page.captureScreenshot', {
+      format: 'png',
+      clip,
+      captureBeyondViewport: true,
+    })
+    // 第二、三张：受控背景掩膜（白底黑字 / 白底无字）。
+    // 这两张只用来认「哪里是文字」，与原背景无关。
+    // 没有它们，黑字压纯黑底这种落点永远找不到（详见 analyzePair 的说明）；
+    // 两张相减才能把原生控件（滚动条、缩放抓手）排除掉。
+    await evaluate(`(${applyMask.toString()})(${JSON.stringify(tag)}, 'text', true)`)
+    await sleep(120)
+    await evaluate(`(${freezeAnimations.toString()})()`)
+    const maskTextShot = await send('Page.captureScreenshot', {
+      format: 'png',
+      clip,
+      captureBeyondViewport: true,
+    })
+    await evaluate(`(${applyMask.toString()})(${JSON.stringify(tag)}, 'none', true)`)
+    await sleep(120)
+    await evaluate(`(${freezeAnimations.toString()})()`)
+    const maskNoneShot = await send('Page.captureScreenshot', {
+      format: 'png',
+      clip,
+      captureBeyondViewport: true,
+    })
+    await evaluate(`(${applyMask.toString()})(${JSON.stringify(tag)}, 'none', false)`)
+    await sleep(60)
+    // 第四张：把文字变透明，得到该落点的**原背景色**。
+    await evaluate(`(${makeTransparent.toString()})(${JSON.stringify(tag)}, true)`)
+    await sleep(120)
+    await evaluate(`(${freezeAnimations.toString()})()`)
+    const withoutText = await send('Page.captureScreenshot', {
+      format: 'png',
+      clip,
+      captureBeyondViewport: true,
+    })
+    await evaluate(`(${makeTransparent.toString()})(${JSON.stringify(tag)}, false)`)
+    await evaluate(`document.getElementById('__pc_placeholder')?.remove(); true`)
+    await evaluate(`(${releaseTarget.toString()})(${JSON.stringify(tag)})`)
+    await sleep(60)
+    return { withText, withoutText, maskTextShot, maskNoneShot }
+  }
+
+  let shots = await captureOnce()
+  let after = await evaluate(`(${readState.toString()})(${JSON.stringify(selector)}, ${index})`)
+  const stateChanged = (a, b) => {
+    if (!a || !b || a.missing || b.missing) return true
+    if (Math.abs(a.x - b.x) > 0.5) return true
+    if (Math.abs(a.y - b.y) > 0.5) return true
+    if (Math.abs(a.w - b.w) > 0.5) return true
+    if (Math.abs(a.h - b.h) > 0.5) return true
+    if (a.color !== b.color) return true
+    if (Math.abs(a.opacity - b.opacity) > 0.01) return true
+    if ((a.scrollX ?? 0) !== (b.scrollX ?? 0)) return true
+    if ((a.scrollY ?? 0) !== (b.scrollY ?? 0)) return true
+    // 片段矩形：后代在动画里来回动时，元素外盒可能没变，片段却已经错位了
+    const af = a.fragments ?? []
+    const bf = b.fragments ?? []
+    if (af.length !== bf.length) return true
+    for (let i = 0; i < af.length; i++) {
+      if (Math.abs(af[i].x - bf[i].x) > 0.5) return true
+      if (Math.abs(af[i].y - bf[i].y) > 0.5) return true
+      if (Math.abs(af[i].w - bf[i].w) > 0.5) return true
+      if (Math.abs(af[i].h - bf[i].h) > 0.5) return true
+      if (af[i].text !== bf[i].text) return true
+    }
+    return false
+  }
+  if (stateChanged(before, after)) {
+    // 页面在截图过程中变了（多半是刚触发的入场动画）：重来一次。
+    // 重来时**重新等稳定并重新取基准**：
+    //   - 不重新等的话，动画还在跑，第二次照样漂移；
+    //   - 不重新取基准的话，第二次即使已经稳定，也会被拿旧基准判成漂移
+    //     （审核实测 parent-drift-once）。
+    prepared.driftDetail = { before, after }
+    await evaluate(`(${freezeAnimations.toString()})()`)
+    await settle()
+    if (prepared.missing) return { status: 'missing' }
+    if (prepared.invisible) return { status: 'invisible', ...prepared }
+    if (!prepared.settled) prepared.unsettled = true
+    const before2 = await evaluate(
+      `(${readState.toString()})(${JSON.stringify(selector)}, ${index})`
+    )
+    shots = await captureOnce()
+    after = await evaluate(`(${readState.toString()})(${JSON.stringify(selector)}, ${index})`)
+    if (stateChanged(before2, after)) {
+      prepared.unsettled = true
+      prepared.drift = true
+      prepared.driftDetail = { before: before2, after }
+    }
+  }
+
+  const withText = shots.withText
+  const withoutText = shots.withoutText
+  const maskTextShot = shots.maskTextShot
+  const maskNoneShot = shots.maskNoneShot
+
+  if (!withText.result?.data || !withoutText.result?.data || !maskTextShot.result?.data || !maskNoneShot.result?.data) {
     return { status: 'no-text', ...prepared }
   }
   const analysis = await evaluate(
-    `(${analyzePair.toString()})(${JSON.stringify(withText.result.data)}, ${JSON.stringify(withoutText.result.data)}, ${JSON.stringify(prepared.fragments ?? [])}, ${JSON.stringify(prepared.obstacles ?? [])})`
+    `(${analyzePair.toString()})(${JSON.stringify(withText.result.data)}, ${JSON.stringify(withoutText.result.data)}, ${JSON.stringify(prepared.fragments ?? [])}, ${JSON.stringify(prepared.obstacles ?? [])}, ${JSON.stringify(maskTextShot.result.data)}, ${JSON.stringify(maskNoneShot.result.data)})`
   )
   if (!analysis || analysis.weakestRatio === null) {
     return { status: 'no-text', ...prepared }
@@ -870,12 +1472,55 @@ async function measureElement(selector, index, tag) {
     (size >= THRESHOLDS.largeTextBoldMinSizePx && weight >= THRESHOLDS.largeTextBoldMinWeight)
   const need = large ? THRESHOLDS.largeTextMinContrast : THRESHOLDS.minContrast
   const point = analysis.weakestPoint
+
+  // 片段级判定：每一段文字按**它自己实际呈现的字号/字重**选门槛。
+  // 整个元素共用一个门槛会把 transform:scale(.5) 之后的正文
+  // 当成 32px 大字放过去（审核实测：实际 16px、对比度 3.54:1 却被按 3:1 判通过）。
+  const fragRows = (analysis.fragmentResults ?? []).map((f) => {
+    const fSize = Number.isFinite(f.fontSize) ? f.fontSize : size
+    const fWeight = Number.isFinite(f.fontWeight) ? f.fontWeight : weight
+    const fLarge =
+      fSize >= THRESHOLDS.largeTextMinSizePx ||
+      (fSize >= THRESHOLDS.largeTextBoldMinSizePx && fWeight >= THRESHOLDS.largeTextBoldMinWeight)
+    const fNeed = fLarge ? THRESHOLDS.largeTextMinContrast : THRESHOLDS.minContrast
+    return {
+      text: f.text,
+      covered: f.covered,
+      inkCount: f.inkCount,
+      coreCount: f.coreCount,
+      ratio: f.ratio,
+      fontSize: f.fontSize,
+      fontWeight: f.fontWeight,
+      need: fNeed,
+      // 没有实测值（片段被裁切到画面外）不算失败；
+      // 有实测值就按它自己的门槛判。
+      ok: f.ratio === null ? f.covered : f.ratio >= fNeed,
+      point: f.point,
+      fg: f.fg,
+      bg: f.bg,
+      samples: f.samples,
+    }
+  })
+  const failing = fragRows.filter((f) => !f.ok)
+  // 取证不完整（片段在掩膜里没认出字形）→ 不能当成通过
+  const uncovered = fragRows.filter((f) => !f.covered)
+  // 元素级门槛取各片段里**最严**的那个：
+  // transform:scale(.5) 之后的正文片段需要 4.5:1，
+  // 元素自身的 computed font-size（32px）不能代表它。
+  const elementNeed = fragRows.length
+    ? Math.max(...fragRows.map((f) => f.need))
+    : need
   return {
     status: 'measured',
     ...prepared,
     ...analysis,
-    need,
-    ok: analysis.weakestRatio >= need,
+    need: elementNeed,
+    elementComputedNeed: need,
+    // 判定值取「所有片段里最差的那个」；片段级结论在 fragmentRows 里
+    ok: failing.length === 0 && uncovered.length === 0,
+    fragmentRows: fragRows,
+    failingFragments: failing.length,
+    uncoveredFragments: uncovered.length,
     weakestRelativePoint: point
       ? {
           x: point.x,
@@ -890,31 +1535,39 @@ async function measureElement(selector, index, tag) {
 /* --------------------------- 算法自检 --------------------------- */
 
 /**
- * 算法自检（第二轮复验 P2 的硬要求）。
+ * 算法自检（复验方两轮 P2 的硬要求）。
  *
- * 用独立复验方给出的反例，卡住「取样偏差」这一类回归：
- *   500×70 画布，左半白底、右半 #333 底，两侧都画纯黑 24px 加粗文字。
- *   黑字压在 #333 上时真实对比度只有 1.6621:1（正文 4.5 / 大字 3 都不达标），
- *   但旧算法只取「全局最大差值的 90%」以上的那批像素，
- *   也就是只看到了白底那一侧，于是报出 21:1 并判通过。
+ * 复验方给的反例：500×70 画布，左半白底、右半深色底，两侧都画纯黑 24px 加粗文字。
+ * 第二轮把深色底加到 #333 / #030303 / #010101 / #000000：
+ *   - #333 那侧真实对比度 1.6621:1，旧算法（取全局最大差值 90% 以上）只看得到白底，报 21:1 判通过；
+ *   - #010101 / #000000 那侧，「有字」与「无字」两张图**逐像素完全相同**，
+ *     差值法在任何阈值下都找不到那个落点，同样报 21:1 判通过。
+ * 后者说明「用原背景的差值找字」这条路本身是死的，
+ * 必须用**受控背景下的字形掩膜**定位文字，再回到原背景算对比度。
  *
- * 自检三条：
- *   1) 反例的最弱落点必须落在深色那一侧（x > 250）；
- *   2) 反例的 weakestRatio 必须低于 4.5（即会进失败列表）；
- *   3) 单色合格文本（黑字只落白底）必须仍然通过。
- * 自检不过就中止脚本，不产出报告。
+ * 自检覆盖：
+ *   1) 四档深色底：报出的最弱值必须落在深色那一侧（x > 250）且低于 4.5；
+ *   2) 单色合格文本（黑字只落白底）必须仍然通过（>= 4.5）；
+ *   3) 多色后代：两个片段各用各的字色，低对比那个片段必须被抓出来。
+ *
+ * 组透明度、伪元素、text-fill、transform 缩放这些**只有真实 DOM 才表达得出来**的
+ * 组合，由另一个 DOM 级门禁覆盖：`scripts/contrast-dom-regressions.mjs`
+ * （canvas 画不出 CSS 组透明度的叠加语义，放在这里测只会自欺欺人）。
+ * 自检不过就中止脚本，不产出通过结论。
  */
 async function runAlgorithmSelfTest() {
   const res = await evaluate(`(async () => {
     const analyze = ${analyzePair.toString()}
     const W = 500, H = 70
     const b64 = (canvas) => canvas.toDataURL('image/png').split(',')[1]
-    const makeBoth = (withText) => {
+
+    // 双色底：左半白底、右半 gray 底，两侧都画同样的黑字
+    const makeTwoTone = (gray, withText) => {
       const c = document.createElement('canvas')
       c.width = W; c.height = H
       const x = c.getContext('2d')
       x.fillStyle = '#ffffff'; x.fillRect(0, 0, W / 2, H)
-      x.fillStyle = '#333333'; x.fillRect(W / 2, 0, W / 2, H)
+      x.fillStyle = gray; x.fillRect(W / 2, 0, W / 2, H)
       if (withText) {
         x.fillStyle = '#000000'
         x.font = 'bold 24px sans-serif'
@@ -923,6 +1576,23 @@ async function runAlgorithmSelfTest() {
       }
       return b64(c)
     }
+    // 受控背景掩膜：白底黑字 / 白底无字（与原背景无关的字形图）
+    const makeMask = (withText) => {
+      const c = document.createElement('canvas')
+      c.width = W; c.height = H
+      const x = c.getContext('2d')
+      x.fillStyle = '#ffffff'; x.fillRect(0, 0, W, H)
+      if (withText) {
+        x.fillStyle = '#000000'
+        x.font = 'bold 24px sans-serif'
+        x.fillText('MMMM', 10, 45)
+        x.fillText('MMMM', W / 2 + 10, 45)
+      }
+      return b64(c)
+    }
+    // 单色合格样例：黑字只落白底
+    // 注意：文字位置必须与掩膜一致（左右两半都画），
+    // 否则掩膜里有字、原图没字的那一侧会被算成「字色==底色」= 1:1。
     const makeWhite = (withText) => {
       const c = document.createElement('canvas')
       c.width = W; c.height = H
@@ -932,46 +1602,100 @@ async function runAlgorithmSelfTest() {
         x.fillStyle = '#000000'
         x.font = 'bold 24px sans-serif'
         x.fillText('MMMM', 10, 45)
+        x.fillText('MMMM', W / 2 + 10, 45)
       }
       return b64(c)
     }
-    const frags = [{ x: 0, y: 0, w: W, h: H, color: 'rgb(0, 0, 0)' }]
-    const both = await analyze(makeBoth(true), makeBoth(false), frags, [])
-    const white = await analyze(makeWhite(true), makeWhite(false), frags, [])
-    return {
-      both: { ratio: both.weakestRatio, point: both.weakestPoint, pixels: both.corePixelCount },
-      white: { ratio: white.weakestRatio, point: white.weakestPoint, pixels: white.corePixelCount },
+    // 多色后代：左半白底黑字、右半白底深灰字（#767676 → 约 4.54:1，低于大字阈值 3? 不，用 #808080 更低）
+    const makeTwoColors = (withText) => {
+      const c = document.createElement('canvas')
+      c.width = W; c.height = H
+      const x = c.getContext('2d')
+      x.fillStyle = '#ffffff'; x.fillRect(0, 0, W, H)
+      if (withText) {
+        x.fillStyle = '#000000'
+        x.font = 'bold 24px sans-serif'
+        x.fillText('MMMM', 10, 45)
+        x.fillStyle = '#9a9a9a'
+        x.fillText('MMMM', W / 2 + 10, 45)
+      }
+      return b64(c)
     }
+
+    const frags = [{ x: 0, y: 0, w: W, h: H, color: 'rgb(0, 0, 0)' }]
+    const maskText = makeMask(true)
+    const maskNone = makeMask(false)
+    const out = { grays: [], white: null, multiColor: null }
+
+    for (const gray of ['#333333', '#030303', '#010101', '#000000']) {
+      const r = await analyze(makeTwoTone(gray, true), makeTwoTone(gray, false), frags, [], maskText, maskNone)
+      out.grays.push({ gray, ratio: r.weakestRatio, point: r.weakestPoint, pixels: r.corePixelCount })
+    }
+
+    const white = await analyze(makeWhite(true), makeWhite(false), frags, [], maskText, maskNone)
+    out.white = { ratio: white.weakestRatio, point: white.weakestPoint, pixels: white.corePixelCount }
+
+    // 多色：左半黑字、右半 #9a9a9a 字；片段按左右各给一个颜色
+    const multiFrags = [
+      { x: 0, y: 0, w: W / 2, h: H, color: 'rgb(0, 0, 0)' },
+      { x: W / 2, y: 0, w: W / 2, h: H, color: 'rgb(154, 154, 154)' },
+    ]
+    const mc = await analyze(makeTwoColors(true), makeTwoColors(false), multiFrags, [], maskText, maskNone)
+    out.multiColor = { ratio: mc.weakestRatio, point: mc.weakestPoint }
+
+    return out
   })()`)
 
   const problems = []
-  const both = res?.both
-  const white = res?.white
-  if (!both || both.ratio === null) {
-    problems.push('反例没有测出任何文字落点（weakestRatio=null）')
-  } else {
-    if (!(both.ratio < 4.5)) {
-      problems.push('反例未被判失败：weakestRatio=' + both.ratio + '，应 < 4.5（深色侧真实值 1.66:1）')
+  const grays = res?.grays ?? []
+  // 深色底四档：真实值依次约 1.66 / 1.02 / 1.01 / 1.00，全部低于 4.5
+  const expected = { '#333333': 1.66, '#030303': 1.02, '#010101': 1.01, '#000000': 1.0 }
+  for (const g of grays) {
+    if (g.ratio === null) {
+      problems.push('深色底 ' + g.gray + ' 没有测出任何文字落点（weakestRatio=null）')
+      continue
     }
-    if (!both.point || !(both.point.x > 250)) {
-      problems.push('反例的最弱落点没落在深色那一侧：point=' + JSON.stringify(both.point))
+    if (!(g.ratio < 4.5)) {
+      problems.push('深色底 ' + g.gray + ' 未被判失败：weakestRatio=' + g.ratio + '，应 < 4.5（真实值约 ' + expected[g.gray] + ':1）')
+    }
+    if (!g.point || !(g.point.x > 250)) {
+      problems.push('深色底 ' + g.gray + ' 的最弱落点没落在深色那一侧：point=' + JSON.stringify(g.point))
+    }
+    const exp = expected[g.gray]
+    if (exp && Math.abs(g.ratio - exp) > 0.2) {
+      problems.push('深色底 ' + g.gray + ' 的最弱值偏差过大：实测 ' + g.ratio + '，真实约 ' + exp)
     }
   }
+  if (grays.length < 4) {
+    problems.push('深色底自检只跑了 ' + grays.length + ' 档，应为 4 档')
+  }
+
+  const white = res?.white
   if (!white || white.ratio === null) {
     problems.push('合格样例没有测出文字落点（weakestRatio=null）')
   } else if (!(white.ratio >= 4.5)) {
     problems.push('合格样例被误判：weakestRatio=' + white.ratio + '，应 >= 4.5')
   }
 
+  // 多色后代：右半 #9a9a9a 压白底约 2.85:1，必须被抓出来（不能按左半的黑色算成 21:1）
+  const mc = res?.multiColor
+  if (!mc || mc.ratio === null) {
+    problems.push('多色样例没有测出文字落点（weakestRatio=null）')
+  } else if (!(mc.ratio < 4.5)) {
+    problems.push('多色后代没有按各自字色配对：weakestRatio=' + mc.ratio + '，应 < 4.5（#9a9a9a 压白底约 2.85:1）')
+  } else if (!(mc.ratio > 2)) {
+    problems.push('多色后代的实测值异常偏低：weakestRatio=' + mc.ratio + '（#9a9a9a 压白底约 2.6~2.9:1）')
+  }
+
   const ok = problems.length === 0
   console.log('\n=== 算法自检 ===')
-  console.log(
-    '  反例（黑字压 #333 底）: weakestRatio=' +
-      (both ? both.ratio : 'null') +
-      ' 最弱落点=' +
-      JSON.stringify(both ? both.point : null)
-  )
+  for (const g of grays) {
+    console.log(
+      '  深色底 ' + g.gray + ': weakestRatio=' + g.ratio + ' 最弱落点=' + JSON.stringify(g.point)
+    )
+  }
   console.log('  合格样例（黑字压白底）: weakestRatio=' + (white ? white.ratio : 'null'))
+  console.log('  多色后代（各自字色）: weakestRatio=' + (mc ? mc.ratio : 'null'))
   console.log(
     ok
       ? '  自检通过'
@@ -1023,9 +1747,18 @@ if (!selfTest.ok) {
 
 let tagSeq = 0
 
+// 调试用：只测某几个组合（如 DSH_ONLY=qinglan/divination）。
+// 正式取证不要设这个变量——报告要覆盖全部组合。
+const ONLY = (process.env.DSH_ONLY ?? '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean)
+const shouldMeasure = (appearance, page) => !ONLY.length || ONLY.includes(`${appearance}/${page}`)
+
 for (const appearance of APPEARANCES) {
   await setAppearance(appearance)
   for (const p of PAGES) {
+    if (!shouldMeasure(appearance, p.name)) continue
     await send('Page.navigate', { url: p.url })
     try {
       await waitRendered()
@@ -1122,13 +1855,11 @@ for (const appearance of APPEARANCES) {
         if (r.status === 'no-text') {
           const d = r.diag || {}
           const why =
-            (d.diffPixelCount ?? 0) === 0
-              ? '两次截图完全一致（文字没有被置透明，或元素不在画面上）'
-              : (d.fragDiffPixelCount ?? 0) === 0
-                ? '画面上有变化，但都落在文字片段之外'
-                : `片段内最大差值 ${d.maxDiffInFrag}，理论满覆盖差值 ${Math.round(
-                    d.expectedAtMax ?? 0
-                  )}，覆盖率 α=${d.alphaAtMax}（阈值 0.5）`
+            (d.maskTextPixelCount ?? 0) === 0
+              ? '受控背景掩膜里没有找到字形（截图与原背景对不上，或元素不在画面上）'
+              : (d.fragMaskPixelCount ?? 0) === 0
+                ? '掩膜里有字形，但都落在文字片段之外'
+                : `片段内掩膜最大覆盖率 ${d.maskMaxAlpha}，文字片段 ${d.fragmentCount} 个`
           report.rows.push({
             ...base,
             status: 'not-covered',
@@ -1151,16 +1882,28 @@ for (const appearance of APPEARANCES) {
         const reason = exemptReason
           ? exemptReason
           : '元素位于 aria-hidden="true" 子树内：装饰性内容，按装饰豁免'
+        // 取证不可信的三种情况，一律**判失败**，绝不当作通过依据：
+        //   1) 测量期间页面在动（unsettled / drift）；
+        //   2) 有文字片段在掩膜里没认出字形（取证不完整）；
+        //   3) 片段实测值低于它自己的门槛。
+        const unstable = r.unsettled === true || r.drift === true
+        const incomplete = (r.uncoveredFragments ?? 0) > 0
         const row = {
           ...base,
-          status: exempt ? 'exempt' : r.ok ? 'pass' : 'fail',
+          status: exempt ? 'exempt' : unstable || incomplete || !r.ok ? 'fail' : 'pass',
           exempt,
           exemptReason: exempt ? reason : undefined,
           cssColor: r.color,
           fontSize: r.size,
           fontWeight: r.weight,
           elementOpacity: r.opacity,
-          settled: r.settled !== false,
+          settled: r.settled !== false && !unstable,
+          unstable,
+          drift: r.drift === true,
+          driftDetail: r.driftDetail,
+          uncoveredFragments: r.uncoveredFragments ?? 0,
+          failingFragments: r.failingFragments ?? 0,
+          fragmentRows: r.fragmentRows,
           coreMedianRatio: r.coreMedianRatio,
           weakestRatio: r.weakestRatio,
           minPixelRatio: r.minPixelRatio,
@@ -1176,6 +1919,11 @@ for (const appearance of APPEARANCES) {
           corePixelCount: r.corePixelCount,
           text: r.text,
           elementPath: r.path,
+        }
+        if (unstable) {
+          row.detail = '测量期间页面发生变化（动画/位移），重测后仍不稳定：结果不可信，按失败处理'
+        } else if (incomplete) {
+          row.detail = `有 ${r.uncoveredFragments} 段文字在受控背景掩膜里没认出字形（取证不完整），按失败处理`
         }
         report.rows.push(row)
         if (exempt) {
@@ -1193,7 +1941,38 @@ for (const appearance of APPEARANCES) {
             exempt: true,
             exemptReason: reason,
           })
+        } else if (unstable) {
+          report.failures.push({
+            kind: 'unstable',
+            appearance,
+            page: p.name,
+            label,
+            selector,
+            index,
+            value: r.weakestRatio,
+            threshold: '测量期间页面保持稳定',
+            unit: '',
+            text: r.text,
+            detail: `${appearance}/${p.name}/${label} 测量期间页面发生变化（重测后仍不稳定）：结果不可信，不作为通过依据`,
+          })
+        } else if (incomplete) {
+          report.failures.push({
+            kind: 'incomplete-coverage',
+            appearance,
+            page: p.name,
+            label,
+            selector,
+            index,
+            value: r.uncoveredFragments,
+            threshold: '每段文字都要在掩膜里认得出字形',
+            unit: '段',
+            text: r.text,
+            detail: `${appearance}/${p.name}/${label} 有 ${r.uncoveredFragments} 段文字在受控背景掩膜里没认出字形：取证不完整，不作为通过依据`,
+          })
         } else if (!r.ok) {
+          const worstFrag = (r.fragmentRows ?? [])
+            .filter((f) => !f.ok)
+            .sort((a, b) => (a.ratio ?? 99) - (b.ratio ?? 99))[0]
           report.failures.push({
             kind: 'contrast',
             appearance,
@@ -1205,13 +1984,18 @@ for (const appearance of APPEARANCES) {
             threshold: r.need,
             unit: ':1',
             text: r.text,
-            detail: `${appearance}/${p.name}/${label} 最弱落点对比度 ${r.weakestRatio}:1 < ${r.need}:1（字芯中位 ${r.coreMedianRatio}:1）`,
+            detail:
+              `${appearance}/${p.name}/${label} 最弱落点对比度 ${r.weakestRatio}:1 < ${r.need}:1` +
+              (worstFrag
+                ? `（片段「${worstFrag.text}」实际字号 ${worstFrag.fontSize}px 需 ${worstFrag.need}:1）`
+                : `（字芯中位 ${r.coreMedianRatio}:1）`),
           })
         }
         if (!worstRow || r.weakestRatio < worstRow.weakestRatio) worstRow = row
-        const mark = exempt ? 'EXPT' : r.ok ? 'OK  ' : 'FAIL'
+        const mark = exempt ? 'EXPT' : row.status === 'pass' ? 'OK  ' : 'FAIL'
+        const extra = unstable ? ' [不稳定]' : incomplete ? ' [取证不完整]' : ''
         console.log(
-          `  ${mark} ${label.padEnd(12)} #${index} 最弱=${String(r.weakestRatio).padEnd(6)} 中位=${String(r.coreMedianRatio).padEnd(6)} 像素=${String(r.minPixelRatio ?? '-').padEnd(6)} 需=${r.need}  字号=${r.size.padEnd(5)} 最弱点=(${r.weakestRelativePoint?.x ?? '-'},${r.weakestRelativePoint?.y ?? '-'}) CSS色=${r.color.padEnd(20)} 「${r.text}」`
+          `  ${mark} ${label.padEnd(12)} #${index} 最弱=${String(r.weakestRatio).padEnd(6)} 中位=${String(r.coreMedianRatio).padEnd(6)} 像素=${String(r.minPixelRatio ?? '-').padEnd(6)} 需=${r.need}  字号=${r.size.padEnd(5)} 最弱点=(${r.weakestRelativePoint?.x ?? '-'},${r.weakestRelativePoint?.y ?? '-'}) CSS色=${r.color.padEnd(20)} 「${r.text}」${extra}`
         )
       }
       if (worstRow) {
