@@ -901,7 +901,31 @@ node scripts/zoom-real-200.mjs
 
 > 本轮**改了产品代码**（首页正文不再截断）——这是 §12 之前唯一一轮动到 `src/` 的改动 ✓。
 
-### 12.7 本轮没做的事
+### 12.7 第六轮补记（2026-11-06 晚）：补齐复审方夹具，又抓出两个 bug
+
+交接说明里我先自查了「DOM 门禁只覆盖复审方 31 个夹具里的 13 个」，
+于是**照抄复审方的原始 DOM/CSS**（不自己重写 ✓）把缺的静态夹具补进
+`scripts/contrast-dom-regressions.mjs` → **13 → 27 个** ✓。
+剩下 4 个（`parent-drift` / `parent-drift-once` / `descendant-animation` / `fixed`）
+是「截图之间元素真的动了」的动态场景，**静态夹具表达不出来** ✓，
+只能靠复审方自己的夹具来打 ✓。
+
+**补夹具时抓出两个真 bug**（都不在复审方的条目里 ✓）：
+
+| bug | 现象 | 根因 | 修法 |
+|---|---|---|---|
+| **假通过** | `svg-overlap` 用例：文字跨到黑色那半边，真值 **1:1**，却报 **18.1 通过** ✗ | 掩膜把目标子树的 `background-color` 统一压成白底，一个绝对定位的 SVG 于是变成不透明白框，**把它压住的那些字整个盖住** → 掩膜认不出那些字 → 落点丢失 → 元素靠别处的文字判成通过 | 掩膜里把替换元素（svg/img/canvas…）自己的背景改回 **transparent** ✓ |
+| **漏报** | 元素**明明有自己的文字**，只是掩膜认不出字形（祖先 opacity .2 / 祖先被 filter 抹平 / `mix-blend-mode` 混合掉），旧实现一律报「无可测文字」→ 报告里读起来像「这元素没文字」，一条真实存在的低对比度正文就这么被放过 ✗ | 「元素本来就没文字」与「有文字但认不出字形」被混为一谈 | 用 `hasOwnText` 区分：后者判 **「取证不完整 → 失败」** ✓（新增 `incomplete` 状态与 `incomplete-coverage` 失败类型 ✓） |
+
+补完后门禁 **27/27 符合期望** ✓。
+
+**顺带修掉一个「脚本会静默卡死」的缺陷**（当天实测撞上 ✓）：
+
+| 现象 | 根因 | 修法 |
+|---|---|---|
+| 全量对比度跑到一半**日志不再增长**，进程还在但不干活，挂了几十分钟 | 脚本抓的是「CDP 列表里的**第一个** page target」✗ —— 那可能是用户在别的标签页 ✗；**后台标签页浏览器不渲染、requestAnimationFrame 也不触发** ✗ → 脚本里那个双 rAF 的 Promise 永远不 resolve → 带 `awaitPromise` 的 `Runtime.evaluate` 永远不返回 ✗ → 整个脚本卡死 ✗。而 `send()` **没有超时** ✗，所以它就一直挂着 ✗ | ① 脚本**自己开一个 target**（`Target.createTarget` ✓），用完关掉 ✓，不再抢用户的标签页 ✓；② 测量前 `Page.bringToFront` ✓；③ 双 rAF **加 500ms 兜底** ✓（后台时布局本来就是冻结的，等不到也无所谓 ✓）；④ `send()` **加 90s 超时** ✓，超时报错而不是静默挂死 ✓。另两个门禁（`acceptance-appearances.mjs` / `appearance-journey.mjs`）也补了 `Page.bringToFront` ✓（后台页量到的是冻结旧帧，数值不可信 ✓） |
+
+### 12.8 本轮没做的事
 
 - **没有改业务代码**：只动了 `scripts/contrast-appearances.mjs`、
   `scripts/contrast-edge-cases.mjs`、`scripts/contrast-dom-regressions.mjs`（新增）、

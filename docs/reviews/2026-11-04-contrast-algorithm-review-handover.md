@@ -85,51 +85,62 @@ $env:DSH_ONLY='qinglan/divination'; node scripts/contrast-appearances.mjs
 理由：我新增的 `scripts/contrast-dom-regressions.mjs` 是**按我的理解**把反例转成断言的 ✓，
 它与你的原始复现**不一定等价** ✓。只跑我的断言等于让我自己给自己打分 ✗。
 
-### ② 核对覆盖范围 —— 我先自查了：**我的门禁只覆盖 31 个夹具里的 13 个**
+### ② 核对覆盖范围 —— 我先自查了，并已补齐
 
 复审方的证据目录 `tmp/codex-audit-20261102/` 里一共 **31 个 HTML 夹具**
 （`opacity-group.html`、`parent-drift.html` … 每个用例一组）✓。
-我新增的 `scripts/contrast-dom-regressions.mjs` **只固化了其中 13 个** ✓，
-**其余 18 个我的门禁是沉默的** —— 这正是「用我的断言给自己打分」的风险点 ✓，
-所以先摊开，请复审方逐条核对 ✓：
+我新增的 `scripts/contrast-dom-regressions.mjs` **最初只固化了其中 13 个** ✓；
+**2026-11-06 已补到 27 个** ✓（下表 ✓）——
+补的时候**直接照抄复审方的原始 DOM/CSS** ✓，不自己重写
+（自己重写等于「按我的理解复现反例」，那正是上一轮被打穿的模式 ✓）。
 
-| 复审方夹具 | 它在测什么 | 我的门禁 | 我这轮的对应处理 | 仍需复审方确认的点 |
-|---|---|---|---|---|
-| `opacity-group` | 组透明度 | ✅ 有 | 改用屏幕实际字色 | — |
-| `opacity-target` | 目标自身 opacity | ✅ 有 | 同上 | — |
-| `text-fill` | `-webkit-text-fill-color` | ✅ 有 | 「无字」图清掉该通道 | — |
-| `pseudo-only` / `pseudo-generated` | 伪元素生成内容 | ✅ 有 | 伪元素在两张掩膜里置透明 | — |
-| `inline-important-background` | 内联 important 背景 | ✅ 有 | 掩膜改内联 important | — |
-| `overlay-partial` | 半透明伪元素遮挡 | ✅ 有 | 掩膜不强压伪元素底色 | — |
-| `filter-descendant` | 后代被 filter 抹平 | ✅ 有 | 取证不完整 → 失败 | — |
-| `svg-overlap-front-text` | SVG 盖住前面的文字 | ✅ 有 | 不再整框排除 | — |
-| `gradient` | 渐变背景 | ✅ 有 | 逐像素取底色 | — |
-| `scaled` | `transform:scale(.5)` 后的字号 | ✅ 有 | 按呈现字号选门槛 | — |
-| `input-existing-value` | 输入框原值 | ✅ 有 | 原值总是备份 | — |
-| `scroll` | 页面滚动后的裁剪 | ✅ 有 | 裁剪加 scrollX/Y | — |
-| **`opacity-ancestor`** | **祖先**带 opacity（与 `opacity-group` 不同） | ❌ **没有** | 组透明度的模型本应覆盖，但**没测过** | 祖先透明度是否也被如实反映 ✓ |
-| **`opacity-mixed`** | 多种透明度混合 | ❌ **没有** | — | 同上 ✓ |
-| **`mask-shift`** | 掩膜位置偏移 | ❌ **没有** | 掩膜与栅格同源生成，偏移理论上不再发生 | 是否有残留的偏移来源 ✓ |
-| **`svg-icon`** | 纯图标（无文字） | ❌ **没有** | 掩膜相减后图标消失 | 图标不会被误当文字 ✓ |
-| **`svg-overlap`** | SVG 与文字重叠 | ❌ **没有** | 同 `svg-overlap-front-text` | 叠加顺序不同是否仍正确 ✓ |
-| **`illustration-overlay`** | 插画层压住文字 | ❌ **没有** | — | 遮挡与裁切能否区分 ✓ |
-| **`clipped`** | 文字被裁切 | ❌ **没有** | 只对与截图区相交的片段判覆盖 | 被裁切的片段算不算失败 ✓ |
-| **`filter-ancestor`** | **祖先**被 filter | ❌ **没有** | — | 祖先 filter 与后代 filter 行为是否一致 ✓ |
-| **`input`** | 普通输入框 | ❌ **没有** | — | 输入框整体判定 ✓ |
-| **`input-placeholder-white`** | 白色 placeholder | ❌ **没有** | — | placeholder 是否被当成正文 ✓ |
-| **`textarea`** | 多行文本域 | ❌ **没有** | — | 原生缩放抓手是否仍被误认成文字 ✓ |
-| **`parent-drift` / `parent-drift-once`** | 截图之间元素位移 | ❌ **没有** | 漂移与未稳定一律判失败 | **我这轮的门禁是静态夹具，覆盖不到这类动态场景** —— 需要复审方用自己的动态夹具打 ✓ |
-| **`descendant-animation`** | 后代只在掩膜阶段移动 | ❌ **没有** | 每张截图前都冻结 + 逐片段比对 | 同上 ✓ |
-| **`blend`** | `mix-blend-mode` | ❌ **没有** | 未处理 | 属于「不宣称已支持」清单 ✓ |
-| **`text-shadow` / `text-stroke`** | 阴影 / 描边 | ❌ **没有** | 掩膜里统一去掉阴影 | 属于「不宣称已支持」清单 ✓ |
+| 复审方夹具 | 它在测什么 | DOM 门禁 | 本轮结论 |
+|---|---|---|---|
+| `opacity-group` | 组透明度 | ✅ | 2.88:1 失败 ✓（旧：4.67 通过 ✗） |
+| `opacity-target` | 目标自身 opacity | ✅ | 1.6:1 失败 ✓ |
+| `opacity-ancestor` | **祖先**带 opacity | ✅ **新增** | 掩膜认不出字形 → **取证不完整 → 失败** ✓（旧：报「无文字」放过 ✗） |
+| `opacity-mixed` | 多层透明度混合 | ✅ **新增** | 同上 ✓ |
+| `text-fill` | `-webkit-text-fill-color` | ✅ | 1:1 失败 ✓ |
+| `pseudo-only` / `pseudo-generated` | 伪元素生成内容 | ✅ | no-text / 18.1 通过 ✓ |
+| `inline-important-background` | 内联 important 背景 | ✅ | 1:1 失败 ✓ |
+| `overlay-partial` | 半透明伪元素遮挡 | ✅ | 1.21:1 失败 ✓ |
+| `illustration-overlay` | 插画层压住文字 | ✅ **新增** | 1.44:1 失败 ✓ |
+| `filter-descendant` | 后代被 filter 抹平 | ✅ | 取证不完整 → 失败 ✓ |
+| `filter-ancestor` | **祖先**被 filter 抹平 | ✅ **新增** | 取证不完整 → 失败 ✓（旧：报「无文字」放过 ✗） |
+| `svg-overlap-front-text` | SVG 盖住前面的文字 | ✅ | 1:1 失败 ✓ |
+| `svg-overlap` | SVG 与文字重叠 | ✅ **新增** | **1:1 失败 ✓**（旧：18.1 **假通过** ✗ —— 掩膜把 SVG 压成不透明白框，盖住了底下的字 ✓） |
+| `svg-icon` | 纯图标（无文字） | ✅ **新增** | 18.1 通过 ✓（图标不当文字 ✓） |
+| `gradient` | 渐变背景 | ✅ | 1:1 失败 ✓ |
+| `scaled` | `transform:scale(.5)` 后的字号 | ✅ | 3.53:1 失败（门槛 4.5）✓ |
+| `mask-shift` | 掩膜位置偏移 | ✅ **新增** | 1:1 失败 ✓（掩膜跟着文字的真实位置走 ✓） |
+| `clipped` | 文字被裁切 | ✅ **新增** | 1:1 失败 ✓，且被裁的行**不算取证不完整** ✓ |
+| `blend` | `mix-blend-mode:screen` | ✅ **新增** | 取证不完整 → 失败 ✓（保守方向 ✓） |
+| `text-shadow` | 白色阴影 | ✅ **新增** | 18.1 通过 ✓ |
+| `text-stroke` | 白色描边 | ✅ **新增** | 19.61 通过 ✓ |
+| `input` / `input-placeholder-white` / `textarea` | 表单控件 | ✅ **新增** | 18.1 通过 ✓（见下「量程」说明 ✓） |
+| `input-existing-value` | 输入框原值被清空 | ✅ | 通过，且原值保留 ✓ |
+| `scroll` | 页面滚动后的裁剪 | ✅ | 通过 ✓ |
+| **`parent-drift` / `parent-drift-once` / `descendant-animation` / `fixed`** | **截图之间元素位移/动画** | ❌ **仍然没有** | **静态夹具的框架表达不出来**（要「截图之间元素真的动了」）—— 必须靠复审方的动态夹具来打 ✓ |
 
-**结论**：我的门禁覆盖 **13/31** ✓，其中 5 个稳定性/动态类夹具
-（`parent-drift`、`parent-drift-once`、`descendant-animation` 等）
-**在静态夹具的框架里根本表达不出来** ✓ —— 这类必须靠复审方的动态夹具来打 ✓。
+**补这 14 个用例时又抓出两个真 bug**（都不在复审方列的条目里，是我自己加用例时暴露的）：
+
+1. **假通过**：掩膜把目标子树的 `background-color` 统一压成白底，
+   一个绝对定位的 SVG 于是变成不透明白框，**把它压住的那些字整个盖住** ✗
+   → 掩膜认不出那些字 → 落点丢失 → 元素靠别处的文字判成通过 ✗
+   （`svg-overlap` 实测：真值 1:1，报 18.1 通过 ✗）。
+   **修法**：掩膜里把替换元素（svg/img/canvas…）自己的背景改回透明 ✓。
+2. **漏报**：元素**明明有自己的文字**，只是掩膜认不出字形（祖先 opacity 太低、
+   祖先被 filter 抹平、`mix-blend-mode` 混合掉了…），
+   旧实现一律报「无可测文字」✗ —— 报告里读起来像「这元素没文字」，
+   一条真实存在的低对比度正文就这么被放过 ✗。
+   **修法**：区分「元素本来就没有自己的文字」（no-text ✓）
+   与「元素有文字但认不出字形」（**取证不完整 → 判失败** ✓）。
 
 **请复审方特别确认**：
-① 上表 ❌ 的 13 个静态类用例，在**新代码**下是否都已得到正确结论（哪怕我的门禁没覆盖） ✓；
-② 5 个动态类用例，新代码是否确实判为失败/未覆盖，而不再是 `ok=true` ✓。
+① 上表 27 个静态用例的**期望结论**是否与你的原始复现一致 ✓
+   （尤其 `text-shadow` / `text-stroke` 判通过、`input*` / `textarea` 判通过 ✓）；
+② 那 **4 个动态夹具**（`parent-drift` 等）在新代码下是否确实判为失败/未覆盖 ✓；
+③ 上面那两个新抓出来的 bug（SVG 白框盖字、"有文字却报无文字"）✓ 是否与你看到的现象对得上 ✓。
 
 ### ③ 顺带审三处**你上一轮没提、但我这轮改了模型**的地方
 
@@ -146,10 +157,13 @@ $env:DSH_ONLY='qinglan/divination'; node scripts/contrast-appearances.mjs
 | 边界 | 现状 |
 |---|---|
 | 掩膜被**彻底压住**时 | 判「取证不完整 → 失败」（**不会假通过** ✓），但**无法区分**「这段字被盖住（产品缺陷）」与「这段字被裁切（本来就不该量）」 ✓ |
-| `text-shadow` / `-webkit-text-stroke` / `mix-blend-mode` / `background-attachment: fixed` | 只做了浅层处理（掩膜里统一去掉阴影），**没有独立 fixture** ✓ |
+| `text-shadow` / `-webkit-text-stroke` | 现在有独立 fixture 了 ✓（`text-shadow` / `text-stroke` 两个用例 ✓，均判通过 ✓），但只覆盖**单层、无颜色偏移**的基例 ✓；多层阴影、强描边与滤镜的组合仍属存疑 ✓ |
+| `mix-blend-mode` | 有 fixture ✓（`blend` 用例 ✓）：黑字与白底 `screen` 混合后仍是白 → 掩膜认不出字形 → 判「取证不完整 → 失败」 ✓（保守方向 ✓）。**但混合模式本身没有被建模** ✓：如果混合后的文字仍然可读，工具会误判为失败 ✗ |
+| `background-attachment: fixed` | 仍**没有**独立 fixture ✓，浅层处理（掩膜里统一 `background-image:none` ✓） |
+| **输入框的 placeholder 的对比度** | **不在量程内** ✓：工具量的是输入框的 **value**（空框会临时填一个测试值 ✓，测完还原 ✓），placeholder 被工具注入的样式隐藏 ✓。所以「placeholder 本身看不清」（如白色 placeholder 压白底）**测不出来** ✓ —— 这是 `input-placeholder-white` 用例判通过的直接原因 ✓ |
 | 真实缩放依赖系统前台焦点 | 已在脚本里用「先发 Shift 解锁」修好（本机可稳定复现 ✓），但**换机器/换会话仍可能失焦** ✓ |
 
-这三项**没有**对应的独立 fixture，也不打算在下一轮之前补 ✓。
+除 `background-attachment: fixed` 与 placeholder 外，其余几项现在都有对应 fixture ✓。
 如果复审认为其中任何一项应算 P2 未关闭，请明确指出 ✓ —— 我按「先补 fixture 再修」处理，
 不重复上一轮「自测自证」的毛病 ✓。
 
