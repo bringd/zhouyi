@@ -173,10 +173,50 @@ const PAGES = [
 
 /* --------------------------- CDP --------------------------- */
 
+// 自己开一个 target 来量，**不要去抓「列表里的第一个 page」**：
+//   - 那个 page 可能是用户在别的标签页。后台标签页不渲染、
+//     requestAnimationFrame 也不触发 → 量到的画面可能是冻结的旧帧（数值不可信），
+//     而且带 awaitPromise 的 evaluate 会永远不返回，整个脚本静默卡死；
+//   - 也可能正好抓到别的工具留下的标签页，测的是别人正在看的页面。
+// 自己开一个、用完关掉，两种问题都没有了。
+const version = await (await fetch(`${CDP}/json/version`)).json()
+const browserWs = new WebSocket(version.webSocketDebuggerUrl)
+await new Promise((res, rej) => {
+  browserWs.on('open', res)
+  browserWs.on('error', rej)
+})
+let browserSeq = 0
+const browserPending = new Map()
+browserWs.on('message', (raw) => {
+  const m = JSON.parse(raw.toString())
+  if (m.id && browserPending.has(m.id)) {
+    browserPending.get(m.id)(m)
+    browserPending.delete(m.id)
+  }
+})
+const browserSend = (method, params = {}) =>
+  new Promise((res, rej) => {
+    const id = ++browserSeq
+    const timer = setTimeout(() => {
+      browserPending.delete(id)
+      rej(new Error(`CDP 浏览器端调用超时：${method}`))
+    }, 30000)
+    browserPending.set(id, (m) => {
+      clearTimeout(timer)
+      res(m)
+    })
+    browserWs.send(JSON.stringify({ id, method, params }))
+  })
+const created = await browserSend('Target.createTarget', { url: 'about:blank' })
+const targetId = created.result?.targetId
+if (!targetId) {
+  console.error(`CDP 上开不出新的 page target：${CDP}`)
+  process.exit(2)
+}
 const list = await (await fetch(`${CDP}/json/list`)).json()
-const page = list.find((t) => t.type === 'page')
+const page = list.find((t) => t.id === targetId)
 if (!page) {
-  console.error(`CDP 上没有可用的 page target：${CDP}`)
+  console.error(`刚开的 target 不在列表里：${CDP}`)
   process.exit(2)
 }
 const ws = new WebSocket(page.webSocketDebuggerUrl)
@@ -194,9 +234,22 @@ ws.on('message', (raw) => {
   }
 })
 const send = (method, params = {}) =>
-  new Promise((r) => {
+  new Promise((r, reject) => {
     const id = ++seq
     pending.set(id, r)
+    // 任何一次 CDP 调用都不该无限期挂住：
+    // 页面在后台标签页时 requestAnimationFrame 不会触发，
+    // 带着 awaitPromise 的 evaluate 就会永远不返回 —— 整个脚本会静默卡死，
+    // 在 CI 里就是一个不结束的作业。这里给它一个上限，超时按失败处理。
+    const timer = setTimeout(() => {
+      pending.delete(id)
+      reject(new Error(`CDP 调用超时（${method}）：页面可能在后台标签页里，rAF 不触发`))
+    }, 90000)
+    const wrapped = (m) => {
+      clearTimeout(timer)
+      r(m)
+    }
+    pending.set(id, wrapped)
     ws.send(JSON.stringify({ id, method, params }))
   })
 await send('Page.enable')
@@ -426,6 +479,7 @@ function prepareTarget(selector, index, tag) {
   }
   // 输入框 / 文本域没有文本节点，文字是浏览器渲染的 value：
   // 用整个盒子当片段，字色取元素自身的计算 color。
+  const ownTextFragments = fragments.length
   if (fragments.length === 0) {
     const escale = visualScale(el)
     fragments.push({
@@ -481,6 +535,16 @@ function prepareTarget(selector, index, tag) {
     colors: colorSet,
     fragments,
     obstacles,
+    // 元素**自己有没有文字**（区别于「掩膜里能不能认出字形」）：
+    //  - 有文本节点 → 有自己的文字；
+    //  - 是表单控件 → 文字是浏览器渲染的 value，也算有；
+    //  - 只有 ::before/::after 生成的内容 → 没有自己的文字。
+    // 这个标记决定「一个落点都没找到」时报 no-text 还是「取证不完整」。
+    hasOwnText:
+      ownTextFragments > 0 ||
+      el.tagName === 'INPUT' ||
+      el.tagName === 'TEXTAREA' ||
+      el.tagName === 'SELECT',
     opacity: effectiveOpacity(el),
     // 这一帧是否稳定（没有有限动画在跑）：
     // 入场动画期间元素 opacity 可能只有 0.05，量到的对比度是假的。
@@ -544,7 +608,24 @@ function freezeScene() {
           })
       )
     )
-    await new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)))
+    // 等两帧再继续：让布局与样式真正结算。
+    // **必须有兜底**：标签页在后台时 requestAnimationFrame 不会触发，
+    // 这个 Promise 会永远不resolve（带 awaitPromise 的 evaluate 就再也回不来，
+    // 整个脚本静默卡死）。后台时布局本来就是冻结的，等不到也无所谓。
+    await new Promise((res) => {
+      let done = false
+      const finish = () => {
+        if (done) return
+        done = true
+        res()
+      }
+      try {
+        requestAnimationFrame(() => requestAnimationFrame(finish))
+      } catch (e) {
+        finish()
+      }
+      setTimeout(finish, 500)
+    })
     // 等字体加载完：否则「有字」「无字」两张截图可能用的是不同字体，
     // 差集里出现的是字形变化而不是文字覆盖，量出来的覆盖率是假的
     if (document.fonts && document.fonts.ready) {
@@ -781,6 +862,21 @@ function applyMask(tag, mode, on) {
       } catch (e) {
         /* 某些属性在个别元素上不可设，忽略 */
       }
+    }
+  })
+  // 替换元素（SVG 图标 / 图片 / canvas）在掩膜里**不能变成不透明白框**：
+  // 掩膜把目标子树的 background-color 统一压成白底，
+  // 一个绝对定位的 SVG 于是变成 500×60 的白色矩形，
+  // 把它压住的那些字整个盖住 → 掩膜认不出那些字 → 落点丢失 →
+  // 元素靠「别处的文字」判成通过（独立审核的 svg-overlap 反例：
+  // 文字跨到黑色那半边，真值 1:1，却报 21:1 通过）。
+  // 这里把替换元素自己的背景改回透明：它该透明时透明，
+  // 不该透明时它自己的绘制内容仍会被掩膜看见（相减后抵消）。
+  el.querySelectorAll('svg, img, canvas, video, picture, iframe').forEach((c) => {
+    try {
+      c.style.setProperty('background-color', 'transparent', 'important')
+    } catch (e) {
+      /* 忽略 */
     }
   })
   const sel = `[data-pc-target="${tag}"]`
@@ -1469,7 +1565,17 @@ async function measureElement(selector, index, tag) {
     `(${analyzePair.toString()})(${JSON.stringify(withText.result.data)}, ${JSON.stringify(withoutText.result.data)}, ${JSON.stringify(prepared.fragments ?? [])}, ${JSON.stringify(prepared.obstacles ?? [])}, ${JSON.stringify(maskTextShot.result.data)}, ${JSON.stringify(maskNoneShot.result.data)})`
   )
   if (!analysis || analysis.weakestRatio === null) {
-    return { status: 'no-text', ...prepared }
+    // 一个落点都没找到，两种情况要分开：
+    //  - 元素**本来就没有自己的文字**（只有一个 ::before 之类的生成内容）
+    //    → no-text：没有可测的东西 ✓；
+    //  - 元素**有文字**，但掩膜里一个字形都认不出来
+    //    （祖先 opacity 太低、祖先被 filter 抹平、mix-blend-mode 混合掉了…）
+    //    → 这是「取证不完整」，必须判失败，不能悄悄当成「没文字」。
+    //    旧实现一律报 no-text，报告里读起来像「这个元素没有文字」，
+    //    一条真实存在的低对比度正文就这么被放过了。
+    return prepared.hasOwnText
+      ? { status: 'incomplete', incompleteReason: '掩膜里没能认出任何字形', ...prepared }
+      : { status: 'no-text', ...prepared }
   }
   const size = parseFloat(prepared.size)
   const weight = parseInt(prepared.weight) || 400
@@ -1766,6 +1872,15 @@ for (const appearance of APPEARANCES) {
   for (const p of PAGES) {
     if (!shouldMeasure(appearance, p.name)) continue
     await send('Page.navigate', { url: p.url })
+    // 把页面切到前台再量：
+    // 标签页在后台时浏览器不渲染、requestAnimationFrame 也不触发，
+    // 量到的画面可能是冻结的旧帧（数值不可信），
+    // 而且带 awaitPromise 的 evaluate 可能永远不返回（整个脚本卡死）。
+    try {
+      await send('Page.bringToFront')
+    } catch (e) {
+      /* 切前台失败不致命，后面的等待都有兜底 */
+    }
     try {
       await waitRendered()
     } catch (e) {
@@ -1858,7 +1973,7 @@ for (const appearance of APPEARANCES) {
           console.log(`  NOCV ${label.padEnd(12)} 元素不可见（${selector}）`)
           continue
         }
-        if (r.status === 'no-text') {
+        if (r.status === 'no-text' || r.status === 'incomplete') {
           const d = r.diag || {}
           const why =
             (d.maskTextPixelCount ?? 0) === 0
@@ -1866,22 +1981,32 @@ for (const appearance of APPEARANCES) {
               : (d.fragMaskPixelCount ?? 0) === 0
                 ? '掩膜里有字形，但都落在文字片段之外'
                 : `片段内掩膜最大覆盖率 ${d.maskMaxAlpha}，文字片段 ${d.fragmentCount} 个`
+          // 元素**有自己的文字**却一个字形都认不出来 → 取证不完整 → 判失败。
+          // （旧实现一律报「无可测文字」，读起来像「这元素没文字」，
+          //  一条真实存在的低对比度正文就这么被放过了。）
+          const incomplete = r.status === 'incomplete'
           report.rows.push({
             ...base,
-            status: 'not-covered',
-            detail: '元素上没有可测量的文字像素：' + why,
+            status: incomplete ? 'fail' : 'not-covered',
+            detail: incomplete
+              ? '取证不完整：元素有自己的文字，但掩膜里没能认出任何字形：' + why
+              : '元素上没有可测量的文字像素：' + why,
             diag: d,
           })
           report.failures.push({
-            kind: 'not-covered',
+            kind: incomplete ? 'incomplete-coverage' : 'not-covered',
             ...base,
             value: null,
             threshold: '可测量的文字像素',
             unit: '',
             text: r.text ?? '',
-            detail: `${appearance}/${p.name}/${label} 元素上没有可测量的文字像素：${why}`,
+            detail: incomplete
+              ? `${appearance}/${p.name}/${label} 取证不完整：元素有自己的文字，但掩膜里没能认出任何字形（${r.incompleteReason ?? why}）`
+              : `${appearance}/${p.name}/${label} 元素上没有可测量的文字像素：${why}`,
           })
-          console.log(`  NOCV ${label.padEnd(12)} 无可测文字（${selector}） ${why}`)
+          console.log(
+            `  ${incomplete ? 'FAIL' : 'NOCV'} ${label.padEnd(12)} ${incomplete ? '取证不完整' : '无可测文字'}（${selector}） ${why}`
+          )
           continue
         }
         const exempt = Boolean(exemptReason) || r.ariaHidden
@@ -2061,4 +2186,11 @@ if (report.failures.length === 0) {
 }
 console.log(`报告：${join(OUT, 'contrast-appearances.json')}`)
 ws.close()
+browserWs.close()
+// 关掉自己开的那个标签页，不给用户留垃圾标签
+try {
+  await browserSend('Target.closeTarget', { targetId })
+} catch (e) {
+  /* 忽略 */
+}
 process.exit(report.failures.length === 0 ? 0 : 1)

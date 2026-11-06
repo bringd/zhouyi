@@ -77,6 +77,12 @@ const evaluate = async (expression) => {
 await send('Page.enable')
 await send('Runtime.enable')
 await send('Network.enable')
+// 把页面切到前台：后台标签页浏览器不渲染，量到的是冻结的旧帧。
+try {
+  await send('Page.bringToFront')
+} catch (e) {
+  /* 切前台失败不致命 */
+}
 await send('Emulation.setDeviceMetricsOverride', {
   width: 1440,
   height: 900,

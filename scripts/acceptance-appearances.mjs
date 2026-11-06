@@ -113,6 +113,13 @@ await send('Page.enable')
 await send('Runtime.enable')
 await send('Network.enable')
 await send('Network.setCacheDisabled', { cacheDisabled: true })
+// 把量测页面切到前台：
+// 后台标签页浏览器不渲染，量到的是冻结的旧帧，数值不可信。
+try {
+  await send('Page.bringToFront')
+} catch (e) {
+  /* 切前台失败不致命 */
+}
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const evaluate = async (expression) => {
   const r = await send('Runtime.evaluate', {

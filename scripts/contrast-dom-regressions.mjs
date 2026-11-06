@@ -229,6 +229,133 @@ const FIXTURES = [
     opts: { scroll: 800 },
     expect: { status: 'measured', minRatio: 4.5, ok: true },
   },
+
+  /* ------------------------------------------------------------------
+   * 以下用例的 DOM/CSS **原样取自独立复审方的夹具**
+   * （tmp/codex-audit-20261102/*.html），不重新构造：
+   * 自己重写等于「按我的理解复现反例」，那正是上一轮被打穿的模式。
+   * 期望值是按 WCAG 语义推出来的，工具跑出来对不上就说明有 bug。
+   * ------------------------------------------------------------------ */
+
+  {
+    name: 'opacity-ancestor',
+    // 祖先带 opacity:.2：整棵子树（含文字）被一起淡化到 20%。
+    // 渲染出来的字色 ≈ 0.2·黑 + 0.8·白 = 204，压白底只有约 1.25:1 → 应判失败。
+    css: '#parent{opacity:.2}#t{color:#000;background:#fff}',
+    content: 'MMMM',
+    expect: { status: 'incomplete', ok: false },
+  },
+  {
+    name: 'opacity-mixed',
+    // 祖先 opacity:.2，但后代 span 自己 opacity:1。
+    // 组透明度是**逐层**复合的：span 自己的组不透明，
+    // 再被祖先的 0.2 淡化 → 最终仍约 1.25:1 → 应判失败。
+    css: '#parent{opacity:.2}#t{color:black;background:white}#t span{opacity:1}',
+    content: 'MMMM<span>MMMM</span>',
+    expect: { status: 'incomplete', ok: false },
+  },
+  {
+    name: 'mask-shift',
+    // ::before 占 150px 把文字整体右移，文字落在渐变的黑色那半边。
+    // 掩膜必须跟着文字的真实位置走（老实现会按固定位置取样），
+    // 取到黑底黑字 → 1:1 → 应判失败。
+    css: '#t{color:black;background:linear-gradient(90deg,white 120px,black 120px)}#t:before{content:"";display:inline-block;width:150px}',
+    content: 'MMMM',
+    expect: { status: 'measured', maxRatio: 1.4, ok: false },
+  },
+  {
+    name: 'svg-icon',
+    // 一个白色矩形 SVG 图标 + 黑字。图标不是文字，
+    // 但也不能把图标旁边的字一起排掉 → 黑字压白底 21:1 → 应判通过。
+    css: '#t{color:black;background:white}svg{width:40px;height:40px}',
+    content: '<svg><rect width="40" height="40" fill="white"/></svg>MMMM',
+    expect: { status: 'measured', minRatio: 15, ok: true },
+  },
+  {
+    name: 'svg-overlap',
+    // 渐变底 + 一个绝对定位盖在右半边的空 SVG + 长文字。
+    // 文字跨到黑底那半边 → 黑字压黑底 1:1 → 应判失败
+    // （老实现按 SVG 整个外接矩形排除落点，会把这侧的文字一起删掉 → 假通过）。
+    css: '#t{color:black;background:linear-gradient(90deg,white 100px,black 100px)}svg{position:absolute;left:100px;top:0;width:500px;height:60px;pointer-events:none}',
+    content: 'MMMMMMMMMMMMMMMMMMMM<svg></svg>',
+    expect: { status: 'measured', maxRatio: 1.4, ok: false },
+  },
+  {
+    name: 'illustration-overlay',
+    // 插画层（10% 白）盖在文字上：文字被冲淡到接近底色 → 应判失败。
+    css: '#t{background:linear-gradient(90deg,#fff 50%,#111 50%);color:#000}#t:before{content:"";position:absolute;inset:0;background:rgba(255,255,255,.1);pointer-events:none}',
+    content: 'MMMMMMMMMMMMMMMMMMMMMMMM',
+    expect: { status: 'measured', maxRatio: 1.6, ok: false },
+  },
+  {
+    name: 'clipped',
+    // 容器 140px + overflow:hidden，文字被裁到只剩前半截。
+    // 可见部分跨到渐变的黑色那半边 → 1:1 → 应判失败；
+    // 被裁到画面外的那几行**不算取证不完整**（它们本来就看不见）。
+    css: '#t{width:140px!important;overflow:hidden;color:black;background:linear-gradient(90deg,white 70px,black 70px)}',
+    content: 'MMMMMMMMMMMMMMMMMMMMMMMM',
+    expect: { status: 'measured', maxRatio: 1.4, ok: false, minUncovered: 0 },
+  },
+  {
+    name: 'filter-ancestor',
+    // 祖先被 filter:contrast(0) 抹平 → 掩膜里认不出字形 → 取证不完整 → 应判失败。
+    css: '#parent{filter:contrast(0)}#t{color:black;background:white}',
+    content: 'MMMM',
+    expect: { status: 'incomplete', ok: false },
+  },
+  {
+    name: 'input-empty',
+    // 空输入框：工具会填一个测试值再量（否则没有可测的文字），
+    // 量的就是这个值的对比度 → 黑字压白底，应判通过。
+    // 注意：placeholder 的对比度**不在本工具的量程内**（见已知边界）。
+    css: '#t{color:black;background:white}',
+    content: '',
+    opts: { field: 'input', attrs: 'placeholder="unreadable placeholder"' },
+    expect: { status: 'measured', minRatio: 15, ok: true },
+  },
+  {
+    name: 'input-placeholder-white',
+    // 白色 placeholder 压白底：placeholder 被工具注入的样式隐藏了，
+    // 工具量的是填进去的测试值 → 仍应通过。
+    // 「placeholder 本身看不清」这件事本工具测不到，已写进已知边界。
+    css: '#t{color:black;background:white}#t::placeholder{color:white;opacity:1}',
+    content: '',
+    opts: { field: 'input', attrs: 'placeholder="unreadable placeholder"' },
+    expect: { status: 'measured', minRatio: 15, ok: true },
+  },
+  {
+    name: 'textarea-empty',
+    // 空 textarea：原生缩放抓手不能被当成文字
+    // （早期单张掩膜会把抓手认成文字，造出 1.94:1 的假失败）。
+    css: '#t{color:black;background:white}',
+    content: '',
+    opts: { field: 'textarea', attrs: 'placeholder="unreadable placeholder"' },
+    expect: { status: 'measured', minRatio: 15, ok: true },
+  },
+  {
+    name: 'blend',
+    // mix-blend-mode:screen：黑字与白底混合后仍是白 → 掩膜里认不出字形
+    // → 取证不完整 → 判失败（保守方向，不允许假通过）。
+    css: '#parent{background:white}#t{color:#000;background:white;mix-blend-mode:screen}',
+    content: 'MMMM',
+    expect: { status: 'incomplete', ok: false },
+  },
+  {
+    name: 'text-shadow',
+    // 白色 text-shadow：掩膜里去掉阴影后仍要能认出字形，
+    // 黑字压白底 21:1 → 应判通过（独立审核的结论：影子本身不造成假通过）。
+    css: '#t{color:black;background:white;text-shadow:3px 0 white}',
+    content: 'MMMM',
+    expect: { status: 'measured', minRatio: 15, ok: true },
+  },
+  {
+    name: 'text-stroke',
+    // 2px 白色 text-stroke：描边是白色，不该把字芯吃掉；
+    // 黑字压白底仍应通过（独立审核的结论：描边本身不造成假通过）。
+    css: '#t{color:black;background:white;-webkit-text-stroke:2px white}',
+    content: 'MMMM',
+    expect: { status: 'measured', minRatio: 15, ok: true },
+  },
 ]
 
 /* --------------------------- 执行 --------------------------- */
