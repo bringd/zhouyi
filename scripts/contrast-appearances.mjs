@@ -1309,14 +1309,20 @@ async function measureElement(selector, index, tag) {
       )
       if (prepared.missing) break
       if (prepared.invisible) break
-      // 字色本身也要稳定：按钮的入场淡入是 CSS color 过渡
-      // （computed color 的 alpha 在变），它不在 document.getAnimations() 里，
-      // 冻结动画管不到——不额外等一下，前后两次读到的字色 alpha 不一样，
-      // 会被判成「测量期间页面在动」。
-      if (prepared.color === prevColor) stableSamples += 1
+      // 连续多次采样都「没有动画在跑 + 字色没变」才算稳。
+      // 为什么要连续多次而不是一次：
+      //   - 字色本身也要稳定：按钮的入场淡入是 CSS color 过渡
+      //     （computed color 的 alpha 在变），它不在 document.getAnimations() 里，
+      //     冻结动画管不到——不额外等一下，前后两次读到的字色 alpha 不一样，
+      //     会被判成「测量期间页面在动」。
+      //   - framer-motion 的错峰入场是**一个接一个**开始的，两个动画之间
+      //     会有一小段「没有动画在跑」的缝；只看一次就收工，
+      //     很可能正好收在那条缝里，下一张截图时新动画才启动 → 判成漂移
+      //     （实测青岚图鉴页偶发一次 unstable，复跑即过）。
+      if (prepared.settled && prepared.color === prevColor) stableSamples += 1
       else stableSamples = 0
       prevColor = prepared.color
-      if (prepared.settled && stableSamples >= 1) break
+      if (stableSamples >= 2) break
       await sleep(120)
     }
     return prepared
