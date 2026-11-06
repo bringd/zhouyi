@@ -527,7 +527,9 @@ export default function DesignGallery() {
                         {daily.keywords.slice(0, 2).join(" · ")}
                       </span>
                       <h3>{daily.name}</h3>
-                      <p>{daily.modernInterpretation?.slice(0, 80)}</p>
+                      {/* 完整展示今译，不做长度截断（截断会让正文只剩半句）。
+                          旧版首页与三套正式外观都是这个口径，预览页要一致。 */}
+                      <p>{daily.modernInterpretation}</p>
                       <Link to={"/hexagram/" + daily.id}>
                         展开今日卦境 <ArrowRight size={16} />
                       </Link>

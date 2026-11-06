@@ -429,12 +429,10 @@
 }
 
 .yh-today__reading > p {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  max-width: 430px;
+  /* 完整展示今译，不做行数截断（截断会让正文只剩半句 + 省略号）。
+     旧版首页的 .daily-interpretation 就是这么做的，这里沿用。 */
   color: var(--color-text-muted);
+  max-width: 430px;
   font-size: 13px;
   line-height: 1.9;
 }
@@ -491,6 +489,10 @@
   border: 1px solid var(--color-border);
   border-radius: var(--yh-radius);
   background: transparent;
+  /* 今日卦境改为完整展示今译后，左侧卡片变高；
+     这里默认会被网格拉齐高度，右侧面板就成了一大块空白框。
+     贴合自身内容高度，空白回到页面背景里。 */
+  align-self: start;
 }
 
 .yh-explore h2 {

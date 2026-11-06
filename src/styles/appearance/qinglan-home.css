@@ -368,14 +368,12 @@
 }
 
 .ql-today__summary {
+  /* 完整展示今译，不做行数截断（截断会让正文只剩半句 + 省略号）。
+     旧版首页的 .daily-interpretation 就是这么做的，这里沿用。 */
   color: var(--color-text-secondary);
   max-width: 430px;
   font-size: 13px;
   line-height: 1.9;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .ql-today__change {
@@ -749,7 +747,6 @@
 
   .ql-today__summary {
     font-size: 13px;
-    -webkit-line-clamp: 4;
   }
 
   .ql-today__art {
