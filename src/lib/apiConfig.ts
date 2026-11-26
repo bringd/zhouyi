@@ -6,7 +6,7 @@
  *
  *   - baseUrl:  the upstream endpoint (Anthropic-compatible)
  *   - apiKey:   the user's secret (HttpOnly-style: only stored client-side)
- *   - model:    model identifier, e.g. "minimax-m3" or "claude-haiku-4-5"
+ *   - model:    model identifier, e.g. "deepseek-v4.1-flash" or "claude-haiku-4-5"
  *
  * The baseUrl is what makes "external model" support work: a user
  * pointing to a 3rd-party Anthropic-compatible endpoint just pastes
@@ -21,9 +21,18 @@
 const STORAGE_KEY = 'zhouyi:api-config:v1'
 
 /** Production endpoint (used when the page is served from a real
- *  domain that MiniMax's CORS already whitelists, e.g.
- *  https://orix-studio.pages.dev). */
-const UPSTREAM_BASE_URL = 'https://api.minimaxi.com/anthropic'
+ *  domain that the gateway's CORS already whitelists, e.g.
+ *  https://orix-studio.pages.dev).
+ *
+ *  Current upstream: the OpenCode Go gateway's Anthropic-compatible
+ *  endpoint. The `model` default below is served by that gateway. */
+const UPSTREAM_BASE_URL = 'https://opencode.ai/zen/go'
+
+/** Hosts we used to point at directly. Stored configs carrying one of
+ *  these get rewritten to the same-origin proxy path (see getApiConfig). */
+const LEGACY_UPSTREAM_BASE_URLS: readonly string[] = [
+  'https://api.minimaxi.com/anthropic',
+]
 
 /** Path to the Cloudflare Pages Function that reverse-proxies the
  *  Anthropic-compatible endpoint. Same origin in dev and production:
@@ -50,7 +59,9 @@ function getDefaultBaseUrl(): string {
   return window.location.origin + PROXY_PATH + '/v1/messages'
 }
 
-const DEFAULT_MODEL = 'minimax-m3'
+/** Default model for the built-in (demo) path. Pinned server-side too —
+ *  see functions/api/proxy/anthropic/v1/messages.ts (`AI_MODEL`). */
+const DEFAULT_MODEL = 'deepseek-v4.1-flash'
 
 export interface ApiConfig {
   baseUrl: string
@@ -130,6 +141,7 @@ export function getApiConfig(): ApiConfig {
   if (
     !baseUrl ||
     baseUrl === UPSTREAM_BASE_URL ||
+    LEGACY_UPSTREAM_BASE_URLS.includes(baseUrl) ||
     /\/api-proxy\/anthropic(\/|$)/.test(baseUrl)
   ) {
     baseUrl = getDefaultBaseUrl()

@@ -66,25 +66,25 @@ Vite proxy map (from `vite.config.ts`): `/api-feed` → :8787, `/api/auth|/api/r
 ## Architecture overview
 
 ```
-┌─────────────────────────────┐   same-origin fetch  ┌──────────────────────────────┐
-│  Vite + React SPA           │ ──────────────────▶ │ Cloudflare Pages Functions   │
-│  src/                       │   /api/auth, /api/   │ functions/api/proxy/         │
-│  - 64 卦 as JSON            │   records, /api/     │   anthropic/v1/messages.ts   │
-│  - lib/ (pure, TDD)         │   favorites, /api/   │                              │
-│  - localStorage             │   feed, /api/proxy/  │ 1. Browser sends x-api-key?  │
-│  - 9 lazy-loaded routes     │   anthropic/*        │    → forward as-is (BYOK)    │
-│    (Home, Codex, Hexagram   │                      │ 2. No header?                │
-│    Detail, Divination,      │                      │    → inject env.AI_DEMO_KEY  │
-│    Result, Records, Feed,   │                      │    → count per-IP quota in   │
-│    Settings + NotFound +    │                      │      D1 ai_usage table        │
-│    YaoDesignCompare)        │                      │                              │
-│  - Guest / registered mode  │                      │ Default upstream:             │
-│    via SmsModal + zhouyi_   │                      │   https://api.minimaxi.com/  │
-│    session cookie           │                      │   anthropic/v1/messages      │
-└──────────┬──────────────────┘                      │   (model: minimax-m3)        │
-           │  same-origin fetch                      └──────────────┬───────────────┘
-           ▼  /api/feed, /api/records, /api/favorites, /api/auth       │
-┌─────────────────────────────┐                                     │
+┌─────────────────────────────┐   same-origin fetch  ┌──────────────────────────────────┐
+│  Vite + React SPA           │                      │ Cloudflare Pages Functions       │
+│  src/                       │                      │ functions/api/proxy/             │
+│  - 64 卦 as JSON             │                      │   anthropic/v1/messages.ts       │
+│  - lib/ (pure, TDD)         │                      │                                  │
+│  - localStorage             │                      │ 1. Browser sends x-api-key?      │
+│  - 9 lazy-loaded routes     │                      │    → forward as-is (BYOK)        │
+│    (Home, Codex, Hexagram   │                      │ 2. No header?                    │
+│    Detail, Divination,      │                      │    → inject env.AI_DEMO_KEY      │
+│    Result, Records, Feed,   │                      │    → pin model server-side       │
+│    Settings + NotFound +    │                      │        (env.AI_MODEL)            │
+│    YaoDesignCompare)        │                      │                                  │
+│  - Guest / registered mode  │                      │ Default upstream:                │
+│    via SmsModal + zhouyi_   │                      │   https://opencode.ai/zen/       │
+│    session cookie           │                      │   go/v1/messages                 │
+└──────────┬──────────────────┘                      │                                  │
+           │                      └──────────────┬───────────────────┘
+           ▼  /api/feed, /api/records, /api/favorites, /api/auth
+┌─────────────────────────────┐
 │  Cloudflare Worker          │  ◀──── D1 (zhouyi-db, shared)
 │  (worker/)                  │         with Pages Function
 │  Hono + Drizzle             │

@@ -5,27 +5,51 @@
  *
  * 1. **BYOK mode** (user supplied their own API Key)
  *    - Browser sends `x-api-key: sk-...` header.
- *    - Function forwards it transparently to the upstream.
- *    - No quota check, no record-keeping, no AI cost on us.
+ *    - Function forwards it transparently to the upstream — including the
+ *      `model` the browser asked for. No quota check, no record-keeping.
  *
  * 2. **Demo mode** (user has no API Key)
  *    - Browser sends no `x-api-key` header.
  *    - Function looks up `env.AI_DEMO_KEY` and injects it.
- *    - Forwards to upstream. No quota is enforced (Phase 2 lifted
- *      the demo-mode daily limit; the server is responsible for its
- *      own AI budget via upstream key throttling).
+ *    - **The model is pinned server-side**: whatever `model` the browser
+ *      sent is rewritten to `env.AI_MODEL` (default `deepseek-v4.1-flash`,
+ *      served by the OpenCode Go gateway). Old browsers with a stale
+ *      localStorage model therefore still hit the intended model.
+ *    - No quota is enforced (Phase 2 lifted the demo-mode daily limit).
+ *
+ * 3. **Gateway session header**
+ *    - The OpenCode Go gateway rejects requests without `x-opencode-session`
+ *      (`400 MissingSessionID`). When the incoming request doesn't carry one,
+ *      a per-request id is generated. The header is harmless to other
+ *      Anthropic-compatible upstreams.
  *
  * Configuration
  * -------------
- * - `AI_DEMO_KEY` — the server-side MiniMax API key. Set in
- *   Pages → Settings → Environment variables. If unset, demo mode
- *   returns 503 ("demo temporarily unavailable").
- * - `AI_PROXY_UPSTREAM` — override the upstream base URL. Default
- *   `https://api.minimaxi.com/anthropic/v1/messages`.
+ * - `AI_DEMO_KEY`        — server-side gateway key (OpenCode Go: `oc_sk_...`).
+ *                          If unset, demo mode returns 503.
+ * - `AI_MODEL`           — server-pinned model for demo mode.
+ *                          Default `deepseek-v4.1-flash`.
+ * - `AI_PROXY_UPSTREAM`  — override the upstream URL.
+ *                          Default `https://opencode.ai/zen/go/v1/messages`.
+ * - `AI_ENABLE_THINKING` — set to `1`/`true` to let demo mode keep the
+ *                          gateway's reasoning blocks. Off by default:
+ *                          reasoning tokens are billed out of
+ *                          `max_tokens`, and deepseek-v4.1-flash happily
+ *                          burns the whole budget in thinking, leaving a
+ *                          truncated (or empty) interpretation.
+ *
+ * Demo-mode output budget
+ * -----------------------
+ * Reasoning models spend `max_tokens` on thinking *before* emitting the
+ * six-section interpretation, so a 1024 budget can truncate it. Demo mode
+ * therefore floors `max_tokens` at `DEFAULT_MAX_TOKENS` (2048) and, unless
+ * `AI_ENABLE_THINKING` is set, disables thinking. BYOK requests are left
+ * untouched — the caller's provider may not accept `thinking` at all.
  *
  * Response headers (always present)
  * ---------------------------------
- * - `X-AI-Mode: byok` | `demo`               — which mode served this request
+ * - `X-AI-Mode: byok` | `demo`  — which mode served this request
+ * - `X-AI-Model`                — model the request was actually sent with
  *
  * Note: AI demo quota headers (`X-AI-Quota-Limit/Used/Remaining`)
  * were removed in Phase 2 alongside the per-IP quota enforcement.
@@ -34,7 +58,9 @@
 
 type Env = {
   AI_DEMO_KEY?: string;
+  AI_MODEL?: string;
   AI_PROXY_UPSTREAM?: string;
+  AI_ENABLE_THINKING?: string;
 };
 
 interface CfContext {
@@ -46,7 +72,16 @@ interface CfContext {
 
 type PagesHandler = (ctx: CfContext) => Promise<Response> | Response;
 
-const DEFAULT_UPSTREAM = "https://api.minimaxi.com/anthropic/v1/messages";
+const DEFAULT_UPSTREAM = "https://opencode.ai/zen/go/v1/messages";
+const DEFAULT_MODEL = "deepseek-v4.1-flash";
+/**
+ * Minimum output budget for demo mode. The six-section interpretation is
+ * roughly 700-900 Chinese characters (~1100-1400 tokens); reasoning models
+ * charge thinking to the same budget. 4096 leaves headroom for a longer
+ * prompt style without being a cost commitment — `max_tokens` is a cap, and
+ * billing follows the tokens actually generated (typically 500-900).
+ */
+const DEFAULT_MAX_TOKENS = 4096;
 
 // Hop-by-hop headers that must NOT be forwarded per RFC 7230 §6.1.
 // Also strip Cloudflare-specific and host headers so the upstream
@@ -74,6 +109,15 @@ function resolveUpstream(env: Env): string {
   return (env.AI_PROXY_UPSTREAM ?? DEFAULT_UPSTREAM).replace(/\/+$/, "");
 }
 
+function resolveModel(env: Env): string {
+  const pinned = env.AI_MODEL?.trim();
+  return pinned && pinned.length > 0 ? pinned : DEFAULT_MODEL;
+}
+
+function thinkingEnabled(env: Env): boolean {
+  return /^(1|true|yes|on)$/i.test(env.AI_ENABLE_THINKING?.trim() ?? "");
+}
+
 function copyHeadersFiltered(
   src: Headers,
   blocked: ReadonlySet<string>,
@@ -84,6 +128,44 @@ function copyHeadersFiltered(
     out.set(key, value);
   });
   return out;
+}
+
+/**
+ * Rewrite the JSON body for demo mode: pin `model`, floor `max_tokens`,
+ * and disable reasoning unless the operator opted in. Anything we can't
+ * parse is passed through untouched (never drop a request just to apply
+ * server-side defaults).
+ */
+function applyDemoBodyPolicy(
+  raw: string,
+  model: string,
+  allowThinking: boolean,
+): string {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return raw;
+    }
+    const body: Record<string, unknown> = {
+      ...(parsed as Record<string, unknown>),
+      model,
+    };
+    const requested =
+      typeof body.max_tokens === "number" && Number.isFinite(body.max_tokens)
+        ? body.max_tokens
+        : 0;
+    body.max_tokens = Math.max(requested, DEFAULT_MAX_TOKENS);
+    if (!allowThinking) body.thinking = { type: "disabled" };
+    return JSON.stringify(body);
+  } catch {
+    return raw;
+  }
+}
+
+function newSessionId(): string {
+  const c = globalThis.crypto as Crypto | undefined;
+  if (c && typeof c.randomUUID === "function") return c.randomUUID();
+  return `orix-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 const handler: PagesHandler = async (context) => {
@@ -119,13 +201,30 @@ const handler: PagesHandler = async (context) => {
     if (mode === "demo") {
       headers.set("x-api-key", context.env.AI_DEMO_KEY as string);
     }
+    if (!headers.has("x-opencode-session")) {
+      headers.set("x-opencode-session", newSessionId());
+    }
 
     const init: RequestInit = {
       method: context.request.method,
       headers,
     };
+
+    let appliedModel: string | undefined;
     if (context.request.method !== "GET" && context.request.method !== "HEAD") {
-      init.body = context.request.body;
+      if (mode === "demo") {
+        // Server-side generation policy: pin the model, guarantee enough
+        // output budget, and skip reasoning unless explicitly enabled.
+        appliedModel = resolveModel(context.env);
+        const rawBody = await context.request.text();
+        init.body = applyDemoBodyPolicy(
+          rawBody,
+          appliedModel,
+          thinkingEnabled(context.env),
+        );
+      } else {
+        init.body = context.request.body;
+      }
     }
 
     let upstream: Response;
@@ -145,6 +244,7 @@ const handler: PagesHandler = async (context) => {
 
     const responseHeaders = copyHeadersFiltered(upstream.headers, HOP_BY_HOP);
     responseHeaders.set("X-AI-Mode", mode);
+    if (appliedModel) responseHeaders.set("X-AI-Model", appliedModel);
 
     return new Response(upstream.body, {
       status: upstream.status,

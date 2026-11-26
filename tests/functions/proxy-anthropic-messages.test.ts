@@ -14,8 +14,15 @@
  *   - A D1 binding is no longer required by the function.
  *
  * What is still asserted:
- *   - BYOK transparency (header/body verbatim, no upstream key rewrite).
+ *   - BYOK transparency (header/body verbatim, no upstream key rewrite,
+ *     no model pinning).
  *   - Demo mode injects AI_DEMO_KEY.
+ *   - Demo mode pins the model server-side (body.model → AI_MODEL or
+ *     the built-in default `deepseek-v4.1-flash`), exposed as X-AI-Model.
+ *   - Demo mode floors `max_tokens` at 4096 and disables reasoning unless
+ *     `AI_ENABLE_THINKING` is set — otherwise thinking eats the budget and
+ *     the interpretation's tail sections get truncated. BYOK is untouched.
+ *   - Both modes ensure the OpenCode Go `x-opencode-session` header.
  *   - Demo mode without AI_DEMO_KEY returns 503.
  *   - BYOK always sets X-AI-Mode: byok; demo always sets X-AI-Mode: demo.
  *   - Upstream fetch failure → 502 upstream-unreachable.
@@ -27,6 +34,9 @@ import { onRequest } from "../../functions/api/proxy/anthropic/v1/messages";
 
 const BODY_JSON =
   '{"model":"minimax-m3","messages":[{"role":"user","content":"hi"}]}';
+
+const DEFAULT_UPSTREAM_URL = "https://opencode.ai/zen/go/v1/messages";
+const DEFAULT_MODEL = "deepseek-v4.1-flash";
 
 function makeRequest(
   init: {
@@ -108,7 +118,7 @@ describe("functions/api/proxy/anthropic/v1/messages", () => {
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe("https://api.minimaxi.com/anthropic/v1/messages");
+    expect(url).toBe(DEFAULT_UPSTREAM_URL);
     expect(init.method).toBe("POST");
 
     const sentHeaders = new Headers(init.headers as HeadersInit);
@@ -120,12 +130,14 @@ describe("functions/api/proxy/anthropic/v1/messages", () => {
     expect(sentHeaders.has("cf-connecting-ip")).toBe(false);
     expect(sentHeaders.has("host")).toBe(false);
 
-    // Body preserved bit-for-bit
+    // Body preserved bit-for-bit — BYOK keeps the caller's model.
     const sentBody = await new Response(init.body as BodyInit).text();
     expect(sentBody).toBe(BODY_JSON);
 
     expect(res.status).toBe(200);
     expect(res.headers.get("X-AI-Mode")).toBe("byok");
+    // No pinning happened, so no model hint is advertised.
+    expect(res.headers.get("X-AI-Model")).toBeNull();
     // Quota headers removed in Phase 2
     expect(res.headers.get("X-AI-Quota-Limit")).toBeNull();
     expect(res.headers.get("X-AI-Quota-Used")).toBeNull();
@@ -147,7 +159,7 @@ describe("functions/api/proxy/anthropic/v1/messages", () => {
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe("https://api.minimaxi.com/anthropic/v1/messages");
+    expect(url).toBe(DEFAULT_UPSTREAM_URL);
     const sentHeaders = new Headers(init.headers as HeadersInit);
     expect(sentHeaders.get("x-api-key")).toBe(DEMO_KEY);
 
@@ -271,5 +283,148 @@ describe("functions/api/proxy/anthropic/v1/messages", () => {
     const r5 = await onRequest(demo5xxCtx);
     expect(r5.headers.get("X-AI-Mode")).toBe("demo");
     expect(r5.headers.get("X-AI-Quota-Limit")).toBeNull();
+  });
+
+  // ────────────────────────────────────────────────────────────────────
+  // 7) demo mode pins the model server-side
+  // ────────────────────────────────────────────────────────────────────
+  it("demo: rewrites body.model to the pinned default and reports X-AI-Model", async () => {
+    fetchSpy.mockResolvedValueOnce(upstreamOk());
+
+    const res = await onRequest(
+      makeContext({ env: { AI_DEMO_KEY: DEMO_KEY } }),
+    );
+
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    const sentBody = JSON.parse(
+      await new Response(init.body as BodyInit).text(),
+    ) as { model: string; messages: unknown };
+    expect(sentBody.model).toBe(DEFAULT_MODEL);
+    // Everything except the server-side output policy is untouched.
+    expect(sentBody.messages).toEqual([{ role: "user", content: "hi" }]);
+
+    expect(res.headers.get("X-AI-Mode")).toBe("demo");
+    expect(res.headers.get("X-AI-Model")).toBe(DEFAULT_MODEL);
+  });
+
+  it("demo: floors max_tokens at 4096 and disables thinking so the six sections fit", async () => {
+    fetchSpy.mockResolvedValueOnce(upstreamOk());
+
+    // A stale browser bundle still sends max_tokens: 1024 and no thinking flag.
+    await onRequest(
+      makeContext({
+        env: { AI_DEMO_KEY: DEMO_KEY },
+        request: makeRequest({
+          body: '{"model":"minimax-m3","max_tokens":1024,"messages":[]}',
+        }),
+      }),
+    );
+
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    const sentBody = JSON.parse(
+      await new Response(init.body as BodyInit).text(),
+    ) as { max_tokens: number; thinking?: { type?: string } };
+    expect(sentBody.max_tokens).toBe(4096);
+    expect(sentBody.thinking).toEqual({ type: "disabled" });
+  });
+
+  it("demo: never lowers a caller-supplied max_tokens above the floor", async () => {
+    fetchSpy.mockResolvedValueOnce(upstreamOk());
+
+    await onRequest(
+      makeContext({
+        env: { AI_DEMO_KEY: DEMO_KEY },
+        request: makeRequest({
+          body: '{"model":"minimax-m3","max_tokens":8192,"messages":[]}',
+        }),
+      }),
+    );
+
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    const sentBody = JSON.parse(
+      await new Response(init.body as BodyInit).text(),
+    ) as { max_tokens: number };
+    expect(sentBody.max_tokens).toBe(8192);
+  });
+
+  it("demo: AI_ENABLE_THINKING=1 keeps the caller's reasoning settings", async () => {
+    fetchSpy.mockResolvedValueOnce(upstreamOk());
+
+    await onRequest(
+      makeContext({
+        env: { AI_DEMO_KEY: DEMO_KEY, AI_ENABLE_THINKING: "1" },
+        request: makeRequest({
+          body: '{"model":"minimax-m3","thinking":{"type":"enabled","budget_tokens":512},"messages":[]}',
+        }),
+      }),
+    );
+
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    const sentBody = JSON.parse(
+      await new Response(init.body as BodyInit).text(),
+    ) as { thinking?: { type?: string; budget_tokens?: number } };
+    expect(sentBody.thinking).toEqual({ type: "enabled", budget_tokens: 512 });
+  });
+
+  it("demo: AI_MODEL overrides the pinned default", async () => {
+    fetchSpy.mockResolvedValueOnce(upstreamOk());
+
+    const res = await onRequest(
+      makeContext({ env: { AI_DEMO_KEY: DEMO_KEY, AI_MODEL: "some-other-model" } }),
+    );
+
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    const sentBody = JSON.parse(
+      await new Response(init.body as BodyInit).text(),
+    ) as { model: string };
+    expect(sentBody.model).toBe("some-other-model");
+    expect(res.headers.get("X-AI-Model")).toBe("some-other-model");
+  });
+
+  it("demo: a non-JSON body is forwarded unchanged instead of failing", async () => {
+    fetchSpy.mockResolvedValueOnce(upstreamOk());
+
+    await onRequest(
+      makeContext({
+        env: { AI_DEMO_KEY: DEMO_KEY },
+        request: makeRequest({ body: "not json at all" }),
+      }),
+    );
+
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    const sentBody = await new Response(init.body as BodyInit).text();
+    expect(sentBody).toBe("not json at all");
+  });
+
+  // ────────────────────────────────────────────────────────────────────
+  // 8) OpenCode Go requires x-opencode-session
+  // ────────────────────────────────────────────────────────────────────
+  it("injects x-opencode-session when the caller didn't send one", async () => {
+    fetchSpy.mockResolvedValueOnce(upstreamOk());
+
+    await onRequest(makeContext({ env: { AI_DEMO_KEY: DEMO_KEY } }));
+
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    const sentHeaders = new Headers(init.headers as HeadersInit);
+    const session = sentHeaders.get("x-opencode-session");
+    expect(session).toBeTruthy();
+    expect((session as string).length).toBeGreaterThan(8);
+  });
+
+  it("keeps a caller-supplied x-opencode-session", async () => {
+    fetchSpy.mockResolvedValueOnce(upstreamOk());
+
+    await onRequest(
+      makeContext({
+        env: { AI_DEMO_KEY: DEMO_KEY },
+        request: makeRequest({
+          headers: { "x-opencode-session": "session-from-caller" },
+        }),
+      }),
+    );
+
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    const sentHeaders = new Headers(init.headers as HeadersInit);
+    expect(sentHeaders.get("x-opencode-session")).toBe("session-from-caller");
   });
 });

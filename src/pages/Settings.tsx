@@ -177,7 +177,7 @@ export default function Settings() {
                 />
                 <span className="block mt-1 text-[12px] text-ink-light/70 font-body">
                   Anthropic 兼容端点。用 Anthropic 官方时留空；
-                  用 3rd-party（如 MiniMax、自建代理）时填那个端点 URL。
+                  用 3rd-party（如 OpenCode Go、自建代理）时填那个端点 URL。
                 </span>
               </label>
 
@@ -195,7 +195,7 @@ export default function Settings() {
                   className="mt-2 w-full px-3 py-2 font-mono text-xs bg-white border border-june-bronze/40 rounded-sm focus:outline-none focus:border-june-red"
                 />
                 <span className="block mt-1 text-[12px] text-ink-light/70 font-body">
-                  端点支持的模型名。默认 minimax-m3。
+                  端点支持的模型名。默认 deepseek-v4.1-flash。
                 </span>
               </label>
 

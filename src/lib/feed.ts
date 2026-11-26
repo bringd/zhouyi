@@ -18,7 +18,7 @@
  */
 
 const DEV_PROXY_PATH = '/api-feed'
-const DEFAULT_MODEL_PROMPT = 'minimax-m3' // unused, kept for typing
+const DEFAULT_MODEL_PROMPT = 'deepseek-v4.1-flash' // unused, kept for typing
 
 function getBaseUrl(): string {
   const env = (import.meta.env?.VITE_FEED_API_BASE ?? '') as string

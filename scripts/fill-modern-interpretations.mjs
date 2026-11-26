@@ -41,6 +41,7 @@
  */
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
+import { randomUUID } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 // The content contract lives in exactly one place so the generator and the
 // Vitest suite can never drift apart. Node ≥22.6 strips the types on import
@@ -57,8 +58,8 @@ const JSON_PATH = resolve(__dirname, '../src/data/hexagrams.json')
 const DEV_VARS_PATH = resolve(__dirname, '../.dev.vars')
 const TRIGRAMS_PATH = resolve(__dirname, '../src/data/trigrams.json')
 
-const MODEL = 'MiniMax-Text-01'
-const UPSTREAM = 'https://api.minimaxi.com/anthropic/v1/messages'
+const MODEL = 'deepseek-v4.1-flash'
+const UPSTREAM = 'https://opencode.ai/zen/go/v1/messages'
 const MAX_ATTEMPTS = 3
 const MIN_LEN = MODERN_INTERPRETATION_MIN_LEN
 const MAX_LEN = MODERN_INTERPRETATION_MAX_LEN
@@ -246,6 +247,8 @@ async function generateOne(apiKey, h) {
       'x-api-key': apiKey,
       'anthropic-version': '2023-06-01',
       'content-type': 'application/json',
+      // OpenCode Go gateway requires a session id to route the request.
+      'x-opencode-session': randomUUID(),
     },
     body: JSON.stringify({
       model: MODEL,

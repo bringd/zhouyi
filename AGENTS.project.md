@@ -99,12 +99,16 @@ Hono app on Cloudflare Workers + D1 (SQLite). The Worker is what the frontend ta
 
 ### Pages Functions (`functions/`) — AI proxy + demo quota
 
-`functions/api/proxy/anthropic/v1/messages.ts` is a **same-origin reverse proxy** that bypasses browser CORS so the SPA can call Anthropic from `https://orix-studio.pages.dev` without preflight failures. It runs two modes based on the request:
+`functions/api/proxy/anthropic/v1/messages.ts` is a **same-origin reverse proxy** that bypasses browser CORS so the SPA can call the AI gateway from `https://orix-studio.pages.dev` without preflight failures. It runs two modes based on the request:
 
-- **BYOK** (`x-api-key` header present): forwards the key unchanged to Anthropic, no quota.
-- **Demo** (no `x-api-key`): injects `env.AI_DEMO_KEY`, counts the call against the per-IP daily quota (`AI_DEMO_DAILY_LIMIT`, default 5/UTC day) via the shared D1 `ai_usage` table. Over-quota → 429 + `Retry-After: 86400`.
+- **BYOK** (`x-api-key` header present): forwards the key and the caller's `model` unchanged to the upstream. No quota.
+- **Demo** (no `x-api-key`): injects `env.AI_DEMO_KEY` and **pins the model server-side** — the `model` in the JSON body is rewritten to `env.AI_MODEL` (default `deepseek-v4.1-flash`), so browsers carrying a stale localStorage model still hit the intended model. The pinned value is echoed back as `X-AI-Model`.
 
-Always sets `X-AI-Mode`, `X-AI-Quota-Limit/Used/Remaining` response headers so the frontend can render "已用 N/5" banners.
+Demo mode also **owns the output budget**, so stale bundles can't truncate the reading: `max_tokens` is floored at 2048 (the six-section interpretation is ~1100-1400 tokens, and reasoning models bill thinking out of the same budget — at 1024 the tail sections were silently cut) and `thinking: {type: "disabled"}` is forced unless `AI_ENABLE_THINKING=1`. BYOK bodies are never rewritten — the caller's provider may reject a `thinking` param.
+
+Upstream is the **OpenCode Go gateway's Anthropic-compatible endpoint**, `https://opencode.ai/zen/go/v1/messages` (override with `AI_PROXY_UPSTREAM`). The gateway requires an `x-opencode-session` header — the proxy generates one per request when the caller doesn't supply it (missing header → `400 MissingSessionID`).
+
+Always sets `X-AI-Mode` (and `X-AI-Model` on demo responses). The Phase-2 per-IP quota and its `X-AI-Quota-*` headers are gone; the `ai_usage` D1 table is no longer read by the proxy.
 
 **Critical routing constraint:** Pages Functions do NOT support dynamic `[...slug]` / `[[slug]]` file names. Use exact-path files like `functions/api/proxy/anthropic/v1/messages.ts`. Cloudflare Pages will silently 404 dynamic-segment files.
 
