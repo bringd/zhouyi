@@ -93,6 +93,11 @@ export interface ResultAppearanceProps {
   aiText: string | null
   /** AI 请求状态 */
   aiStatus: 'idle' | 'loading' | 'error'
+  /**
+   * 进行中的阶段：`thinking` 表示推理模型还在思考（正文尚未开始），
+   * `streaming` 表示正文已经开始流式输出。
+   */
+  aiPhase: 'idle' | 'thinking' | 'streaming'
   /** AI 错误文案 */
   aiError: string | null
   /** 解读成功但浏览器存储失败，正文仍可阅读和导出 */

@@ -14,6 +14,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { YaoLineStack } from '@/components/hexagram/YaoLineStack'
 import { InterpretationRenderer } from '@/components/sections/InterpretationRenderer'
 import { Button } from '@/components/ui/Button'
+import { AiThinkingHint } from '@/components/ui/AiThinkingHint'
 import { hexagramLineStates, hexagramLineTypes } from '@/lib/hexagramLines'
 import type { ResultAppearanceProps } from '@/components/appearances/shared/types'
 import '@/styles/appearance/qinglan-result.css'
@@ -42,6 +43,7 @@ export function ResultQinglan({
   timestampText,
   aiText,
   aiStatus,
+  aiPhase,
   aiError,
   hasCache,
   storageWarning,
@@ -261,7 +263,14 @@ export function ResultQinglan({
                 >
                   {hasText
                     ? '解读仍在继续，请稍候…'
-                    : '正在循着卦象，整理此刻的启示…'}
+                    : aiPhase === 'thinking'
+                      ? (
+                          <>
+                            正在推演卦象，正文稍后落笔…
+                            <AiThinkingHint />
+                          </>
+                        )
+                      : '正在循着卦象，整理此刻的启示…'}
                 </p>
               )}
 

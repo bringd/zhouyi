@@ -57,6 +57,38 @@ const cachedRecord: UserRecord = {
 };
 
 describe("ResultDisplay", () => {
+  it('shows a reasoning hint while the model is still thinking, then swaps to the text', async () => {
+    saveRecord(baseRecord)
+    let resolveGen: (value: { text: string; chunks: string[] }) => void = () => {}
+    mockedGenerate.mockImplementation(
+      (
+        _input: unknown,
+        _key: unknown,
+        _onChunk: (c: string) => void,
+        onThinking?: (delta: string) => void,
+      ) => {
+        // Reasoning streams before the first answer token.
+        onThinking?.('先看动爻')
+        return new Promise<{ text: string; chunks: string[] }>((resolve) => {
+          resolveGen = resolve
+        })
+      },
+    )
+    render(<MemoryRouter><ResultDisplay recordId={baseRecord.id} /></MemoryRouter>)
+    fireEvent.click(screen.getByRole('button', { name: '卦象详解' }))
+    expect(await screen.findByText(/正在推演卦象/)).toBeInTheDocument()
+    await act(async () => {
+      resolveGen({
+        text: '## 卦象概要\n独一无二的解读正文',
+        chunks: ['## 卦象概要\n独一无二的解读正文'],
+      })
+    })
+    await waitFor(() => {
+      expect(screen.queryByText(/正在推演卦象/)).not.toBeInTheDocument()
+    })
+    expect(screen.getByText(/独一无二的解读正文/)).toBeInTheDocument()
+  })
+
   it('keeps generated text visible and warns when its cache cannot be saved', async () => {
     saveRecord(baseRecord)
     mockedGenerate.mockResolvedValue({ text: '本次解读正文', chunks: ['本次解读正文'] })

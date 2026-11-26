@@ -172,16 +172,20 @@ ${input.question ? `【用户问题】${input.question}` : '（用户未提具�
  * old backend-proxy signature; it's silently ignored. Callers may pass
  * `null` or any string.
  *
- * @param input    The divination context
- * @param _apiKey  Ignored
- * @param onChunk  Optional streaming callback fired per text delta
- * @returns        The interpretation result
- * @throws         {AIError} with a stable `code` on any failure
+ * @param input       The divination context
+ * @param _apiKey     Ignored
+ * @param onChunk     Optional streaming callback fired per text delta
+ * @param onThinking  Optional callback fired per reasoning (thinking) delta.
+ *                    Reasoning models emit these before the first answer
+ *                    token, so the UI can show progress instead of a stall.
+ * @returns           The interpretation result
+ * @throws            {AIError} with a stable `code` on any failure
  */
 export async function generateInterpretation(
   input: AIInterpretationInput,
   _apiKey: string | null,
   onChunk?: (chunk: string) => void,
+  onThinking?: (delta: string) => void,
 ): Promise<AIInterpretationResult> {
   const config = getApiConfig()
   // Phase 1: BYOK UI is hidden. The proxy Function falls back to
@@ -327,7 +331,7 @@ export async function generateInterpretation(
 
           let parsed: {
             type?: string
-            delta?: { type?: string; text?: string }
+            delta?: { type?: string; text?: string; thinking?: string }
             message?: {
               usage?: { input_tokens?: number; output_tokens?: number }
             }
@@ -341,6 +345,14 @@ export async function generateInterpretation(
           }
 
           if (
+            parsed.type === 'content_block_delta' &&
+            parsed.delta?.type === 'thinking_delta' &&
+            typeof parsed.delta.thinking === 'string'
+          ) {
+            // Reasoning tokens never become interpretation text; they only
+            // drive the "still working" indicator in the result view.
+            onThinking?.(parsed.delta.thinking)
+          } else if (
             parsed.type === 'content_block_delta' &&
             parsed.delta?.type === 'text_delta' &&
             typeof parsed.delta.text === 'string'

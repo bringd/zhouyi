@@ -31,20 +31,24 @@
  *                          Default `deepseek-v4.1-flash`.
  * - `AI_PROXY_UPSTREAM`  — override the upstream URL.
  *                          Default `https://opencode.ai/zen/go/v1/messages`.
- * - `AI_ENABLE_THINKING` — set to `1`/`true` to let demo mode keep the
- *                          gateway's reasoning blocks. Off by default:
- *                          reasoning tokens are billed out of
- *                          `max_tokens`, and deepseek-v4.1-flash happily
- *                          burns the whole budget in thinking, leaving a
- *                          truncated (or empty) interpretation.
+ * - `AI_THINKING_BUDGET` — reasoning budget for demo mode. Default `1024`.
+ *                          A/B on the same reading showed the reasoning pass
+ *                          catches conditions the fast path glosses over
+ *                          (e.g. 「贞吉」要求守正), at the cost of a slower
+ *                          first token. Set to `0` (or `AI_ENABLE_THINKING=0`)
+ *                          to fall back to the non-reasoning path.
+ * - `AI_ENABLE_THINKING` — legacy off-switch (`0`/`false`/`off`/`no`).
+ *                          Any other value keeps the budget above.
  *
  * Demo-mode output budget
  * -----------------------
  * Reasoning models spend `max_tokens` on thinking *before* emitting the
- * six-section interpretation, so a 1024 budget can truncate it. Demo mode
- * therefore floors `max_tokens` at `DEFAULT_MAX_TOKENS` (2048) and, unless
- * `AI_ENABLE_THINKING` is set, disables thinking. BYOK requests are left
- * untouched — the caller's provider may not accept `thinking` at all.
+ * six-section interpretation, so a small budget truncates it (a 1024 budget
+ * with the gateway's default reasoning size produced an empty reading).
+ * Demo mode therefore floors `max_tokens` at `DEFAULT_MAX_TOKENS` (4096)
+ * and keeps it strictly above `budget_tokens`, which the upstream requires.
+ * BYOK requests are left untouched — the caller's provider may not accept
+ * `thinking` at all.
  *
  * Response headers (always present)
  * ---------------------------------
@@ -61,6 +65,7 @@ type Env = {
   AI_MODEL?: string;
   AI_PROXY_UPSTREAM?: string;
   AI_ENABLE_THINKING?: string;
+  AI_THINKING_BUDGET?: string;
 };
 
 interface CfContext {
@@ -82,6 +87,14 @@ const DEFAULT_MODEL = "deepseek-v4.1-flash";
  * billing follows the tokens actually generated (typically 500-900).
  */
 const DEFAULT_MAX_TOKENS = 4096;
+/**
+ * Default reasoning budget for demo mode. 1024 keeps the reading responsive
+ * (~18s to first token instead of 35s with the gateway default of 2724) while
+ * still letting the model check its own conclusion before writing.
+ */
+const DEFAULT_THINKING_BUDGET = 1024;
+/** Headroom kept between `budget_tokens` and `max_tokens` (upstream rule: budget < max). */
+const THINKING_HEADROOM = 2048;
 
 // Hop-by-hop headers that must NOT be forwarded per RFC 7230 §6.1.
 // Also strip Cloudflare-specific and host headers so the upstream
@@ -114,8 +127,18 @@ function resolveModel(env: Env): string {
   return pinned && pinned.length > 0 ? pinned : DEFAULT_MODEL;
 }
 
-function thinkingEnabled(env: Env): boolean {
-  return /^(1|true|yes|on)$/i.test(env.AI_ENABLE_THINKING?.trim() ?? "");
+/**
+ * Reasoning budget for demo mode, in tokens. `0` disables the reasoning block.
+ * `AI_ENABLE_THINKING=0|false|off|no` is a legacy off-switch; otherwise
+ * `AI_THINKING_BUDGET` wins and falls back to `DEFAULT_THINKING_BUDGET`.
+ */
+function resolveThinkingBudget(env: Env): number {
+  const flag = env.AI_ENABLE_THINKING?.trim().toLowerCase();
+  if (flag && /^(0|false|off|no)$/.test(flag)) return 0;
+  const raw = env.AI_THINKING_BUDGET?.trim();
+  if (!raw) return DEFAULT_THINKING_BUDGET;
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 }
 
 function copyHeadersFiltered(
@@ -131,15 +154,14 @@ function copyHeadersFiltered(
 }
 
 /**
- * Rewrite the JSON body for demo mode: pin `model`, floor `max_tokens`,
- * and disable reasoning unless the operator opted in. Anything we can't
- * parse is passed through untouched (never drop a request just to apply
- * server-side defaults).
+ * Rewrite the JSON body for demo mode: pin `model`, floor `max_tokens`, and
+ * set the reasoning budget. Anything we can't parse is passed through
+ * untouched (never drop a request just to apply server-side defaults).
  */
 function applyDemoBodyPolicy(
   raw: string,
   model: string,
-  allowThinking: boolean,
+  thinkingBudget: number,
 ): string {
   try {
     const parsed: unknown = JSON.parse(raw);
@@ -154,8 +176,17 @@ function applyDemoBodyPolicy(
       typeof body.max_tokens === "number" && Number.isFinite(body.max_tokens)
         ? body.max_tokens
         : 0;
-    body.max_tokens = Math.max(requested, DEFAULT_MAX_TOKENS);
-    if (!allowThinking) body.thinking = { type: "disabled" };
+    // Upstream requires budget_tokens < max_tokens, so the floor has to clear
+    // both the shared constant and the reasoning budget.
+    body.max_tokens = Math.max(
+      requested,
+      DEFAULT_MAX_TOKENS,
+      thinkingBudget + THINKING_HEADROOM,
+    );
+    body.thinking =
+      thinkingBudget > 0
+        ? { type: "enabled", budget_tokens: thinkingBudget }
+        : { type: "disabled" };
     return JSON.stringify(body);
   } catch {
     return raw;
@@ -214,13 +245,13 @@ const handler: PagesHandler = async (context) => {
     if (context.request.method !== "GET" && context.request.method !== "HEAD") {
       if (mode === "demo") {
         // Server-side generation policy: pin the model, guarantee enough
-        // output budget, and skip reasoning unless explicitly enabled.
+        // output budget, and set the reasoning budget.
         appliedModel = resolveModel(context.env);
         const rawBody = await context.request.text();
         init.body = applyDemoBodyPolicy(
           rawBody,
           appliedModel,
-          thinkingEnabled(context.env),
+          resolveThinkingBudget(context.env),
         );
       } else {
         init.body = context.request.body;

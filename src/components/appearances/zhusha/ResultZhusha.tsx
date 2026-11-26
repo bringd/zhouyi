@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom'
 import { YaoLineStack } from '@/components/hexagram/YaoLineStack'
 import { InterpretationRenderer } from '@/components/sections/InterpretationRenderer'
 import { Button } from '@/components/ui/Button'
+import { AiThinkingHint } from '@/components/ui/AiThinkingHint'
 import type { ResultAppearanceProps } from '@/components/appearances/shared/types'
 import { hexagramLineStates, hexagramLineTypes } from '@/lib/hexagramLines'
 import { ZhushaOverline } from './parts'
@@ -45,6 +46,7 @@ export function ResultZhusha({
   timestampText,
   aiText,
   aiStatus,
+  aiPhase,
   aiError,
   hasCache,
   storageWarning,
@@ -227,7 +229,14 @@ export function ResultZhusha({
                 <div className="zh-ai__box" role="status" aria-live="polite">
                   {hasText
                     ? '解读仍在继续，请稍候…'
-                    : '正在循着卦象，整理此刻的启示…'}
+                    : aiPhase === 'thinking'
+                      ? (
+                          <>
+                            正在推演卦象，正文稍后落笔…
+                            <AiThinkingHint />
+                          </>
+                        )
+                      : '正在循着卦象，整理此刻的启示…'}
                 </div>
               )}
 

@@ -19,9 +19,11 @@
  *   - Demo mode injects AI_DEMO_KEY.
  *   - Demo mode pins the model server-side (body.model → AI_MODEL or
  *     the built-in default `deepseek-v4.1-flash`), exposed as X-AI-Model.
- *   - Demo mode floors `max_tokens` at 4096 and disables reasoning unless
- *     `AI_ENABLE_THINKING` is set — otherwise thinking eats the budget and
- *     the interpretation's tail sections get truncated. BYOK is untouched.
+ *   - Demo mode floors `max_tokens` at 4096 and enables reasoning with a
+ *     1024-token budget (`AI_THINKING_BUDGET` overrides it, `0` disables) —
+ *     reasoning tokens are billed out of `max_tokens`, so the budget has to
+ *     be both bounded and strictly below the output ceiling. BYOK is
+ *     untouched.
  *   - Both modes ensure the OpenCode Go `x-opencode-session` header.
  *   - Demo mode without AI_DEMO_KEY returns 503.
  *   - BYOK always sets X-AI-Mode: byok; demo always sets X-AI-Mode: demo.
@@ -307,7 +309,7 @@ describe("functions/api/proxy/anthropic/v1/messages", () => {
     expect(res.headers.get("X-AI-Model")).toBe(DEFAULT_MODEL);
   });
 
-  it("demo: floors max_tokens at 4096 and disables thinking so the six sections fit", async () => {
+  it("demo: floors max_tokens at 4096 and enables reasoning with a 1024 budget", async () => {
     fetchSpy.mockResolvedValueOnce(upstreamOk());
 
     // A stale browser bundle still sends max_tokens: 1024 and no thinking flag.
@@ -323,9 +325,9 @@ describe("functions/api/proxy/anthropic/v1/messages", () => {
     const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
     const sentBody = JSON.parse(
       await new Response(init.body as BodyInit).text(),
-    ) as { max_tokens: number; thinking?: { type?: string } };
+    ) as { max_tokens: number; thinking?: { type?: string; budget_tokens?: number } };
     expect(sentBody.max_tokens).toBe(4096);
-    expect(sentBody.thinking).toEqual({ type: "disabled" });
+    expect(sentBody.thinking).toEqual({ type: "enabled", budget_tokens: 1024 });
   });
 
   it("demo: never lowers a caller-supplied max_tokens above the floor", async () => {
@@ -347,12 +349,32 @@ describe("functions/api/proxy/anthropic/v1/messages", () => {
     expect(sentBody.max_tokens).toBe(8192);
   });
 
-  it("demo: AI_ENABLE_THINKING=1 keeps the caller's reasoning settings", async () => {
+  it("demo: AI_THINKING_BUDGET overrides the reasoning budget and keeps max_tokens above it", async () => {
     fetchSpy.mockResolvedValueOnce(upstreamOk());
 
     await onRequest(
       makeContext({
-        env: { AI_DEMO_KEY: DEMO_KEY, AI_ENABLE_THINKING: "1" },
+        env: { AI_DEMO_KEY: DEMO_KEY, AI_THINKING_BUDGET: "3000" },
+        request: makeRequest({
+          body: '{"model":"minimax-m3","max_tokens":1024,"messages":[]}',
+        }),
+      }),
+    );
+
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    const sentBody = JSON.parse(
+      await new Response(init.body as BodyInit).text(),
+    ) as { max_tokens: number; thinking?: { type?: string; budget_tokens?: number } };
+    expect(sentBody.thinking).toEqual({ type: "enabled", budget_tokens: 3000 });
+    expect(sentBody.max_tokens).toBe(5048);
+  });
+
+  it("demo: AI_THINKING_BUDGET=0 disables reasoning", async () => {
+    fetchSpy.mockResolvedValueOnce(upstreamOk());
+
+    await onRequest(
+      makeContext({
+        env: { AI_DEMO_KEY: DEMO_KEY, AI_THINKING_BUDGET: "0" },
         request: makeRequest({
           body: '{"model":"minimax-m3","thinking":{"type":"enabled","budget_tokens":512},"messages":[]}',
         }),
@@ -362,8 +384,27 @@ describe("functions/api/proxy/anthropic/v1/messages", () => {
     const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
     const sentBody = JSON.parse(
       await new Response(init.body as BodyInit).text(),
-    ) as { thinking?: { type?: string; budget_tokens?: number } };
-    expect(sentBody.thinking).toEqual({ type: "enabled", budget_tokens: 512 });
+    ) as { thinking?: { type?: string } };
+    expect(sentBody.thinking).toEqual({ type: "disabled" });
+  });
+
+  it("demo: AI_ENABLE_THINKING=0 still disables reasoning (legacy switch)", async () => {
+    fetchSpy.mockResolvedValueOnce(upstreamOk());
+
+    await onRequest(
+      makeContext({
+        env: { AI_DEMO_KEY: DEMO_KEY, AI_ENABLE_THINKING: "0" },
+        request: makeRequest({
+          body: '{"model":"minimax-m3","messages":[]}',
+        }),
+      }),
+    );
+
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    const sentBody = JSON.parse(
+      await new Response(init.body as BodyInit).text(),
+    ) as { thinking?: { type?: string } };
+    expect(sentBody.thinking).toEqual({ type: "disabled" });
   });
 
   it("demo: AI_MODEL overrides the pinned default", async () => {

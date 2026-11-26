@@ -13,6 +13,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { AiThinkingHint } from '@/components/ui/AiThinkingHint'
 import { ResultHexagram } from '@/components/hexagram/ResultHexagram'
 import { InterpretationRenderer } from '@/components/sections/InterpretationRenderer'
 import '@/styles/appearance/yehang.css'
@@ -38,6 +39,7 @@ export function ResultYehang({
   timestampText,
   aiText,
   aiStatus,
+  aiPhase,
   aiError,
   hasCache,
   storageWarning,
@@ -181,8 +183,11 @@ export function ResultYehang({
                 <h3>
                   {hasText
                     ? '解读仍在继续，请稍候…'
-                    : '正在循着卦象，整理此刻的启示…'}
+                    : aiPhase === 'thinking'
+                      ? '正在推演卦象，正文稍后落笔…'
+                      : '正在循着卦象，整理此刻的启示…'}
                 </h3>
+                {aiPhase === 'thinking' && !hasText ? <AiThinkingHint /> : null}
                 <p>内容会随生成过程逐段出现，无需离开本页。</p>
               </div>
             ) : null}

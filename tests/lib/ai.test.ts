@@ -262,6 +262,30 @@ describe("ai: generateInterpretation (BYOK browser-direct)", () => {
     expect(chunks).toEqual(["乾", "卦"]);
   });
 
+  it("forwards reasoning deltas to onThinking without polluting the text", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      body: makeSSEStream([
+        'data: {"type":"content_block_delta","delta":{"type":"thinking_delta","thinking":"先看动爻"}}\n\n',
+        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"乾卦"}}\n\n',
+        'data: {"type":"message_stop"}\n\n',
+      ]),
+    }) as unknown as typeof fetch;
+
+    const thinking: string[] = [];
+    const chunks: string[] = [];
+    const result = await generateInterpretation(
+      sampleInput,
+      null,
+      (c) => chunks.push(c),
+      (t) => thinking.push(t),
+    );
+
+    expect(thinking).toEqual(["先看动爻"]);
+    expect(chunks).toEqual(["乾卦"]);
+    expect(result.text).toBe("乾卦");
+  });
+
   it("parses split SSE events (chunk boundary mid-event)", async () => {
     const encoder = new TextEncoder();
     const stream = new ReadableStream<Uint8Array>({

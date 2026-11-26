@@ -15,6 +15,36 @@
   border-width: 0;
 }
 
+/* 推理阶段的分段提示：视觉上轮换，读屏器只播报父容器的稳定文案 */
+.ai-thinking-hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8125rem;
+  color: var(--color-ink-light, #6b6257);
+  opacity: 0.85;
+}
+
+.ai-thinking-hint__text {
+  animation: ai-thinking-fade 0.9s ease-in-out;
+}
+
+@keyframes ai-thinking-fade {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-thinking-hint__text {
+    animation: none;
+  }
+}
+
 @layer base {
   html {
     font-size: 16px;

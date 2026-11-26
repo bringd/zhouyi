@@ -30,6 +30,9 @@ export function ResultDisplay({ recordId }: ResultDisplayProps) {
     record?.aiInterpretation ?? null
   )
   const [aiStatus, setAiStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [aiPhase, setAiPhase] = useState<'idle' | 'thinking' | 'streaming'>(
+    'idle'
+  )
   const [aiError, setAiError] = useState<string | null>(null)
   const [aiSaved, setAiSaved] = useState(Boolean(record?.aiInterpretation?.trim()))
   const [storageWarning, setStorageWarning] = useState<string | null>(null)
@@ -70,6 +73,7 @@ export function ResultDisplay({ recordId }: ResultDisplayProps) {
     setAiError(null)
     setStorageWarning(null)
     setAiStatus('loading')
+    setAiPhase('thinking')
     setAiText('')
     try {
       let accumulated = ''
@@ -83,11 +87,18 @@ export function ResultDisplay({ recordId }: ResultDisplayProps) {
         null,
         (chunk) => {
           accumulated += chunk
+          setAiPhase('streaming')
           setAiText(accumulated)
+        },
+        () => {
+          // Reasoning streamed first; keep the view in its "thinking" state
+          // so the placeholder can say what is actually happening.
+          setAiPhase((phase) => (phase === 'streaming' ? phase : 'thinking'))
         }
       )
       setAiText(result.text)
       setAiStatus('idle')
+      setAiPhase('idle')
       const updated: UserRecord = { ...record, aiInterpretation: result.text }
       setRecord(updated)
       const saved = saveRecord(updated)
@@ -139,6 +150,7 @@ export function ResultDisplay({ recordId }: ResultDisplayProps) {
       }
       setAiError(msg)
       setAiStatus('error')
+      setAiPhase('idle')
     }
   }
 
@@ -232,6 +244,7 @@ export function ResultDisplay({ recordId }: ResultDisplayProps) {
       timestampText={timestampText}
       aiText={aiText}
       aiStatus={aiStatus}
+      aiPhase={aiPhase}
       aiError={aiError}
       storageWarning={storageWarning}
       hasCache={hasCache}
