@@ -125,6 +125,42 @@ describe("ai: generateInterpretation (BYOK browser-direct)", () => {
     expect(init.headers).not.toHaveProperty("x-api-key");
   });
 
+  it("omits a stale x-api-key when hitting the same-origin proxy (server-pinned key)", async () => {
+    // Regression: a key left in localStorage by the old BYOK UI used to
+    // be forwarded to the proxy, which then switched to BYOK mode and
+    // got "Invalid credential" from the gateway → UI said 密钥无效.
+    setApiConfig({ apiKey: TEST_KEY, baseUrl: API_CONFIG_DEFAULTS.baseUrl });
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      body: makeSSEStream(['data: {"type":"message_stop"}\n\n']),
+    });
+    globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+    await generateInterpretation(sampleInput, null);
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(API_CONFIG_DEFAULTS.baseUrl);
+    expect(init.headers).not.toHaveProperty("x-api-key");
+  });
+
+  it("omits a stale x-api-key for a proxy URL saved on another origin", async () => {
+    // e.g. baseUrl persisted while browsing a *.pages.dev preview URL.
+    setApiConfig({
+      apiKey: TEST_KEY,
+      baseUrl: "https://abc123.orix-studio.pages.dev/api/proxy/anthropic/v1/messages",
+    });
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      body: makeSSEStream(['data: {"type":"message_stop"}\n\n']),
+    });
+    globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+    await generateInterpretation(sampleInput, null);
+
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(init.headers).not.toHaveProperty("x-api-key");
+  });
+
   it("isApiKeyConfigured mirrors localStorage state", () => {
     expect(isApiKeyConfigured()).toBe(true);
     clearApiConfig();
@@ -169,7 +205,7 @@ describe("ai: generateInterpretation (BYOK browser-direct)", () => {
     });
     const body = JSON.parse(init.body as string);
     expect(body.model).toBe(TEST_MODEL);
-    expect(body.max_tokens).toBe(1024);
+    expect(body.max_tokens).toBe(4096);
     expect(body.stream).toBe(true);
     expect(body.system).toContain("乾为天");
     expect(body.system).toContain("坤为地");

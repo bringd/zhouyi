@@ -23,7 +23,7 @@
  */
 
 import type { Hexagram } from '@/types'
-import { getApiConfig } from './apiConfig'
+import { API_CONFIG_DEFAULTS, getApiConfig } from './apiConfig'
 
 export interface AIInterpretationInput {
   mainHexagram: Hexagram
@@ -208,26 +208,38 @@ export async function generateInterpretation(
 
   let response: Response
   try {
-    // Build headers — only include x-api-key when the user has set
-    // one. When the key is empty, the proxy Function detects the
-    // missing header and serves the request from its server-side
-    // demo key + per-IP quota (X-AI-Mode: demo). Sending an empty
-    // x-api-key header would silently bypass that path and trigger
-    // 401 from upstream.
+    // Build headers — proxy requests are always server-keyed: the
+    // Pages Function injects AI_DEMO_KEY and pins the model, so the
+    // browser must NOT send a key there. A stale key left in
+    // localStorage from the old BYOK UI would otherwise flip the
+    // proxy into BYOK mode and get rejected by the gateway
+    // ("Invalid credential" → 'unauthorized' in the UI).
+    // Only send x-api-key when the user explicitly points baseUrl at
+    // some other upstream.
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'anthropic-version': ANTHROPIC_VERSION,
       [ANTHROPIC_BROWSER_HEADER]: 'true',
       Accept: 'text/event-stream',
     }
-    if (config.apiKey) headers['x-api-key'] = config.apiKey
+    // A stored baseUrl written on a different origin (preview domain,
+    // localhost variant) still ends with the proxy path — match the
+    // tail so those also count as "server-keyed".
+    const usesSameOriginProxy =
+      config.baseUrl === API_CONFIG_DEFAULTS.baseUrl ||
+      /\/api\/proxy\/anthropic\/v1\/messages$/.test(config.baseUrl)
+    if (config.apiKey && !usesSameOriginProxy) headers['x-api-key'] = config.apiKey
 
     response = await fetch(config.baseUrl, {
       method: 'POST',
       headers,
       body: JSON.stringify({
         model: config.model,
-        max_tokens: 1024,
+        // The six-section interpretation is ~700-900 chars (~1100-1400
+        // tokens). Reasoning models bill thinking out of this same budget,
+        // so 1024 truncated the tail sections (行动建议 / 风险提醒).
+        // 4096 is a ceiling, not a spend: the model stops when done.
+        max_tokens: 4096,
         stream: true,
         system: systemPrompt,
         messages: [{ role: 'user', content: '请按上述要求输出解读。' }],
